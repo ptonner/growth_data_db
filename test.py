@@ -3,7 +3,7 @@ from sqlalchemy import create_engine
 from sqlalchemy.exc import IntegrityError
 import models
 
-engine = create_engine("sqlite:///:memory:",echo=False)
+engine = create_engine("sqlite:///:memory:",echo=True)
 Session = sessionmaker(engine)
 session = Session()
 
@@ -29,4 +29,9 @@ try:
 except IntegrityError, e:
 	print "integrity error!"
 	session.rollback()
+	
+
+#import api
+#api.create_plate_data(plate)
+#api.metadata.create_all(engine)
 

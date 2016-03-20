@@ -97,6 +97,9 @@ class ChemicalQuantity(Base):
 	__table_args__ = (UniqueConstraint('well_id','chemical_id', name='_well_chemical_uc'),
                      )
 	
+	def parse(self,s):
+		value,_,chemical = s.split(" ")
+		return value == self.value and (chemical==self.chemical.name or chemical==self.chemical.abbreviation)
 	
 	def __repr__(self):
 		if self.type == "concentration":
