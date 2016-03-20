@@ -20,7 +20,7 @@ class Plate(Base):
 	project = relationship("Project", back_populates="plates")
 	
 	# no two plates in the same project can share a name
-	__table_args__ = (UniqueConstraint('name','plate_id', name='_name_project_uc'),
+	__table_args__ = (UniqueConstraint('name','project_id', name='_name_project_uc'),
                      )
 	
 	def __repr__(self):
@@ -33,22 +33,45 @@ class Well(Base):
 	plate = relationship("Plate", back_populates="wells")
 	number = Column(Integer)
 	quantities = relationship("ChemicalQuantity",back_populates="well")
+	design_values = relationship("DesignValue",back_populates="well")
 	
 	def __repr__(self):
 		return "%d, %s" % (self.number,self.plate.name) 
-	
-class DesignElement(Base):
-	__tablename__ = "design_element"
-	id = Column(Integer, primary_key=True)
 	
 class Design(Base):
 	__tablename__ = "designs"
 	id = Column(Integer, primary_key=True)
 	name = Column(String)
-	type = Column(Enum("str","int","float"))
+	type = Column(Enum("str","int","float",'bool'))
+	values = relationship("DesignValue",back_populates="design")
 	
 	def __repr__(self):
 		return "%s (%s)" % (self.name,self.type)
+		
+class DesignValue(Base):
+	__tablename__ = "design_element"
+	id = Column(Integer, primary_key=True)
+	design_id = Column(Integer,ForeignKey("designs.id"))
+	design = relationship("Design",back_populates="values")
+	well_id = Column(Integer,ForeignKey("wells.id"))
+	well = relationship("Well",back_populates="design_values")
+	value = Column(String)
+	
+	# each well should only have one value of any single design
+	__table_args__ = (UniqueConstraint('well_id','design_id', name='_well_design_uc'),)
+	
+	def get_value(self):
+		if self.design.type == 'str':
+			return str(self.value)
+		elif self.design.type == 'int':
+			return int(self.value)
+		elif self.design.type == 'float':
+			return float(self.value)
+		elif self.design.type == 'bool':
+			return bool(self.value)
+			
+	def __repr__(self):
+		return "%s %s" % (self.value,self.design.name)
 		
 class Chemical(Base):
 	__tablename__ = "chemicals"
