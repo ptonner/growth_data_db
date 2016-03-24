@@ -1,4 +1,4 @@
-from sqlalchemy import Table, Column, Integer, String, MetaData, ForeignKey, Float, or_, and_
+from sqlalchemy import Table, Column, Integer, String, Interval, MetaData, ForeignKey, Float, or_, and_
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 import models
@@ -16,7 +16,7 @@ def create_plate_from_dataframe(dataframe,plate_name,time_column=None,data_colum
 		time_column = 0
 		
 	if time_parse:
-		data.iloc[:,time_column] = time_parse(data.iloc[:,time_column])
+		dataframe.iloc[:,time_column] = time_parse(dataframe.iloc[:,time_column])
 	
 	if data_columns is None:
 		data_columns = range(dataframe.shape[1])
@@ -47,8 +47,9 @@ def create_plate_from_dataframe(dataframe,plate_name,time_column=None,data_colum
 def create_plate_data_table(plate):
 	well_numbers = [w.number for w in plate.wells]
 		
-	cols = [Column('id', Integer, primary_key=True), Column('time', Float)] + \
+	cols = [Column('id', Integer, primary_key=True), Column('time', Interval)] + \
 		[Column(str(wn), Float) for wn in well_numbers]
+		
 		
 	table = Table("_plate_data_%d"%plate.id,metadata,*cols)
 	metadata.create_all(engine)

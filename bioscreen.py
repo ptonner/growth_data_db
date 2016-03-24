@@ -10,7 +10,8 @@ def convert_time(time):
 
 def _convert_delta_to_hours(time,t0):
 		delta = time - t0
-		return 24*delta.days + float(delta.seconds)/3600
+		return delta
+		#return 24*delta.days + float(delta.seconds)/3600
 
 def _parse_time(t):
 	try:

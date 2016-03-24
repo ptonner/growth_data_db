@@ -1,5 +1,5 @@
 from sqlalchemy.exc import IntegrityError
-import models, api
+import models, api, bioscreen
 import pandas as pd
 
 project = models.Project(name="test")
@@ -31,4 +31,4 @@ except IntegrityError, e:
 api.add_experimental_design('test design','testing',well,design_type='str')
 
 data = pd.read_csv("data/20141221 H2O2 batch 3/20141221H2O2_batch3.csv")
-api.create_plate_from_dataframe(data,'pq_test',data_columns=range(2,data.shape[1]),useColumnsForNumber=True)
+api.create_plate_from_dataframe(data,'pq_test',data_columns=range(2,data.shape[1]),useColumnsForNumber=True,time_parse=bioscreen.convert_time)
