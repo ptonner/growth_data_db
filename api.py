@@ -11,6 +11,22 @@ models.Base.metadata.create_all(engine)
 metadata = MetaData()
 
 def create_plate_from_dataframe(dataframe,plate_name,time_column=None,data_columns=None,useColumnsForNumber=False,time_parse=None):
+	"""Build a plate from a dataframe.
+	
+	Create a plate from the provided dataframe, copying data into the associated data_table.
+	Specifics of which columns of the dataframe to use, for time and od, are optional arguments.
+	A function for converting the time column into the timedelta type is another optional argument.
+	
+	Args:
+		dataframe: Pandas dataframe to be copied into the database
+		plate_name: name for the new plate being created
+		time_column: integer index of column to use for time values
+		data_columns: array of integers to use as indices for OD data
+		useColumnsForNumber: if true, use the column names to specify the well number and column names in data_table
+		time_parse: function used to convert time column values into timedelta
+		
+	Returns:
+		(plate, wells, data_table): The newly created plate, its wells, and data_table with copied data from the dataframe."""
 	
 	if time_column is None:
 		time_column = 0
