@@ -15,6 +15,7 @@ class Plate(Base):
 	__tablename__ = "plates"
 	id = Column(Integer, primary_key=True)
 	name = Column(String)
+	data_table = Column(String)
 	wells = relationship("Well",back_populates="plate")
 	project_id = Column(Integer, ForeignKey('projects.id'))
 	project = relationship("Project", back_populates="plates")

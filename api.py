@@ -37,6 +37,10 @@ def create_plate_from_dataframe(dataframe,plate_name,time_column=None,data_colum
 	
 	table = create_plate_data_table(plate)
 	
+	plate.data_table = table.name
+	session.add(plate)
+	session.commit()
+	
 	column_names = [str(x) for x in data_columns]
 	if useColumnsForNumber:
 		column_names = [str(dataframe.columns[i]) for i in data_columns]
