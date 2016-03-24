@@ -41,7 +41,7 @@ class Well(Base):
 class Design(Base):
 	__tablename__ = "designs"
 	id = Column(Integer, primary_key=True)
-	name = Column(String)
+	name = Column(String,unique=True)
 	type = Column(Enum("str","int","float",'bool'))
 	values = relationship("DesignValue",back_populates="design")
 	
@@ -76,8 +76,8 @@ class DesignValue(Base):
 class Chemical(Base):
 	__tablename__ = "chemicals"
 	id = Column(Integer, primary_key=True)
-	name = Column(String)
-	abbreviation = Column(String)
+	name = Column(String,unique=True)
+	abbreviation = Column(String,unique=True)
 	quantities = relationship("ChemicalQuantity",back_populates="chemical")
 	
 	def __repr__(self):
