@@ -31,4 +31,6 @@ except IntegrityError, e:
 api.add_experimental_design('test design','testing',well,design_type='str')
 
 data = pd.read_csv("data/20141221 H2O2 batch 3/20141221H2O2_batch3.csv")
-api.create_plate_from_dataframe(data,'pq_test',data_columns=range(2,data.shape[1]),useColumnsForNumber=True,time_parse=bioscreen.convert_time)
+plate, wells, data_table = api.create_plate_from_dataframe(data,'pq_test',data_columns=range(2,data.shape[1]),useColumnsForNumber=True,time_parse=bioscreen.convert_time)
+
+api.update_designs(numbers=range(102,110),plate="pq_test",design_name="test",design_value="testing",design_type="str")

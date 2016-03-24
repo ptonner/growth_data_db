@@ -3,7 +3,7 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 import models
 
-engine = create_engine("sqlite:///:memory:",echo=True)
+engine = create_engine("sqlite:///:memory:",echo=False)
 Session = sessionmaker(engine)
 session = Session()
 
@@ -53,10 +53,6 @@ def create_plate_from_dataframe(dataframe,plate_name,time_column=None,data_colum
 	
 	table = create_plate_data_table(plate)
 	
-	plate.data_table = table.name
-	session.add(plate)
-	session.commit()
-	
 	column_names = [str(x) for x in data_columns]
 	if useColumnsForNumber:
 		column_names = [str(dataframe.columns[i]) for i in data_columns]
@@ -65,6 +61,11 @@ def create_plate_from_dataframe(dataframe,plate_name,time_column=None,data_colum
 	return plate,wells,table
 
 def create_plate_data_table(plate):
+	"""create a data_table for the provided plate, doing nothing if it already exists."""
+	
+	if not plate.data_table is None:
+		return metadata.tables[plate.data_table]
+	
 	well_numbers = [w.number for w in plate.wells]
 		
 	cols = [Column('id', Integer, primary_key=True), Column('time', Interval)] + \
@@ -73,6 +74,11 @@ def create_plate_data_table(plate):
 		
 	table = Table("_plate_data_%d"%plate.id,metadata,*cols)
 	metadata.create_all(engine)
+	
+	plate.data_table = table.name
+	session.add(plate)
+	session.commit()
+	
 	return table
 	
 def copy_plate_dataframe_to_table(data,table,data_columns,column_names):
@@ -84,6 +90,20 @@ def copy_plate_dataframe_to_table(data,table,data_columns,column_names):
 	for i in range(data.shape[0]):
 		newrow = dict([('time',data.iloc[i,0])] + [(cn,data.iloc[i,j]) for cn,j in zip(column_names,data_columns)])
 		conn.execute(ins,**newrow)
+		
+def update_designs(numbers=None,plate=None,project=None,design_name=None,design_value=None,design_type=None):
+	wells = session.query(models.Well)
+	
+	if numbers:
+		wells = wells.filter(models.Well.number.in_(numbers))
+	
+	if plate:
+		wells = wells.filter(models.Plate.name==plate)
+	if project:
+		wells = wells.wells.filter(models.Project.name==project)
+		
+	if design_name and design_value:
+		add_experimental_design(design_name,design_value,wells.all(),design_type=design_type)
 		
 def add_experimental_design(design_name,design_value,*args,**kwargs):
 	# check if design exists, create if needed
