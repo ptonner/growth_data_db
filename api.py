@@ -4,7 +4,8 @@ from sqlalchemy.orm import sessionmaker
 from sqlalchemy.exc import IntegrityError
 import models
 
-engine = create_engine("sqlite:///:memory:",echo=False)
+# engine = create_engine("sqlite:///:memory:",echo=False)
+engine = create_engine("sqlite:///growth.db",echo=False)
 Session = sessionmaker(engine)
 session = Session()
 
@@ -91,7 +92,7 @@ def copy_plate_dataframe_to_table(data,table,data_columns,column_names):
 		newrow = dict([('time',data.iloc[i,0])] + [(cn,data.iloc[i,j]) for cn,j in zip(column_names,data_columns)])
 		conn.execute(ins,**newrow)
 
-def _well_filter(numbers=None,plate=None,project=None):
+def _well_filter(numbers=None,plate=None,project=None,**kwargs):
 
 	wells = session.query(models.Well)
 
@@ -99,9 +100,13 @@ def _well_filter(numbers=None,plate=None,project=None):
 		wells = wells.filter(models.Well.number.in_(numbers))
 
 	if plate:
-		wells = wells.filter(models.Plate.name==plate)
+		if not isinstance(plate,list):
+			plate = [plate]
+		wells = wells.filter(models.Plate.name.in_(plate))
+
+		# wells = wells.filter(models.Plate.name==plate)
 	if project:
-		wells = wells.wells.filter(models.Project.name==project)
+		wells = wells.filter(models.Project.name==project)
 
 	return wells
 
@@ -160,15 +165,67 @@ def add_chemical(chemical_name,chemical_value,*args,**kwargs):
 				# print "integrity error!"
 				session.rollback()
 
-	# session.commit()
+def parse_metadata(meta,plate,project,designs=None,chemicals=None,number_column=None,strain_column=None,design_types=None,chemical_types=None):
+
+	if designs is None:
+		designs = []
+	if chemicals is None:
+		chemicals = []
+
+	if design_types is None:
+		design_types = {}
+	if chemical_types is None:
+		chemical_types = {}
+
+	if strain_column:
+		group_columns = designs+chemicals+[strain_column]
+	else:
+		group_columns = designs+chemicals
+
+	if number_column is None:
+		group = meta.groupby(group_columns)
+	else:
+		group = meta.groupby(group_columns+[number_column])
+
+	for g,temp in group:
+		if len(group_columns) == 1:
+			g = [g]
+		for ind,col in enumerate(group_columns):
+			if number_column is None:
+				numbers = temp.index.tolist()
+			else:
+				numbers = temp[number_column].tolist()
+
+			if col in designs:
+				_type=None
+				if col in design_types:
+					_type=design_types[col]
+				update_design(col,g[ind],numbers,plate,project,design_type=_type)
+			elif col in chemicals:
+				_type=None
+				if col in chemical_types:
+					_type=chemical_types[col]
+				update_chemical(col,g[ind],numbers,plate,project,chemical_type=_type)
+			elif col == strain_column:
+				raise NotImplemented("Strain parsing not implemented yet!")
+
 
 def search(**kwargs):
-	if 'plate' in kwargs:
-		plates = session.query(models.Plate).filter(models.Plate.name.in_(kwargs['plates']))
-		wells = session.query(models.Well).filter(model.Plate.id.in_(plates))
-	else:
-		plates = None
-		wells = session.query(models.Well)
+	# wells = session.query(models.Well)
+	# if 'plate' in kwargs:
+	#
+	# 	names = kwargs['plate']
+	# 	if not isinstance(names,list):
+	# 		names = [names]
+	#
+	# 	# plates = session.query(models.Plate).filter(models.Plate.name.in_(names))
+	# 	# wells = session.query(models.Well).filter(models.Plate.id.in_(plates))
+	# 	wells = wells.filter(models.Plate.name.in_(names))
+	# else:
+	# 	plates = None
+	# 	wells = session.query(models.Well)
+
+	wells = _well_filter(**kwargs)
 
 	for k,v in kwargs.iteritems():
 
