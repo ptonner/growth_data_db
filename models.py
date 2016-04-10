@@ -8,7 +8,7 @@ Base = declarative_base()
 class Project(Base):
 	__tablename__ = "projects"
 	id = Column(Integer, primary_key=True)
-	name = Column(String)
+	name = Column(String,unique=True)
 	plates = relationship("Plate",back_populates="project")
 
 class Plate(Base):

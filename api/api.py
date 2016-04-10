@@ -97,7 +97,7 @@ def _well_filter(numbers=None,plate=None,project=None,**kwargs):
 	wells = session.query(models.Well)
 
 	if numbers:
-		wells = wells.filter(models.Well.number.in_(numbers))
+		wells = wells.filter(models.Well.plate_number.in_(numbers))
 
 	if plate:
 		if not isinstance(plate,list):
