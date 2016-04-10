@@ -48,7 +48,7 @@ def create_plate_from_dataframe(dataframe,plate_name,time_column=None,data_colum
 	if useColumnsForNumber:
 		numbers = dataframe.columns[data_columns]
 
-	wells = [models.Well(plate=plate,number=n) for n in numbers]
+	wells = [models.Well(plate=plate,plate_number=n) for n in numbers]
 
 	session.add_all([plate]+wells)
 	session.commit()
@@ -68,7 +68,7 @@ def create_plate_data_table(plate):
 	if not plate.data_table is None:
 		return metadata.tables[plate.data_table]
 
-	well_numbers = [w.number for w in plate.wells]
+	well_numbers = [w.plate_number for w in plate.wells]
 
 	cols = [Column('id', Integer, primary_key=True), Column('time', Interval)] + \
 		[Column(str(wn), Float) for wn in well_numbers]
