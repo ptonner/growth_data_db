@@ -77,7 +77,7 @@ class Strain(Base):
 	__tablename__ = "strains"
 	id = Column(Integer, primary_key=True)
 	name = Column(String)
-	pubmed_id = Column(Integer)
+	taxon_id = Column(Integer)
 	parent_id = Column(Integer, ForeignKey('strains.id'))
 	children = relationship("Strain",
 			backref=backref('parent', remote_side=[id])

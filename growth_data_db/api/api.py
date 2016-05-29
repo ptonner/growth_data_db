@@ -110,10 +110,6 @@ def _well_filter(numbers=None,plate=None,project=None,**kwargs):
 
 	return wells
 
-def update_chemical(chemical_name,chemical_value,numbers=None,plate=None,project=None,chemical_type=None):
-	wells = _well_filter(numbers,plate,project)
-	add_chemical(chemical_name,chemical_type,*wells.all(),chemical_type=chemical_type)
-
 def update_design(design_name,design_value,numbers=None,plate=None,project=None,design_type=None):
 	wells = _well_filter(numbers,plate,project)
 	add_experimental_design(design_name,design_value,*wells.all(),design_type=design_type)
