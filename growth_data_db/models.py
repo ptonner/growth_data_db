@@ -21,8 +21,7 @@ class Plate(Base):
 	project = relationship("Project", back_populates="plates")
 
 	# no two plates in the same project can share a name
-	__table_args__ = (UniqueConstraint('name','project_id', name='_name_project_uc'),
-                     )
+	__table_args__ = (UniqueConstraint('name','project_id', name='_name_project_uc'),)
 
 	def __repr__(self):
 		return "Plate: %s" % self.name
@@ -73,11 +72,21 @@ class DesignValue(Base):
 	def __repr__(self):
 		return "%s %s" % (self.value,self.design.name)
 
+class Species(Base):
+	__tablename__ = "species"
+	id = Column(Integer, primary_key=True)
+	name = Column(String,unique=True)
+	taxon_id = Column(Integer,unique=True)
+
+	def __repr__(self):
+		return "%s" % self.name
+
 class Strain(Base):
 	__tablename__ = "strains"
 	id = Column(Integer, primary_key=True)
 	name = Column(String)
 	taxon_id = Column(Integer)
+	species_id = Column(Integer, ForeignKey("species.id"))
 	parent_id = Column(Integer, ForeignKey('strains.id'))
 	children = relationship("Strain",
 			backref=backref('parent', remote_side=[id])

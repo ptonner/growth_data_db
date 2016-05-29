@@ -1,4 +1,5 @@
-from .core import *
+from ..core import *
+import create
 
 from sqlalchemy import Table, Column, Integer, String, Interval, MetaData, ForeignKey, Float, or_, and_
 
@@ -32,7 +33,9 @@ def create_plate_from_dataframe(dataframe,plate_name,project_name,time_column=No
 
 	assert len(data_columns) + 1 <= dataframe.shape[1], 'too many columns specified!'
 
-	project = session.query(models.Project).filter(models.Project.name==project_name).one()
+	project = session.query(models.Project).filter(models.Project.name==project_name).one_or_none()
+	if project is None:
+		project = create.create(project={'name':project_name})
 
 	plate = models.Plate(name=plate_name,project=project)
 	session.add(plate)
