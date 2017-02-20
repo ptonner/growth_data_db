@@ -32,7 +32,7 @@ class Well(Base):
 	plate_id = Column(Integer, ForeignKey('plates.id'))
 	plate = relationship("Plate", back_populates="wells")
 	plate_number = Column(Integer)
-	design_values = relationship("DesignValue",back_populates="well")
+	design_values = relationship("ExperimentalDesign",back_populates="well")
 
 	def __repr__(self):
 		return "%d, %s" % (self.plate_number,self.plate.name)
@@ -42,13 +42,13 @@ class Design(Base):
 	id = Column(Integer, primary_key=True)
 	name = Column(String,unique=True)
 	type = Column(Enum("str","int","float",'bool'))
-	values = relationship("DesignValue",back_populates="design")
+	values = relationship("ExperimentalDesign",back_populates="design")
 
 	def __repr__(self):
 		return "%s (%s)" % (self.name,self.type)
 
-class DesignValue(Base):
-	__tablename__ = "design_element"
+class ExperimentalDesign(Base):
+	__tablename__ = "experimental_design"
 	id = Column(Integer, primary_key=True)
 	design_id = Column(Integer,ForeignKey("designs.id"))
 	design = relationship("Design",back_populates="values")
@@ -71,29 +71,3 @@ class DesignValue(Base):
 
 	def __repr__(self):
 		return "%s %s" % (self.value,self.design.name)
-
-class Species(Base):
-	__tablename__ = "species"
-	id = Column(Integer, primary_key=True)
-	name = Column(String,unique=True)
-	taxon_id = Column(Integer,unique=True)
-
-	def __repr__(self):
-		return "%s" % self.name
-
-class Strain(Base):
-	__tablename__ = "strains"
-	id = Column(Integer, primary_key=True)
-	name = Column(String)
-	taxon_id = Column(Integer)
-	species_id = Column(Integer, ForeignKey("species.id"))
-	parent_id = Column(Integer, ForeignKey('strains.id'))
-	children = relationship("Strain",
-			backref=backref('parent', remote_side=[id])
-		)
-
-	def __repr__(self):
-		if self.parent:
-			return "%s (%s)" % (self.name , self.parent.name)
-		else:
-			return "%s" % self.name

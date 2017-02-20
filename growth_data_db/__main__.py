@@ -1,7 +1,20 @@
 import argparse
+from models import Project, Plate, Well, Design, ExperimentalDesign
+from core import *
 
-def plate(args):
-    pass
+def Plate(args):
+
+    project = session.query(Project).filter(Project.name==args.project).one_or_none()
+    if project is None:
+        #project = create.create(project={'name':args.project})
+        raise ValueError("project %s does not exist"%args.project)
+
+    if args.create:
+        pass
+    if args.data:
+        pass
+    if args.experimentalDesign:
+        pass
 
 def Design(args):
     pass
@@ -14,16 +27,18 @@ parser.add_argument('project', type=str,
 
 subparsers = parser.add_subparsers(help='command to run')
 
+init = subparsers.add_parser('init', help='initialize a project')
+
 plate = subparsers.add_parser('plate', help='plate commands')
+plate.set_defaults(func=Plate)
 plate.add_argument('name',type=str,help='name of plate')
 plate.add_argument('--create', action='store_true', help='create this plate')
 plate.add_argument('--data', type=str, help='data file')
-plate.set_defaults(func=plate)
+plate.add_argument('--experimentalDesign', type=str, help='experimental design file')
 
 design = subparsers.add_parser('design', help='design commands')
 design.set_defaults(func=Design)
-design.add_argument('plate', help='plate this design belongs to')
-design.add_argument('file', help='file containing designs')
+design.add_argument('--file', help='file containing designs', type=str)
 
 args = parser.parse_args()
 args.func(args)
