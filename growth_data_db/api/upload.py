@@ -59,23 +59,23 @@ def create_plate_from_dataframe(dataframe,plate_name,project_name,time_column=No
 
 	return plate,wells,table
 
-def create_plate_data_table(plate):
+def create_plate_data_table(plate, core):
 	"""create a data_table for the provided plate, doing nothing if it already exists."""
 
 	if not plate.data_table is None:
-		return metadata.tables[plate.data_table]
+		return core.metadata.tables[plate.data_table]
 
 	well_numbers = [w.plate_number for w in plate.wells]
 
-	cols = [Column('id', Integer, primary_key=True), Column('time', Interval)] + \
+	cols = [Column('id', Integer, primary_key=True), Column('time', Float)] + \
 		[Column(str(wn), Float) for wn in well_numbers]
 
-	table = Table("_plate_data_%d"%plate.id,metadata,*cols)
-	metadata.create_all(engine)
+	table = Table("_plate_data_%d"%plate.id,core.metadata,*cols)
+	core.metadata.create_all(core.engine)
 
 	plate.data_table = table.name
-	session.add(plate)
-	session.commit()
+	core.session.add(plate)
+	core.session.commit()
 
 	return table
 

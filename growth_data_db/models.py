@@ -2,8 +2,10 @@ from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy import Column, Integer, String, Enum, Float
 from sqlalchemy import ForeignKey, UniqueConstraint
 from sqlalchemy.orm import relationship, backref
+from sqlalchemy import MetaData
 
 Base = declarative_base()
+metadata = MetaData()
 
 class Project(Base):
 	__tablename__ = "projects"
@@ -24,7 +26,7 @@ class Plate(Base):
 	__table_args__ = (UniqueConstraint('name','project_id', name='_name_project_uc'),)
 
 	def __repr__(self):
-		return "Plate: %s" % self.name
+		return "%s (%d)" % (self.name, len(self.wells))
 
 class Well(Base):
 	__tablename__ = "wells"
