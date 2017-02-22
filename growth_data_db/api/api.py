@@ -37,11 +37,11 @@ def update_design(design_name,design_value,numbers=None,plate=None,project=None,
 
 def add_experimental_design(core,design_name,design_value,*args,**kwargs):
 	# check if design exists, create if needed
-	design = session.query(models.Design).filter(models.Design.name==design_name).one_or_none()
+	design = core.session.query(models.Design).filter(models.Design.name==design_name).one_or_none()
 	if not design:
 		if not 'design_type' in kwargs:
 			logging.warning("design %s does not exist, and no design_type is specified to create a new one. using str as default"%design_name)
-			design_type=str
+			design_type='str'
 		else:
 			design_type = kwargs['design_type']
 

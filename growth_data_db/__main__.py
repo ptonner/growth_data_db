@@ -1,4 +1,5 @@
 import argparse, logging, core, api
+from core import PlateCreate
 import pandas as pd
 from models import Project, Plate, Well, Design, ExperimentalDesign, Base
 from sqlalchemy import Table, Column, Integer, String, Interval, MetaData, ForeignKey, Float, or_, and_
@@ -51,53 +52,51 @@ class PlateDelete(PlateCommand):
                 core.metadata.tables[self.plate.data_table].drop(core.engine)
             core.session.delete(self.plate)
 
-def PlateCreate(args):
-
-    project = core.session.query(Project).filter(Project.name==args.project).one_or_none()
-    if project is None:
-        logging.warning("creating new project %s"%args.project)
-        project = Project(name=args.project,plates=[])
-        core.session.add(project)
-
-    plate = core.session.query(Plate).filter(Plate.name==args.plate, Plate.project==project).one_or_none()
-    if not plate is None:
-        logging.error("plate named %s already exists in project %s!"%(args.plate, args.project))
-        return
-
-    plate = Plate(name=args.plate,project=project)
-    core.session.add(plate)
-    core.session.commit()
-
-    data = pd.read_csv(args.data)
-    meta = pd.read_csv(args.experimentalDesign)
-
-    data_columns = range(data.shape[1])
-    data_columns.remove(args.timeColumn)
-
-    wells = [Well(plate=plate,plate_number=n) for n in data_columns]
-    core.session.add_all(wells)
-    core.session.commit()
-
-    table = api.upload.create_plate_data_table(plate,core)
-    core.session.commit()
-
-    # copy in data
-    conn = core.engine.connect()
-    ins = table.insert()
-
-	# add each row to the table
-    for i in range(data.shape[0]):
-        newrow = dict([('time',data.iloc[i,0])] + [(str(j),data.iloc[i,j]) for j in data_columns])
-        conn.execute(ins,**newrow)
-
-    return
-
-    # add experimental designs
-    for c in meta.columns:
-        for u in meta[c].unique():
-            select = meta[c] == u
-            temp = [w for w,s in zip(wells, select.tolist()) if s]
-            api.add_experimental_design(core,c,u,*temp)
+# def PlateCreate(args):
+#
+#     project = core.session.query(Project).filter(Project.name==args.project).one_or_none()
+#     if project is None:
+#         logging.warning("creating new project %s"%args.project)
+#         project = Project(name=args.project,plates=[])
+#         core.session.add(project)
+#
+#     plate = core.session.query(Plate).filter(Plate.name==args.plate, Plate.project==project).one_or_none()
+#     if not plate is None:
+#         logging.error("plate named %s already exists in project %s!"%(args.plate, args.project))
+#         return
+#
+#     plate = Plate(name=args.plate,project=project)
+#     core.session.add(plate)
+#     core.session.commit()
+#
+#     data = pd.read_csv(args.data)
+#     meta = pd.read_csv(args.experimentalDesign)
+#
+#     data_columns = range(data.shape[1])
+#     data_columns.remove(args.timeColumn)
+#
+#     wells = [Well(plate=plate,plate_number=n) for n in data_columns]
+#     core.session.add_all(wells)
+#     core.session.commit()
+#
+#     table = api.upload.create_plate_data_table(plate,core)
+#     core.session.commit()
+#
+#     # copy in data
+#     conn = core.engine.connect()
+#     ins = table.insert()
+#
+# 	# add each row to the table
+#     for i in range(data.shape[0]):
+#         newrow = dict([('time',data.iloc[i,0])] + [(str(j),data.iloc[i,j]) for j in data_columns])
+#         conn.execute(ins,**newrow)
+#
+#     # add experimental designs
+#     for c in meta.columns:
+#         for u in meta[c].unique():
+#             select = meta[c] == u
+#             temp = [w for w,s in zip(wells, select.tolist()) if s]
+#             api.add_experimental_design(core,c,u,*temp)
 
 def Design(args):
     pass
@@ -131,7 +130,8 @@ plate.add_argument('plate', help='name of the plate')
 plateSubparsers = plate.add_subparsers(help='plate sub-commands')
 
 plateCreate = plateSubparsers.add_parser('create', help='create new plate')
-plateCreate.set_defaults(func=PlateCreate)
+plateCreate.set_defaults(func=lambda x: PlateCreate(core, x.project, x.plate, x.data, x.experimentalDesign, createIfMissing=True).run())
+# plateCreate.set_defaults(func=PlateCreate)
 # plateCreate.add_argument('name',type=str,help='name of plate')
 plateCreate.add_argument("data", help='data file')
 plateCreate.add_argument("experimentalDesign", help='experimental design file')
