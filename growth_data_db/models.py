@@ -43,6 +43,7 @@ class Design(Base):
 	__tablename__ = "designs"
 	id = Column(Integer, primary_key=True)
 	name = Column(String,unique=True)
+	description = Column(String,)
 	type = Column(Enum("str","int","float",'bool'))
 	values = relationship("ExperimentalDesign",back_populates="design")
 

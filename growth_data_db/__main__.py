@@ -47,6 +47,8 @@ class PlateDelete(PlateCommand):
 
     def _run(self):
         if not self.plate is None:
+            if not self.plate.data_table is None:
+                core.metadata.tables[self.plate.data_table].drop(core.engine)
             core.session.delete(self.plate)
 
 def PlateCreate(args):
@@ -67,6 +69,7 @@ def PlateCreate(args):
     core.session.commit()
 
     data = pd.read_csv(args.data)
+    meta = pd.read_csv(args.experimentalDesign)
 
     data_columns = range(data.shape[1])
     data_columns.remove(args.timeColumn)
@@ -86,6 +89,15 @@ def PlateCreate(args):
     for i in range(data.shape[0]):
         newrow = dict([('time',data.iloc[i,0])] + [(str(j),data.iloc[i,j]) for j in data_columns])
         conn.execute(ins,**newrow)
+
+    return
+
+    # add experimental designs
+    for c in meta.columns:
+        for u in meta[c].unique():
+            select = meta[c] == u
+            temp = [w for w,s in zip(wells, select.tolist()) if s]
+            api.add_experimental_design(core,c,u,*temp)
 
 def Design(args):
     pass
