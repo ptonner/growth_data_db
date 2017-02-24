@@ -1,5 +1,5 @@
 import argparse, logging, core, api
-from core import PlateCreate
+from core.operation import PlateCreate, ProjectOperation
 import pandas as pd
 from models import Project, Plate, Well, Design, ExperimentalDesign, Base
 from sqlalchemy import Table, Column, Integer, String, Interval, MetaData, ForeignKey, Float, or_, and_
@@ -101,13 +101,8 @@ class PlateDelete(PlateCommand):
 def Design(args):
     pass
 
-
-"""
-main
-    plate
-        create
-    design
-"""
+#############
+# Parsing
 
 parser = argparse.ArgumentParser(prog='growthdatadb',description='Growth data database management in Python.')
 parser.add_argument('database', type=str,
@@ -120,43 +115,44 @@ parser.add_argument("--commit", action='store_true')
 subparsers = parser.add_subparsers(help='command to run')
 
 init = subparsers.add_parser('init', help='initialize a project')
-init.set_defaults(func=Init)
+# init.set_defaults(func=Init)
+init.set_defaults(func = lambda x: ProjectOperation.fromArgs(core, x, createIfMissing=True))
+_list = subparsers.add_parser('list', help='list plates in a project')
+_list.set_defaults(func=ProjectList)
 
-init = subparsers.add_parser('list', help='list plates in a project')
-init.set_defaults(func=ProjectList)
-
+# Plates
 plate = subparsers.add_parser('plate', help='plate commands')
 plate.add_argument('plate', help='name of the plate')
 plateSubparsers = plate.add_subparsers(help='plate sub-commands')
 
+#   create
+
 plateCreate = plateSubparsers.add_parser('create', help='create new plate')
-plateCreate.set_defaults(func=lambda x: PlateCreate(core, x.project, x.plate, x.data, x.experimentalDesign, createIfMissing=True).run())
-# plateCreate.set_defaults(func=PlateCreate)
-# plateCreate.add_argument('name',type=str,help='name of plate')
+plateCreate.set_defaults(func=lambda x: PlateCreate.fromArgs(core, x, createIfMissing=True).run())
 plateCreate.add_argument("data", help='data file')
 plateCreate.add_argument("experimentalDesign", help='experimental design file')
 plateCreate.add_argument("--timeColumn",type=int,default=0)
 
+#   delete
+
 plateDelete = plateSubparsers.add_parser('delete', help='remove a plate')
 plateDelete.set_defaults(func=lambda x: PlateDelete(x).run())
 
-
-# plate.add_argument('--create', action='store_true', help='create this plate')
-# plate.add_argument('--data', type=str, help='data file')
-# plate.add_argument('--experimentalDesign', type=str, help='experimental design file')
+# Design
 
 design = subparsers.add_parser('design', help='design commands')
 design.set_defaults(func=Design)
 design.add_argument('--file', help='file containing designs', type=str)
+designSubparsers = plate.add_subparsers(help='design sub-commands')
+
+#   list
+
+#############
+
+
+# run command
 
 args = parser.parse_args()
-
-# engine = create_engine("sqlite:///%s"%args.database,echo=False)
-# Session = sessionmaker(engine)
-# session = Session()
-#
-# Base.metadata.create_all(engine)
-# metadata = MetaData()
 core = core.Core(args.database)
 
 if args.verbose:

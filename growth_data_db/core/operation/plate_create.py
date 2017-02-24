@@ -1,10 +1,12 @@
 from operation import PlateOperation
-from ..models import Plate, Well
-from .. import api
+from ...models import Plate, Well
+from ... import api
 import logging
 import pandas as pd
 
 class PlateCreate(PlateOperation):
+
+    argsKwargs = PlateOperation.argsKwargs + [('data', None), ('experimentalDesign', None), ('timeColumn', None)]
 
     def __init__(self,core, project, plate, data, experimentalDesign, timeColumn=0, createIfMissing=False):
         PlateOperation.__init__(self, core, project, plate, createIfMissing)

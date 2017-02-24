@@ -15,6 +15,7 @@ from .. import models
 # metadata = MetaData()
 
 class Core(object):
+    """A core object, holding necessary references to database (via sqlalchemy)"""
 
     def __init__(self, db):
         self.engine = create_engine("sqlite:///%s"%db,echo=False)
