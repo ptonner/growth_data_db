@@ -14,4 +14,4 @@ class DesignList(Operation):
     def _run(self):
 
         for d in self.designs:
-            print d
+            print d, [v.value for v in d.values]

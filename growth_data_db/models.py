@@ -7,11 +7,11 @@ from sqlalchemy import MetaData
 Base = declarative_base()
 metadata = MetaData()
 
-class Project(Base):
-	__tablename__ = "projects"
-	id = Column(Integer, primary_key=True)
-	name = Column(String,unique=True)
-	plates = relationship("Plate",back_populates="project")
+# class Project(Base):
+# 	__tablename__ = "projects"
+# 	id = Column(Integer, primary_key=True)
+# 	name = Column(String,unique=True)
+# 	plates = relationship("Plate",back_populates="project")
 
 class Plate(Base):
 	__tablename__ = "plates"
@@ -19,11 +19,11 @@ class Plate(Base):
 	name = Column(String)
 	data_table = Column(String)
 	wells = relationship("Well",back_populates="plate")
-	project_id = Column(Integer, ForeignKey('projects.id'))
-	project = relationship("Project", back_populates="plates")
+	# project_id = Column(Integer, ForeignKey('projects.id'))
+	# project = relationship("Project", back_populates="plates")
 
 	# no two plates in the same project can share a name
-	__table_args__ = (UniqueConstraint('name','project_id', name='_name_project_uc'),)
+	# __table_args__ = (UniqueConstraint('name','project_id', name='_name_project_uc'),)
 
 	def __repr__(self):
 		return "%s (%d)" % (self.name, len(self.wells))

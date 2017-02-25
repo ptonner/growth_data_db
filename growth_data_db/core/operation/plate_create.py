@@ -8,8 +8,8 @@ class PlateCreate(PlateOperation):
 
     argsKwargs = PlateOperation.argsKwargs + [('data', None), ('experimentalDesign', None), ('timeColumn', None)]
 
-    def __init__(self,core, project, plate, data, experimentalDesign, timeColumn=0, createIfMissing=False):
-        PlateOperation.__init__(self, core, project, plate, createIfMissing)
+    def __init__(self,core, plate, data, experimentalDesign, timeColumn=0, createIfMissing=False):
+        PlateOperation.__init__(self, core, plate, createIfMissing)
         self.dataFile = data
         self.experimentalDesignFile = experimentalDesign
         self.timeColumn = timeColumn
@@ -20,7 +20,7 @@ class PlateCreate(PlateOperation):
             logging.error("plate named %s already exists in project %s!"%(self.plate, self.project))
             return
 
-        self.plate = Plate(name=self.plateName,project=self.project)
+        self.plate = Plate(name=self.plateName)
         self.core.session.add(self.plate)
         self.core.session.commit()
 

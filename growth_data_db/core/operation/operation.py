@@ -1,5 +1,5 @@
 import logging
-from ...models import Project, Plate, Well, Design, ExperimentalDesign
+from ...models import Plate, Well, Design, ExperimentalDesign
 
 class Operation(object):
     """General operation object of the system."""
@@ -33,32 +33,32 @@ class Operation(object):
     def _run(self):
         raise NotImplemented()
 
-class ProjectOperation(Operation):
-    """Any operation specifying a project."""
+# class ProjectOperation(Operation):
+#     """Any operation specifying a project."""
+#
+#     argsKwargs = [('project', None)]
+#
+#     def __init__(self,core,project,createIfMissing=False):
+#         Operation.__init__(self,core)
+#
+#         self.projectName = project
+#
+#         self.project = self.core.session.query(Project).filter(Project.name==project).one_or_none()
+#         if self.project is None:
+#             if createIfMissing:
+#                 logging.warning("creating new project %s"%project)
+#                 self.project = Project(name=project,plates=[])
+#                 self.core.session.add(self.project)
+#             else:
+#                 raise ValueError("no project named %s!"%project)
 
-    argsKwargs = [('project', None)]
-
-    def __init__(self,core,project,createIfMissing=False):
-        Operation.__init__(self,core)
-
-        self.projectName = project
-
-        self.project = self.core.session.query(Project).filter(Project.name==project).one_or_none()
-        if self.project is None:
-            if createIfMissing:
-                logging.warning("creating new project %s"%project)
-                self.project = Project(name=project,plates=[])
-                self.core.session.add(self.project)
-            else:
-                raise ValueError("no project named %s!"%project)
-
-class PlateOperation(ProjectOperation):
+class PlateOperation(Operation):
     """Any operation specifying a plate (and by necessity its project)."""
 
-    argsKwargs = ProjectOperation.argsKwargs + [('plate', None)]
+    argsKwargs = [('plate', None)]
 
-    def __init__(self, core, project, plate, createIfMissing=False):
-        ProjectOperation.__init__(self, core, project, createIfMissing)
+    def __init__(self, core, plate, createIfMissing=False):
+        Operation.__init__(self, core)
 
         self.plateName = plate
-        self.plate = self.core.session.query(Plate).filter(Plate.name==plate, Plate.project==self.project).one_or_none()
+        self.plate = self.core.session.query(Plate).filter(Plate.name==plate).one_or_none()
