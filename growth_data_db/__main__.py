@@ -1,5 +1,5 @@
 import argparse, logging, core, api
-from core.operation import PlateCreate, ProjectOperation
+from core.operation import PlateCreate, ProjectOperation, DesignList
 import pandas as pd
 from models import Project, Plate, Well, Design, ExperimentalDesign, Base
 from sqlalchemy import Table, Column, Integer, String, Interval, MetaData, ForeignKey, Float, or_, and_
@@ -107,25 +107,32 @@ def Design(args):
 parser = argparse.ArgumentParser(prog='growthdatadb',description='Growth data database management in Python.')
 parser.add_argument('database', type=str,
                     help='location of the databse')
-parser.add_argument('project', type=str,
-                    help='project in the database')
 parser.add_argument("--verbose", action='store_true')
 parser.add_argument("--commit", action='store_true')
 
 subparsers = parser.add_subparsers(help='command to run')
 
-init = subparsers.add_parser('init', help='initialize a project')
-# init.set_defaults(func=Init)
+# Project
+project = subparsers.add_parser('project',help="project commands")
+project.add_argument('project', type=str,
+                    help='project in the database')
+projectSubparsers = project.add_subparsers(help="project sub-commands")
+
+#   init
+
+init = projectSubparsers.add_parser('init', help='initialize a project')
 init.set_defaults(func = lambda x: ProjectOperation.fromArgs(core, x, createIfMissing=True))
-_list = subparsers.add_parser('list', help='list plates in a project')
+
+#   list
+_list = projectSubparsers.add_parser('list', help='list plates in a project')
 _list.set_defaults(func=ProjectList)
 
-# Plates
-plate = subparsers.add_parser('plate', help='plate commands')
+#   Plates
+plate = projectSubparsers.add_parser('plate', help='plate commands')
 plate.add_argument('plate', help='name of the plate')
 plateSubparsers = plate.add_subparsers(help='plate sub-commands')
 
-#   create
+#       create
 
 plateCreate = plateSubparsers.add_parser('create', help='create new plate')
 plateCreate.set_defaults(func=lambda x: PlateCreate.fromArgs(core, x, createIfMissing=True).run())
@@ -133,7 +140,7 @@ plateCreate.add_argument("data", help='data file')
 plateCreate.add_argument("experimentalDesign", help='experimental design file')
 plateCreate.add_argument("--timeColumn",type=int,default=0)
 
-#   delete
+#       delete
 
 plateDelete = plateSubparsers.add_parser('delete', help='remove a plate')
 plateDelete.set_defaults(func=lambda x: PlateDelete(x).run())
@@ -141,11 +148,13 @@ plateDelete.set_defaults(func=lambda x: PlateDelete(x).run())
 # Design
 
 design = subparsers.add_parser('design', help='design commands')
-design.set_defaults(func=Design)
-design.add_argument('--file', help='file containing designs', type=str)
-designSubparsers = plate.add_subparsers(help='design sub-commands')
+# design.add_argument('--file', help='file containing designs', type=str)
+designSubparsers = design.add_subparsers(help='design sub-commands')
 
 #   list
+
+designList = designSubparsers.add_parser("list", help='list designs')
+designList.set_defaults(func=lambda x: DesignList.fromArgs(core, x).run())
 
 #############
 
