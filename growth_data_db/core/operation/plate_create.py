@@ -17,7 +17,7 @@ class PlateCreate(PlateOperation):
     def _run(self):
 
         if not self.plate is None:
-            logging.error("plate named %s already exists in project %s!"%(self.plate, self.project))
+            logging.error("plate named %s already exists%s!"%(self.plate))
             return
 
         self.plate = Plate(name=self.plateName)

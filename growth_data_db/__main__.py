@@ -1,5 +1,5 @@
 import argparse, logging, core, api
-from core.operation import PlateCreate, DesignList
+from core.operation import PlateCreate, DesignList, DesignSetType
 import pandas as pd
 from models import Plate, Well, Design, ExperimentalDesign, Base
 from sqlalchemy import Table, Column, Integer, String, Interval, MetaData, ForeignKey, Float, or_, and_
@@ -106,6 +106,13 @@ designSubparsers = design.add_subparsers(help='design sub-commands')
 
 designList = designSubparsers.add_parser("list", help='list designs')
 designList.set_defaults(func=lambda x: DesignList.fromArgs(core, x).run())
+
+#   setType
+
+designSetType = designSubparsers.add_parser("setType", help = 'set design type')
+designSetType.add_argument("design")
+designSetType.add_argument("type")
+designSetType.set_defaults(func=lambda x: DesignSetType.fromArgs(core,x).run())
 
 #############
 

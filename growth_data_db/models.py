@@ -1,6 +1,6 @@
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy import Column, Integer, String, Enum, Float
-from sqlalchemy import ForeignKey, UniqueConstraint
+from sqlalchemy import ForeignKey, UniqueConstraint, Table, PrimaryKeyConstraint
 from sqlalchemy.orm import relationship, backref
 from sqlalchemy import MetaData
 
@@ -28,13 +28,24 @@ class Plate(Base):
 	def __repr__(self):
 		return "%s (%d)" % (self.name, len(self.wells))
 
+well_experimental_design = Table('well_experimental_design', Base.metadata,
+    Column('well_id', Integer, ForeignKey('wells.id')),
+    Column('ed_id', Integer, ForeignKey('experimental_design.id')),
+	PrimaryKeyConstraint('well_id', 'ed_id')
+)
+
 class Well(Base):
 	__tablename__ = "wells"
 	id = Column(Integer, primary_key=True)
 	plate_id = Column(Integer, ForeignKey('plates.id'))
 	plate = relationship("Plate", back_populates="wells")
 	plate_number = Column(Integer)
-	design_values = relationship("ExperimentalDesign",back_populates="well")
+	# design_values = relationship("ExperimentalDesign",back_populates="well")
+
+	experimentalDesigns = relationship(
+        "ExperimentalDesign",
+        secondary=well_experimental_design,
+        back_populates="wells")
 
 	def __repr__(self):
 		return "%d, %s" % (self.plate_number,self.plate.name)
@@ -55,12 +66,18 @@ class ExperimentalDesign(Base):
 	id = Column(Integer, primary_key=True)
 	design_id = Column(Integer,ForeignKey("designs.id"))
 	design = relationship("Design",back_populates="values")
-	well_id = Column(Integer,ForeignKey("wells.id"))
-	well = relationship("Well",back_populates="design_values")
+	# well_id = Column(Integer,ForeignKey("wells.id"))
+	# well = relationship("Well",back_populates="design_values")
 	value = Column(String)
 
+	wells = relationship(
+        "Well",
+        secondary=well_experimental_design,
+        back_populates="experimentalDesigns")
+
+
 	# each well should only have one value of any single design
-	__table_args__ = (UniqueConstraint('well_id','design_id', name='_well_design_uc'),)
+	# __table_args__ = (UniqueConstraint('well_id','design_id', name='_well_design_uc'),)
 
 	def get_value(self):
 		if self.design.type == 'str':
@@ -74,3 +91,21 @@ class ExperimentalDesign(Base):
 
 	def __repr__(self):
 		return "%s %s" % (self.value,self.design.name)
+
+
+
+# class Parent(Base):
+#     __tablename__ = 'left'
+#     id = Column(Integer, primary_key=True)
+#     children = relationship(
+#         "Child",
+#         secondary=association_table,
+#         back_populates="parents")
+
+# class Child(Base):
+#     __tablename__ = 'right'
+#     id = Column(Integer, primary_key=True)
+#     parents = relationship(
+#         "Parent",
+#         secondary=association_table,
+#         back_populates="children")

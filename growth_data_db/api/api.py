@@ -48,12 +48,18 @@ def add_experimental_design(core,design_name,design_value,*args,**kwargs):
 		design = models.Design(name=design_name,type=design_type)
 		core.session.add(design)
 
+	experimentalDesign = core.session.query(models.ExperimentalDesign).filter(models.ExperimentalDesign.design==design,models.ExperimentalDesign.value==design_value).one_or_none()
+
+	if experimentalDesign is None:
+		experimentalDesign = models.ExperimentalDesign(design=design, value=design_value)
+
 	# for each well
 	# check if design value exists, create if needed
 	for well in args:
 		if isinstance(well,models.Well):
-			dv = models.ExperimentalDesign(design=design,well=well,value=design_value)
-			core.session.add(dv)
+			# dv = models.ExperimentalDesign(design=design,well=well,value=design_value)
+			well.experimentalDesigns.append(experimentalDesign)
+			# core.session.add(dv)
 
 	core.session.commit()
 
