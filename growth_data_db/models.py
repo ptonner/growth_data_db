@@ -90,7 +90,7 @@ class ExperimentalDesign(Base):
 			return bool(self.value)
 
 	def __repr__(self):
-		return "%s %s" % (self.value,self.design.name)
+		return "%s(%s)" % (self.design.name, self.value)
 
 
 

@@ -1,3 +1,4 @@
 from operation import Operation, PlateOperation
 from plate_create import PlateCreate
 from design import DesignList, DesignSetType
+from search import SearchOperation

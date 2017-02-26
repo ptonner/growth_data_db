@@ -51,6 +51,7 @@ def add_experimental_design(core,design_name,design_value,*args,**kwargs):
 	experimentalDesign = core.session.query(models.ExperimentalDesign).filter(models.ExperimentalDesign.design==design,models.ExperimentalDesign.value==design_value).one_or_none()
 
 	if experimentalDesign is None:
+		logging.warning("ExperimentalDesign %s=%s does not exist, creating one"%(design_name, design_value))
 		experimentalDesign = models.ExperimentalDesign(design=design, value=design_value)
 
 	# for each well
