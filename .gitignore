@@ -1,3 +1,6 @@
 *.pyc
 *~
 build/
+data
+examples
+popmachine.egg-info
