@@ -7,23 +7,12 @@ from sqlalchemy import MetaData
 Base = declarative_base()
 metadata = MetaData()
 
-# class Project(Base):
-# 	__tablename__ = "projects"
-# 	id = Column(Integer, primary_key=True)
-# 	name = Column(String,unique=True)
-# 	plates = relationship("Plate",back_populates="project")
-
 class Plate(Base):
 	__tablename__ = "plates"
 	id = Column(Integer, primary_key=True)
 	name = Column(String)
 	data_table = Column(String)
-	wells = relationship("Well",back_populates="plate")
-	# project_id = Column(Integer, ForeignKey('projects.id'))
-	# project = relationship("Project", back_populates="plates")
-
-	# no two plates in the same project can share a name
-	# __table_args__ = (UniqueConstraint('name','project_id', name='_name_project_uc'),)
+	wells = relationship("Well",back_populates="plate", cascade="all, delete, delete-orphan")
 
 	def __repr__(self):
 		return "%s (%d)" % (self.name, len(self.wells))
@@ -61,6 +50,16 @@ class Design(Base):
 	def __repr__(self):
 		return "%s (%s)" % (self.name,self.type)
 
+	def value(self, value):
+		if self.type == 'str':
+			return str(value)
+		elif self.type == 'int':
+			return int(value)
+		elif self.type == 'float':
+			return float(value)
+		elif self.type == 'bool':
+			return bool(value)
+
 class ExperimentalDesign(Base):
 	__tablename__ = "experimental_design"
 	id = Column(Integer, primary_key=True)
@@ -80,14 +79,7 @@ class ExperimentalDesign(Base):
 	# __table_args__ = (UniqueConstraint('well_id','design_id', name='_well_design_uc'),)
 
 	def get_value(self):
-		if self.design.type == 'str':
-			return str(self.value)
-		elif self.design.type == 'int':
-			return int(self.value)
-		elif self.design.type == 'float':
-			return float(self.value)
-		elif self.design.type == 'bool':
-			return bool(self.value)
+		return self.design.value(self.value)
 
 	def __repr__(self):
 		return "%s(%s)" % (self.design.name, self.value)

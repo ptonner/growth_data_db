@@ -19,18 +19,18 @@ class SearchOperation(Operation):
         if len(designs) > 0:
             for d, v in zip(designs, self.values):
 
-                if len(v)>0:
-                    design = self.core.session.query(Design).filter(Design.name==d).one_or_none()
+                design = self.core.session.query(Design).filter(Design.name==d).one_or_none()
+
+                if not design is None and len(v)>0:
                     self.experimentalDesigns[d] = self.core.session.query(ExperimentalDesign)
-                    self.experimentalDesigns[d] = self.experimentalDesigns[d].filter(ExperimentalDesign.design_id==design.id)
+                    self.experimentalDesigns[d] = \
+                        self.experimentalDesigns[d].filter(ExperimentalDesign.design_id==design.id)
                     self.experimentalDesigns[d] = self.experimentalDesigns[d].filter(ExperimentalDesign.value.in_(v))
                 else:
                     self.experimentalDesigns[d] = []
 
         self.wells = {}
         for c in self.combinations:
-
-            # print c
 
             self.wells[c] = self.core.session.query(Well)
 
@@ -48,7 +48,6 @@ class SearchOperation(Operation):
             if self.wells[k] is None:
                 del self.wells[k]
                 continue
-            print k
 
 
     def _run(self):
