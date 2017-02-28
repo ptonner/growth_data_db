@@ -33,24 +33,6 @@ class Operation(object):
     def _run(self):
         raise NotImplemented()
 
-# class ProjectOperation(Operation):
-#     """Any operation specifying a project."""
-#
-#     argsKwargs = [('project', None)]
-#
-#     def __init__(self,core,project,createIfMissing=False):
-#         Operation.__init__(self,core)
-#
-#         self.projectName = project
-#
-#         self.project = self.core.session.query(Project).filter(Project.name==project).one_or_none()
-#         if self.project is None:
-#             if createIfMissing:
-#                 logging.warning("creating new project %s"%project)
-#                 self.project = Project(name=project,plates=[])
-#                 self.core.session.add(self.project)
-#             else:
-#                 raise ValueError("no project named %s!"%project)
 
 class PlateOperation(Operation):
     """Any operation specifying a plate (and by necessity its project)."""

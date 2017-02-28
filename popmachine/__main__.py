@@ -1,6 +1,6 @@
 import argparse, logging, api
 from core import Core
-from core.operation import PlateCreate, DesignList, DesignSetType, SearchOperation
+from core.operation import PlateCreate, PlateDelete, DesignList, DesignSetType, SearchOperation
 import pandas as pd
 from models import Plate, Well, Design, ExperimentalDesign, Base
 from sqlalchemy import Table, Column, Integer, String, Interval, MetaData, ForeignKey, Float, or_, and_
@@ -28,34 +28,36 @@ def ProjectList(args):
     for plate in core.session.query(Plate).all():
         print plate
 
-class PlateCommand(object):
-
-    def __init__(self,args):
-        self.args = args
-
-        self.project = core.session.query(Project).filter(Project.name==args.project).one_or_none()
-        if self.project is None:
-            logging.warning("creating new project %s"%self.args.project)
-            self.project = Project(name=args.project,plates=[])
-            core.session.add(self.project)
-
-        self.plate = core.session.query(Plate).filter(Plate.name==args.plate, Plate.project==self.project).one_or_none()
-
-    def run(self):
-        self._run()
-
-    def _run(self):
-        raise NotImplemented()
-
-class PlateDelete(PlateCommand):
-
-    def _run(self):
-        if not self.plate is None:
-            if not self.plate.data_table is None:
-                core.metadata.tables[self.plate.data_table].drop(core.engine)
-            core.session.delete(self.plate)
+# class PlateCommand(object):
+#
+#     def __init__(self,args):
+#         self.args = args
+#
+#         self.project = core.session.query(Project).filter(Project.name==args.project).one_or_none()
+#         if self.project is None:
+#             logging.warning("creating new project %s"%self.args.project)
+#             self.project = Project(name=args.project,plates=[])
+#             core.session.add(self.project)
+#
+#         self.plate = core.session.query(Plate).filter(Plate.name==args.plate, Plate.project==self.project).one_or_none()
+#
+#     def run(self):
+#         self._run()
+#
+#     def _run(self):
+#         raise NotImplemented()
+#
+# class PlateDelete(PlateCommand):
+#
+#     def _run(self):
+#         if not self.plate is None:
+#             if not self.plate.data_table is None:
+#                 core.metadata.tables[self.plate.data_table].drop(core.engine)
+#             core.session.delete(self.plate)
 
 def main():
+
+    global core
 
     #############
     # Parsing
@@ -95,16 +97,25 @@ def main():
 
     #       create
 
+    def designKwargs(designs):
+        kw = {}
+        for d,v in [s.split("=") for s in designs]:
+            d = d.strip().rstrip()
+            v = v.strip().rstrip()
+            kw[d] = v
+        return kw
+
     plateCreate = plateSubparsers.add_parser('create', help='create new plate')
-    plateCreate.set_defaults(func=lambda x: PlateCreate.fromArgs(core, x, createIfMissing=True).run())
+    plateCreate.set_defaults(func=lambda x: PlateCreate.fromArgs(core, x, createIfMissing=True, **designKwargs(x.designs)).run())
     plateCreate.add_argument("data", help='data file')
     plateCreate.add_argument("experimentalDesign", help='experimental design file')
     plateCreate.add_argument("--timeColumn",type=int,default=0)
+    plateCreate.add_argument("designs", help='extra designs to apply to all wells',nargs='*')
 
     #       delete
 
     plateDelete = plateSubparsers.add_parser('delete', help='remove a plate')
-    plateDelete.set_defaults(func=lambda x: PlateDelete(x).run())
+    plateDelete.set_defaults(func=lambda x: PlateDelete.fromArgs(core, x).run())
 
     # Design
 
@@ -131,7 +142,7 @@ def main():
 
     args,extras = parser.parse_known_args()
 
-    global core
+
     core = Core(args.database)
 
     # print args
