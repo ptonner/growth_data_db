@@ -1,4 +1,3 @@
-#
+#popmachine
 
-Possible names
-* popstore
+Storage of microbial population growth data.

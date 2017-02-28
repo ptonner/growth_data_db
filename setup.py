@@ -1,18 +1,81 @@
+from setuptools import setup, find_packages
+from os import path
 
-if __name__ == '__main__':
-	from growth_data_db import models, bioscreen
-	import pandas as pd
+here = path.abspath(path.dirname(__file__))
+# Get the long description from the README file
+with open(path.join(here, 'README.md'), encoding='utf-8') as f:
+    long_description = f.read()
 
-	from growth_data_db.api import create_plate_from_dataframe, add_experimental_design, update_design
+setup(
+    name='popmachine',
 
-	data = pd.read_csv("data/20141221 H2O2 batch 3/20141221H2O2_batch3.csv")
-	plate, wells, data_table = create_plate_from_dataframe(data,'pq_test','test',data_columns=range(2,data.shape[1]),useColumnsForNumber=True,time_parse=bioscreen.convert_time)
+    version='0.0.1',
 
-	key = pd.read_excel("data/20141221 H2O2 batch 3/H2O2_batch3_key.xlsx")
+    description='A population growth data storage system.',
+    long_description=long_description,
 
-	for v in key['mM H2O2'].unique():
-		add_experimental_design('mM H2O2',v,design_type='float')
+    url='https://github.com/ptonner/popmachine',
 
-	g = key.groupby(['mM H2O2'])
-	for v in g.groups:
-		update_design('mM H2O2',v,g.get_group(v).Well.astype(int).tolist(),plate.name)
+    author='Peter Tonner',
+    author_email='peter.tonner@duke.edu',
+
+    license='MIT',
+
+    # See https://pypi.python.org/pypi?%3Aaction=list_classifiers
+    classifiers=[
+        'Development Status :: 2 - Pre-Alpha',
+
+		'Environment :: Console',
+
+        'Intended Audience :: Developers',
+		'Intended Audience :: Science/Research',
+        'Topic :: Database :: Database Engines/Servers',
+
+        'License :: OSI Approved :: MIT License',
+
+        'Programming Language :: Python :: 2',
+        'Programming Language :: Python :: 2.6',
+        'Programming Language :: Python :: 2.7',
+        # 'Programming Language :: Python :: 3',
+        # 'Programming Language :: Python :: 3.3',
+        # 'Programming Language :: Python :: 3.4',
+        # 'Programming Language :: Python :: 3.5',
+    ],
+
+    keywords='database growth-data microbiology',
+
+    packages=find_packages(exclude=['data', 'examples', 'tests']),
+
+    install_requires=['sqlalchemy', 'matplotlib', 'numpy'],
+
+    # List additional groups of dependencies here (e.g. development
+    # dependencies). You can install these using the following syntax,
+    # for example:
+    # $ pip install -e .[dev,test]
+    # extras_require={
+    #     'dev': ['check-manifest'],
+    #     'test': ['coverage'],
+    # },
+
+    # If there are data files included in your packages that need to be
+    # installed, specify them here.  If using Python 2.6 or less, then these
+    # have to be included in MANIFEST.in as well.
+    # package_data={
+    #     'sample': ['package_data.dat'],
+    # },
+
+    # Although 'package_data' is the preferred approach, in some case you may
+    # need to place data files outside of your packages. See:
+    # http://docs.python.org/3.4/distutils/setupscript.html#installing-additional-files # noqa
+    # In this case, 'data_file' will be installed into '<sys.prefix>/my_data'
+    # data_files=[('my_data', ['data/data_file'])],
+
+    # To provide executable scripts, use entry points in preference to the
+    # "scripts" keyword. Entry points provide cross-platform support and allow
+    # pip to create the appropriate form of executable for the target platform.
+    entry_points={
+        'console_scripts': [
+            'popmachine=popmachine:main',
+        ],
+    },
+)
