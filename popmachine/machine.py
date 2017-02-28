@@ -19,13 +19,21 @@ class Machine(object):
         for r in q:
             yield r
 
-    def search(self,include=[], *args, **kwargs):
+    def search(self, plates=[],include=[], *args, **kwargs):
         """search the database for wells matching the provided kwargs
 
         For each key, value pair filter wells with matching experimental designs. If the value of the pair is a list, any possible value in the list is accepted."""
 
 
         wells = self.core.session.query(Well)
+
+        # if plates provided, filter on those
+        if isinstance(plates, list) and len(plates)>0:
+            wells = wells.join(Plate)
+            wells = wells.filter(Plate.name.in_(plates))
+        elif isinstance(plates, str):
+            wells = wells.join(Plate)
+            wells = wells.filter(Plate.name==plates)
 
         metacols = []
 
