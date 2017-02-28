@@ -12,6 +12,29 @@ class DataSet(object):
 
         self.data.columns = self.meta.index
 
+    def trim(self, start, stop=None):
+        """remove samples before start and after stop."""
+        if stop is None:
+            stop = self.data.shape[0]
+
+        start = max(start, 0)
+        stop = min(stop, self.data.shape[0])
+        self.data = self.data.iloc[start:stop,:]
+
+    def log(self):
+
+        self.data[self.data<=0] = np.nan
+
+        self.data = np.log2(self.data)
+
+    def melt(self):
+
+        pivot = pd.concat((self.meta, self.data.T),1,ignore_index=False)
+
+        idvars = pivot.columns[:self.meta.shape[1]].tolist()
+        valuevars = pivot.columns[self.meta.shape[1]:].tolist()
+        return pd.melt(pivot, idvars, valuevars, var_name='time', value_name='od')
+
     def build(self,effects=[],covariates=[],scale=None,**kwargs):
 
         if 'x' in covariates:

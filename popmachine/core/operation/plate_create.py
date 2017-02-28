@@ -44,7 +44,7 @@ def add_experimental_design(core,design_name,design_value,*args,**kwargs):
     design = core.session.query(Design).filter(Design.name==design_name).one_or_none()
     if not design:
         if not 'design_type' in kwargs:
-            logging.warning("design %s does not exist, and no design_type is specified to create a new one. using str as default"%design_name)
+            logging.info("design %s does not exist, and no design_type is specified to create a new one. using str as default"%design_name)
             design_type='str'
         else:
             design_type = kwargs['design_type']
@@ -55,7 +55,7 @@ def add_experimental_design(core,design_name,design_value,*args,**kwargs):
     experimentalDesign = core.session.query(ExperimentalDesign).filter(ExperimentalDesign.design==design,ExperimentalDesign.value==design_value).one_or_none()
 
     if experimentalDesign is None:
-        logging.warning("ExperimentalDesign %s=%s does not exist, creating one"%(design_name, design_value))
+        logging.info("ExperimentalDesign %s=%s does not exist, creating one"%(design_name, design_value))
         experimentalDesign = ExperimentalDesign(design=design, value=design_value)
 
     # for each well

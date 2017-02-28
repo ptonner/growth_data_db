@@ -2,6 +2,7 @@ from core import Core
 from models import Plate, Design, Well, ExperimentalDesign
 from dataset import DataSet
 from sqlalchemy.sql import select
+from sqlalchemy import Column, Float
 import pandas as pd
 
 class Machine(object):
@@ -81,7 +82,7 @@ class Machine(object):
 
         for p in plates:
             subwells = wells.filter(Well.plate==p)
-            cols = ['time']+[str(w.plate_number) for w in subwells]
+            cols = [Column('time', Float)]+[Column(str(w.plate_number), Float) for w in subwells]
 
             table = self.core.metadata.tables[p.data_table]
             s = select(cols,from_obj=table)
