@@ -1,5 +1,6 @@
 from setuptools import setup, find_packages
 from os import path
+from codecs import open
 
 here = path.abspath(path.dirname(__file__))
 # Get the long description from the README file
@@ -75,7 +76,7 @@ setup(
     # pip to create the appropriate form of executable for the target platform.
     entry_points={
         'console_scripts': [
-            'popmachine=popmachine:main',
+            'popmachine=popmachine.__main__:main',
         ],
     },
 )
