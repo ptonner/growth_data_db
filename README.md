@@ -1,9 +1,9 @@
 # popmachine
 
+Storage of microbial population growth data with python.
+
 ![alt text](popmachine.png "popmachine")
 
-
-Storage of microbial population growth data.
 
 ## What is popmachine?
 popmachine provides organization of your population growth data that:
