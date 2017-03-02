@@ -3,23 +3,38 @@ from hypothesis import given
 import hypothesis.strategies as st
 import pandas as pd
 import unittest
+from operator import mul
 
 # utility for making character string with limited range
 charstring = st.characters(min_codepoint=1, max_codepoint=100, blacklist_categories=('Cc', 'Cs'))
 
 @st.composite
-def buildMeta(draw, maxFactors, maxTreatments):
-    numDesigns = draw(st.lists(st.integers(min_value=1, max_size=maxTreatments), min_size=1, max_size=maxFactors))
+def buildData(draw, minDesigns=1, maxDesigns=3, maxTreatments=3):
+    numDesigns = draw(st.shared(st.lists(st.integers(min_value=1, max_value=maxTreatments), min_size=minDesigns, max_size=maxDesigns), key='numDesigns'))
+
+    # total number of replicates
+    p = reduce(mul, numDesigns, 1)
+
+    # number of observations
+    n = draw(st.integers(min_value=1, max_value=100))
+
+    return draw(st.lists(st.lists(st.floats(), min_size=p+1, max_size=p+1), min_size=n, max_size=n))
+
+@st.composite
+def buildMeta(draw, minDesigns=1, maxDesigns=3, maxTreatments=3):
+    # numDesigns = draw(st.lists(st.integers(min_value=1, max_size=maxTreatments), min_size=1, max_size=maxFactors))
+    numDesigns = draw(st.shared(st.lists(st.integers(min_value=1, max_value=maxTreatments), min_size=minDesigns, max_size=maxDesigns), key='numDesigns'))
+
     designs = [draw(st.lists(st.text(charstring,min_size=1), min_size=d, max_size=d)) for d in numDesigns]
     names = draw(st.lists(charstring, min_size=len(designs), max_size=len(designs)))
 
     meta = [list(x) for x in itertools.product(*designs)]
-    meta = pd.DataFrame(meta, columns = names)
+    # meta = pd.DataFrame(meta, columns = names)
 
     return meta
 
 @st.composite
-def buildDataset(draw, minDesigns=1, maxDesigns=3, maxTreatments=3):
+def buildDatasetComponents(draw, minDesigns=1, maxDesigns=3, maxTreatments=3):
 
     numDesigns = draw(st.lists(st.integers(min_value=1, max_value=maxTreatments), min_size=1, max_size=maxDesigns))
     designs = [draw(st.lists(st.text(st.characters(min_codepoint=1, max_codepoint=100, blacklist_categories=('Cc', 'Cs')),min_size=1), min_size=d, max_size=d)) for d in numDesigns]
@@ -36,4 +51,7 @@ def buildDataset(draw, minDesigns=1, maxDesigns=3, maxTreatments=3):
     data = pd.DataFrame(data)
     meta = pd.DataFrame(meta, columns = names)
 
-    return popmachine.DataSet(data, meta)
+    return data, meta
+
+buildDataset = st.builds(popmachine.DataSet,
+                            buildData(), buildMeta())

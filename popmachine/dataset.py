@@ -5,6 +5,11 @@ class DataSet(object):
 
     def __init__(self,data,meta, timeColumn = 0):
 
+        if not type(data) == pd.DataFrame:
+            data = pd.DataFrame(data)
+        if not type(meta) == pd.DataFrame:
+            meta = pd.DataFrame(meta)
+
         self.meta = meta
         self.data = data
 
@@ -17,10 +22,7 @@ class DataSet(object):
         self.data.columns = self.meta.index
 
     def __repr__(self,):
-        'Dataset: %d x %d, %d x %d\n' % (self.data.shape[0], self.data.shape[1], self.meta.shape[0], self.meta.shape[1]) + \
-        self.data.head() + "\n" + \
-        self.meta.head()
-
+        return 'Dataset: %d x %d, %d x %d\n%s\n%s' % (self.data.shape[0], self.data.shape[1], self.meta.shape[0], self.meta.shape[1], str(self.data.head()), str(self.meta.head()))
 
     def trim(self, start, stop=None):
         """remove samples before start and after stop."""
