@@ -4,29 +4,34 @@ from dataset import DataSet
 from sqlalchemy.sql import select
 from sqlalchemy import Column, Float
 import pandas as pd
+from plate import create
 
-class Machine(object):
+class Machine(Core):
 
     def __init__(self, database='.popmachine.db'):
-
-        self.core = Core(database)
+        Core.__init__(self, database)
 
     def list(self, table):
 
         if not table in [Plate, Design]:
             raise ValueError()
 
-        q = self.core.session.query(table)
+        q = self.session.query(table)
         for r in q:
             yield r
+
+    def createPlate(self, *args, **kwargs):
+        po = create.PlateCreate(self, *args, **kwargs)
+        po.run()
 
     def search(self, plates=[],include=[], *args, **kwargs):
         """search the database for wells matching the provided kwargs
 
+        arguments:
         For each key, value pair filter wells with matching experimental designs. If the value of the pair is a list, any possible value in the list is accepted."""
 
 
-        wells = self.core.session.query(Well)
+        wells = self.session.query(Well)
 
         # if plates provided, filter on those
         if isinstance(plates, list) and len(plates)>0:
@@ -39,13 +44,13 @@ class Machine(object):
         metacols = []
 
         for k,v in kwargs.iteritems():
-            design = self.core.session.query(Design).filter(Design.name==k).one_or_none()
+            design = self.session.query(Design).filter(Design.name==k).one_or_none()
 
             if design is None:
                 continue
             metacols.append(k)
 
-            experimentalDesigns = self.core.session.query(ExperimentalDesign).filter(\
+            experimentalDesigns = self.session.query(ExperimentalDesign).filter(\
                                             ExperimentalDesign.design==design)
 
             if isinstance(v, list):
@@ -69,13 +74,13 @@ class Machine(object):
             wells = wells.filter(Well.id.in_(filterwells))
 
         for i in include:
-            design = self.core.session.query(Design).filter(Design.name==i).one_or_none()
+            design = self.session.query(Design).filter(Design.name==i).one_or_none()
 
             if design is None:
                 continue
             metacols.append(i)
 
-        plates = self.core.session.query(Plate).filter(Plate.id.in_(set([w.plate.id for w in wells])))
+        plates = self.session.query(Plate).filter(Plate.id.in_(set([w.plate.id for w in wells])))
 
         data = None
         meta = None
@@ -84,9 +89,9 @@ class Machine(object):
             subwells = wells.filter(Well.plate==p)
             cols = [Column('time', Float)]+[Column(str(w.plate_number), Float) for w in subwells]
 
-            table = self.core.metadata.tables[p.data_table]
+            table = self.metadata.tables[p.data_table]
             s = select(cols,from_obj=table)
-            res = self.core.engine.execute(s)
+            res = self.engine.execute(s)
 
             newdata = pd.DataFrame(list(res), columns = ['time'] + ["%d_%d"%(p.id,w.plate_number) for w in subwells])
             if data is None:
@@ -98,8 +103,8 @@ class Machine(object):
             for w in subwells:
                 newmeta.append([])
                 for c in metacols:
-                    design = self.core.session.query(Design).filter(Design.name==c).one()
-                    ed = self.core.session.query(ExperimentalDesign).filter(\
+                    design = self.session.query(Design).filter(Design.name==c).one()
+                    ed = self.session.query(ExperimentalDesign).filter(\
                                                  ExperimentalDesign.design==design,\
                                                  ExperimentalDesign.wells.contains(w)).one()
                     newmeta[-1].append(ed.get_value())

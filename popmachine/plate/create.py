@@ -1,5 +1,5 @@
-from operation import PlateOperation
-from ...models import Plate, Well, Design, ExperimentalDesign
+from ..models import Plate, Well, Design, ExperimentalDesign
+from ..operation import PlateOperation
 
 from sqlalchemy import Table, Column, Integer, String, Interval, MetaData, ForeignKey, Float, or_, and_
 from sqlalchemy import create_engine
@@ -7,7 +7,6 @@ from sqlalchemy.orm import sessionmaker
 from sqlalchemy.exc import IntegrityError
 
 import logging
-import pandas as pd
 
 def create_plate_data_table(plate, core):
     """create a data_table for the provided plate, doing nothing if it already exists."""
@@ -70,15 +69,23 @@ def add_experimental_design(core,design_name,design_value,*args,**kwargs):
 
 class PlateCreate(PlateOperation):
 
-    argsKwargs = PlateOperation.argsKwargs + [('data', None), ('experimentalDesign', None), ('timeColumn', None)]
+    argsKwargs = PlateOperation.argsKwargs + [('dataFile', 'data'), ('experimentalDesignFile', 'experimentalDesign'), ('timeColumn', None)]
 
-    def __init__(self,core, plate, data, experimentalDesign, timeColumn=0, createIfMissing=False, **kwargs):
+    def __init__(self,core, plate, data=None, experimentalDesign=None, timeColumn=0, createIfMissing=False, dataFile=None, experimentalDesignFile=None, **kwargs):
         PlateOperation.__init__(self, core, plate, createIfMissing)
-        self.dataFile = data
-        self.experimentalDesignFile = experimentalDesign
+
+        self.data = data
+        self.meta = experimentalDesign
+        self.dataFile = dataFile
+        self.experimentalDesignFile = experimentalDesignFile
         self.timeColumn = timeColumn
 
         self.extraDesigns = kwargs
+
+        if self.data is None and not self.dataFile is None:
+            self.data = pd.read_csv(self.dataFile)
+        if self.meta is None and not self.experimentalDesignFile is None:
+            self.meta = pd.read_csv(self.experimentalDesignFile)
 
     def _run(self):
 
@@ -89,9 +96,6 @@ class PlateCreate(PlateOperation):
         self.plate = Plate(name=self.plateName)
         self.core.session.add(self.plate)
         self.core.session.commit()
-
-        self.data = pd.read_csv(self.dataFile)
-        self.meta = pd.read_csv(self.experimentalDesignFile)
 
         data_columns = range(self.data.shape[1])
         data_columns.remove(self.timeColumn)

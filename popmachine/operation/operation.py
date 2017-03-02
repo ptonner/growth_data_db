@@ -1,5 +1,5 @@
 import logging
-from ...models import Plate, Well, Design, ExperimentalDesign
+from ..models import Plate, Well, Design, ExperimentalDesign
 
 class Operation(object):
     """General operation object of the system."""
@@ -32,7 +32,6 @@ class Operation(object):
 
     def _run(self):
         raise NotImplemented()
-
 
 class PlateOperation(Operation):
     """Any operation specifying a plate (and by necessity its project)."""

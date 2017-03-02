@@ -1,5 +1,5 @@
 from operation import Operation
-from ...models import Design
+from ..models import Design
 
 class DesignList(Operation):
     """List designs in the database"""

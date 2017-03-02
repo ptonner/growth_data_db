@@ -1,5 +1,5 @@
 from operation import Operation
-from ...models import ExperimentalDesign, Design, Well
+from ..models import ExperimentalDesign, Design, Well
 import itertools
 
 class SearchOperation(Operation):

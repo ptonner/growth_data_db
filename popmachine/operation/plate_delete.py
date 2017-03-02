@@ -1,5 +1,5 @@
 from operation import PlateOperation
-from ...models import Plate, Well, Design, ExperimentalDesign
+from ..models import Plate, Well, Design, ExperimentalDesign
 
 class PlateDelete(PlateOperation):
 
