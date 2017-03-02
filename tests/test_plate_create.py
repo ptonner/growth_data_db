@@ -20,16 +20,13 @@ charstring = st.characters(min_codepoint=1, max_codepoint=100, blacklist_categor
 #     meta = [list(x) for x in itertools.product(*designs)]
 #     return meta
 
-@given(buildDataset())
-def test_build_data_shape(data):
-    data, meta = data
-
-    assert data.shape[1]-1 == meta.shape[0]
+# @given(buildDataset())
+# def test_build_data_shape(dataset):
+#     assert dataset.data.shape[1] == dataset.meta.shape[0]
 
 @given(buildDataset())
-@settings(max_examples=50)
-def test_creating_plate(data):
-    data, meta = data
+@settings(max_examples=10)
+def test_creating_plate(dataset):
     num = len(list(machine.list(popmachine.models.Plate)))
 
-    machine.createPlate('test%d'%num,data=data,experimentalDesign=meta)
+    machine.createPlate('test%d'%num,data=dataset.data,experimentalDesign=dataset.meta)

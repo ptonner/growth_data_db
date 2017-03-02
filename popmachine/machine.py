@@ -23,6 +23,7 @@ class Machine(Core):
     def createPlate(self, *args, **kwargs):
         po = create.PlateCreate(self, *args, **kwargs)
         po.run()
+        self.session.commit()
 
     def search(self, plates=[],include=[], *args, **kwargs):
         """search the database for wells matching the provided kwargs

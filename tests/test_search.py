@@ -1,5 +1,5 @@
 import popmachine, utils
-from hypothesis import given
+from hypothesis import given, settings
 import hypothesis.strategies as st
 import unittest
 
@@ -8,15 +8,12 @@ machine = popmachine.Machine('.test.db')
 class TestSearch(unittest.TestCase):
 
     @given(utils.buildDataset())
+    @settings(max_examples=5)
     def test_search_returns_same_data(self,dataset):
-        data, meta = dataset
 
         num = len(list(machine.list(popmachine.models.Plate)))
-        machine.createPlate('test%d'%num,data=data,experimentalDesign=meta)
+        machine.createPlate('test%d'%num,data=dataset.data,experimentalDesign=dataset.meta)
 
-        ds = machine.search(plates=['test%d'])
-        
-        data.index = data[0]
-        del data[0]
+        ds = machine.search(plates=['test%d'%num])
 
-        assert (abs(ds.data-data)<1e-9).all()
+        assert (abs(ds.data-dataset.data)<1e-9).all().all(), ds.data-dataset.data

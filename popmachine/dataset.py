@@ -3,14 +3,24 @@ import numpy as np
 
 class DataSet(object):
 
-    def __init__(self,data,meta):
+    def __init__(self,data,meta, timeColumn = 0):
 
         self.meta = meta
         self.data = data
 
+        if self.data.shape[1] == self.meta.shape[0] + 1:
+            self.data.index = self.data.iloc[:,timeColumn]
+            self.data = self.data.drop(timeColumn,1)
+
         assert self.data.shape[1] == self.meta.shape[0], 'frames do no match, %d x %d' % (self.data.shape[1], self.meta.shape[0])
 
         self.data.columns = self.meta.index
+
+    def __repr__(self,):
+        'Dataset: %d x %d, %d x %d\n' % (self.data.shape[0], self.data.shape[1], self.meta.shape[0], self.meta.shape[1]) + \
+        self.data.head() + "\n" + \
+        self.meta.head()
+
 
     def trim(self, start, stop=None):
         """remove samples before start and after stop."""

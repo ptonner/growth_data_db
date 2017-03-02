@@ -1,5 +1,6 @@
 from ..models import Plate, Well, Design, ExperimentalDesign
 from ..operation import PlateOperation
+from ..dataset import DataSet
 
 from sqlalchemy import Table, Column, Integer, String, Interval, MetaData, ForeignKey, Float, or_, and_
 from sqlalchemy import create_engine
@@ -71,7 +72,7 @@ class PlateCreate(PlateOperation):
 
     argsKwargs = PlateOperation.argsKwargs + [('dataFile', 'data'), ('experimentalDesignFile', 'experimentalDesign'), ('timeColumn', None)]
 
-    def __init__(self,core, plate, data=None, experimentalDesign=None, timeColumn=0, createIfMissing=False, dataFile=None, experimentalDesignFile=None, **kwargs):
+    def __init__(self,core, plate, data=None, experimentalDesign=None, timeColumn=None, createIfMissing=False, dataFile=None, experimentalDesignFile=None, **kwargs):
         PlateOperation.__init__(self, core, plate, createIfMissing)
 
         self.data = data
@@ -87,6 +88,13 @@ class PlateCreate(PlateOperation):
         if self.meta is None and not self.experimentalDesignFile is None:
             self.meta = pd.read_csv(self.experimentalDesignFile)
 
+        # put time column into index
+        if not timeColumn is None:
+            self.data.index = self.data.iloc[:,timeColumn]
+            self.data = self.data.drop(timeColumn, 1)
+
+        self.dataset = DataSet(self.data, self.meta)
+
     def _run(self):
 
         if not self.plate is None:
@@ -97,10 +105,10 @@ class PlateCreate(PlateOperation):
         self.core.session.add(self.plate)
         self.core.session.commit()
 
-        data_columns = range(self.data.shape[1])
-        data_columns.remove(self.timeColumn)
+        # data_columns = range(self.data.shape[1])
+        # data_columns.remove(self.timeColumn)
 
-        wells = [Well(plate=self.plate,plate_number=n) for n in data_columns]
+        wells = [Well(plate=self.plate,plate_number=n) for n in range(self.dataset.data.shape[1])]
         self.core.session.add_all(wells)
         self.core.session.commit()
 
@@ -113,13 +121,14 @@ class PlateCreate(PlateOperation):
 
         # add each row to the table
         for i in range(self.data.shape[0]):
-            newrow = dict([('time',self.data.iloc[i,0])] + [(str(j),self.data.iloc[i,j]) for j in data_columns])
+            # newrow = dict([('time',self.data.iloc[i,0])] + [(str(j),self.data.iloc[i,j]) for j in data_columns])
+            newrow = dict([('time',self.dataset.data.index[i])] + [(str(j),self.dataset.data.iloc[i,j]) for j in range(self.dataset.data.shape[1])])
             conn.execute(ins,**newrow)
 
         # add experimental designs
-        for c in self.meta.columns:
-            for u in self.meta[c].unique():
-                select = self.meta[c] == u
+        for c in self.dataset.meta.columns:
+            for u in self.dataset.meta[c].unique():
+                select = self.dataset.meta[c] == u
                 temp = [w for w,s in zip(wells, select.tolist()) if s]
                 add_experimental_design(self.core,c,u,*temp)
 
