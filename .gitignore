@@ -5,3 +5,4 @@ build/
 data
 examples
 popmachine.egg-info
+.hypothesis
