@@ -2,7 +2,7 @@ import popmachine, itertools
 from hypothesis import given, settings
 import hypothesis.strategies as st
 import pandas as pd
-from utils import buildDataset
+from utils import fullfactorialDataset
 
 machine = popmachine.Machine('.test.db')
 
@@ -24,7 +24,7 @@ charstring = st.characters(min_codepoint=1, max_codepoint=100, blacklist_categor
 # def test_build_data_shape(dataset):
 #     assert dataset.data.shape[1] == dataset.meta.shape[0]
 
-@given(buildDataset())
+@given(fullfactorialDataset)
 @settings(max_examples=10)
 def test_creating_plate(dataset):
     num = len(list(machine.list(popmachine.models.Plate)))
