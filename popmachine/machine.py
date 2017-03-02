@@ -102,7 +102,7 @@ class Machine(Core):
 
             newmeta = []
             for w in subwells:
-                newmeta.append([])
+                newmeta.append([p.name])
                 for c in metacols:
                     design = self.session.query(Design).filter(Design.name==c).one()
                     ed = self.session.query(ExperimentalDesign).filter(\
@@ -110,7 +110,7 @@ class Machine(Core):
                                                  ExperimentalDesign.wells.contains(w)).one()
                     newmeta[-1].append(ed.get_value())
 
-            newmeta = pd.DataFrame(newmeta, columns = metacols)
+            newmeta = pd.DataFrame(newmeta, columns = ['plate']+metacols)
             if meta is None:
                 meta = newmeta
             else:
