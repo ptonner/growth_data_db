@@ -11,8 +11,6 @@ class TestSearch(unittest.TestCase):
     @settings(max_examples=5)
     def test_search_returns_same_data(self,name,dataset):
 
-        # num = len(list(machine.list(popmachine.models.Plate)))
-
         try:
             utils.machine.createPlate(name,data=dataset.data,experimentalDesign=dataset.meta)
         except:
