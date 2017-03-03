@@ -24,16 +24,17 @@ class TestSearch(unittest.TestCase):
 
         assert search == dataset, search
 
-    # @given(utils.platename, utils.fullfactorialDataset)
-    # @settings(max_examples=5)
-    # def test_search_individual_samples(self, name, ds):
-    #
-    #     utils.machine.createPlate(name,data=ds.data,experimentalDesign=ds.meta)
-    #
-    #     for i, r in ds.meta.iterrows():
-    #         search = machine.search(plates=[name], **r)
-    #
-    #         assert ds.data.iloc[:,i].equals(search.data)
+    @given(utils.platename, utils.fullfactorialDataset)
+    @settings(max_examples=5)
+    def test_search_individual_samples(self, name, ds):
+
+        utils.machine.createPlate(name,data=ds.data,experimentalDesign=ds.meta)
+
+        for i, r in ds.meta.iterrows():
+            search = machine.search(plates=[name], **r)
+            del search.meta['plate']
+
+            assert ds.data.iloc[:,i].equals(search.data[0])
 
     # @given(utils.fullfactorialDataset, utils.fullfactorialDataset, utils.fullfactorialDataset)
     # @settings(max_examples=5)
