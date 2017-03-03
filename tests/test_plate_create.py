@@ -1,12 +1,42 @@
-import popmachine, itertools
+import popmachine, itertools, unittest
 from hypothesis import given, settings
 import hypothesis.strategies as st
 import pandas as pd
 from utils import fullfactorialDataset, platename, machine
 
-@given(platename, fullfactorialDataset)
-@settings(max_examples=10)
-def test_creating_plate(name,dataset):
-    num = len(list(machine.list(popmachine.models.Plate)))
+import sys
 
-    machine.createPlate(name,data=dataset.data,experimentalDesign=dataset.meta)
+class TestPlate(unittest.TestCase):
+
+    @given(platename, fullfactorialDataset)
+    @settings(max_examples=10)
+    def test_plate_creation_and_deletion(self, name , dataset):
+    # def test_plate_creation_and_deletion(self, name = platename.example(),dataset=fullfactorialDataset.example()):
+
+        # print name, name in machine.plates(names=True), type(name), machine.plates(names=True)
+        # print name, name in machine.plates(names=True)
+        # sys.stdout.flush()
+
+        assert not name in machine.plates(names=True)
+
+        plate = machine.createPlate(name,data=dataset.data,experimentalDesign=dataset.meta)
+
+        # print plate
+        # sys.stdout.flush()
+
+        assert not plate is None
+        assert name in machine.plates(names=True)
+        assert plate in machine.plates(names=False)
+        assert not plate.data_table is None
+        data_table = plate.data_table
+        assert data_table in machine.metadata.tables
+
+        machine.deletePlate(name=name)
+
+        assert not name in machine.plates(names=True)
+        assert not plate in machine.plates(names=False)
+
+        assert not data_table in machine.metadata.tables
+
+        # print list(machine.plates(names=False))
+        # sys.stdout.flush()

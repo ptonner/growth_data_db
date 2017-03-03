@@ -98,8 +98,8 @@ class PlateCreate(PlateOperation):
     def _run(self):
 
         if not self.plate is None:
-            logging.error("plate named %s already exists!"%(self.plate))
-            return
+            # logging.error("plate named %s already exists!"%(self.plate.name))
+            return self.plate
 
         self.plate = Plate(name=self.plateName)
         self.core.session.add(self.plate)
@@ -135,3 +135,5 @@ class PlateCreate(PlateOperation):
         # add extra designs
         for k,v in self.extraDesigns.iteritems():
             add_experimental_design(self.core,k,v,*wells)
+
+        return self.plate

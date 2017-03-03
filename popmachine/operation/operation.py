@@ -28,7 +28,7 @@ class Operation(object):
         self.core = core
 
     def run(self):
-        self._run()
+        return self._run()
 
     def _run(self):
         raise NotImplemented()
@@ -38,7 +38,7 @@ class PlateOperation(Operation):
 
     argsKwargs = [('plate', None)]
 
-    def __init__(self, core, plate, createIfMissing=False):
+    def __init__(self, core, plate, *args, **kwargs):
         Operation.__init__(self, core)
 
         self.plateName = plate

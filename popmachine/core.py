@@ -12,5 +12,5 @@ class Core(object):
         self.session = self.Session()
 
         models.Base.metadata.create_all(self.engine)
-        self.metadata = MetaData()
-        self.metadata.reflect(self.engine)
+        self.metadata = MetaData(self.engine)
+        self.metadata.reflect()

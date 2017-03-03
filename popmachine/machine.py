@@ -4,7 +4,7 @@ from dataset import DataSet
 from sqlalchemy.sql import select
 from sqlalchemy import Column, Float
 import pandas as pd
-from plate import create
+from plate import create, delete
 
 class Machine(Core):
 
@@ -20,10 +20,24 @@ class Machine(Core):
         for r in q:
             yield r
 
+    def plates(self,names=False):
+        plates = self.list(Plate)
+        if names:
+            return [p.name for p in plates]
+        return plates
+
     def createPlate(self, *args, **kwargs):
         po = create.PlateCreate(self, *args, **kwargs)
-        po.run()
+        ret = po.run()
         self.session.commit()
+        return ret
+
+    def deletePlate(self, plate=None, name=None, *args, **kwargs):
+        pd = delete.PlateDelete(self, name, *args, **kwargs)
+        ret = pd.run()
+        self.session.commit()
+
+        return ret
 
     def search(self, plates=[],include=[], *args, **kwargs):
         """search the database for wells matching the provided kwargs
