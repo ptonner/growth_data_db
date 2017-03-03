@@ -13,7 +13,7 @@ class Machine(Core):
 
     def list(self, table):
 
-        if not table in [Plate, Design]:
+        if not table in [Plate, Design, Well]:
             raise ValueError()
 
         q = self.session.query(table)
@@ -25,6 +25,9 @@ class Machine(Core):
         if names:
             return [p.name for p in plates]
         return plates
+
+    def wells(self):
+        return self.list(Well)
 
     def createPlate(self, *args, **kwargs):
         po = create.PlateCreate(self, *args, **kwargs)
@@ -95,7 +98,9 @@ class Machine(Core):
                 continue
             metacols.append(i)
 
-        plates = self.session.query(Plate).filter(Plate.id.in_(set([w.plate.id for w in wells])))
+        # plates = self.session.query(Plate).filter(Plate.id.in_(set([w.plate.id for w in wells])))
+        plates = self.session.query(Plate).join(Well)
+        plates = plates.filter(Well.id.in_([w.id for w in wells]))
 
         data = None
         meta = None

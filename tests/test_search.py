@@ -3,18 +3,14 @@ from hypothesis import given, settings
 import hypothesis.strategies as st
 import unittest
 import numpy as np
-from utils import machine
+from utils import machine, platename, fullfactorialDataset
 
 class TestSearch(unittest.TestCase):
 
     @given(utils.platename, utils.fullfactorialDataset)
-    @settings(max_examples=5)
+    @settings(max_examples=10)
     def test_search_returns_same_data(self,name,dataset):
-
-        try:
-            utils.machine.createPlate(name,data=dataset.data,experimentalDesign=dataset.meta)
-        except:
-            pass
+        utils.machine.createPlate(name,data=dataset.data,experimentalDesign=dataset.meta)
 
         search = machine.search(plates=[name], include=dataset.meta.columns)
 
@@ -22,8 +18,19 @@ class TestSearch(unittest.TestCase):
 
         assert search == dataset, search
 
+    @given(platename, platename.filter(lambda x: not x in machine.plates(names=True)), fullfactorialDataset)
+    @settings(max_examples=10)
+    def test_search_ignores_garbage_plate_names(self,name, other,dataset):
+        utils.machine.createPlate(name,data=dataset.data,experimentalDesign=dataset.meta)
+
+        search = machine.search(plates=[name, other], include=dataset.meta.columns)
+
+        del search.meta['plate']
+
+        assert search == dataset, search
+
     @given(utils.platename, utils.fullfactorialDataset)
-    @settings(max_examples=5)
+    @settings(max_examples=10)
     def test_search_individual_samples(self, name, ds):
 
         utils.machine.createPlate(name,data=ds.data,experimentalDesign=ds.meta)

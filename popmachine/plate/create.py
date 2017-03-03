@@ -21,7 +21,9 @@ def create_plate_data_table(plate, core):
         [Column(str(wn), Float) for wn in well_numbers]
 
     table = Table("_plate_data_%d"%plate.id,core.metadata,*cols)
-    core.metadata.create_all(core.engine)
+
+    # core.metadata.create_all(core.engine)
+    table.create(core.engine)
 
     plate.data_table = table.name
     core.session.add(plate)

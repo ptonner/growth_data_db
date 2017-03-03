@@ -8,21 +8,13 @@ import sys
 
 class TestPlate(unittest.TestCase):
 
-    @given(platename, fullfactorialDataset)
-    @settings(max_examples=10)
+    @given(platename.filter(lambda x: not x in machine.plates(names=True)), fullfactorialDataset)
+    @settings(max_examples=30)
     def test_plate_creation_and_deletion(self, name , dataset):
-    # def test_plate_creation_and_deletion(self, name = platename.example(),dataset=fullfactorialDataset.example()):
-
-        # print name, name in machine.plates(names=True), type(name), machine.plates(names=True)
-        # print name, name in machine.plates(names=True)
-        # sys.stdout.flush()
 
         assert not name in machine.plates(names=True)
 
         plate = machine.createPlate(name,data=dataset.data,experimentalDesign=dataset.meta)
-
-        # print plate
-        # sys.stdout.flush()
 
         assert not plate is None
         assert name in machine.plates(names=True)
@@ -35,8 +27,4 @@ class TestPlate(unittest.TestCase):
 
         assert not name in machine.plates(names=True)
         assert not plate in machine.plates(names=False)
-
         assert not data_table in machine.metadata.tables
-
-        # print list(machine.plates(names=False))
-        # sys.stdout.flush()
