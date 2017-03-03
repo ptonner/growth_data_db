@@ -4,6 +4,10 @@ import hypothesis.strategies as st
 import pandas as pd
 import unittest
 from operator import mul
+import numpy as np
+
+# stop telling me about comparing NaN's!!!
+np.seterr(invalid='ignore')
 
 machine = popmachine.Machine('.test.db')
 

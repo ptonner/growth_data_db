@@ -22,6 +22,7 @@ class DataSet(object):
         assert self.data.shape[1] == self.meta.shape[0], 'frames do no match, %d x %d' % (self.data.shape[1], self.meta.shape[0])
 
         self.data.columns = self.meta.index
+        self.data.index.name='time'
 
     def copy(self):
         return DataSet(self.data, self.meta)

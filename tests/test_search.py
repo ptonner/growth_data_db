@@ -11,17 +11,29 @@ class TestSearch(unittest.TestCase):
     @settings(max_examples=5)
     def test_search_returns_same_data(self,name,dataset):
 
-        num = len(list(machine.list(popmachine.models.Plate)))
-        utils.machine.createPlate(name,data=dataset.data,experimentalDesign=dataset.meta)
+        # num = len(list(machine.list(popmachine.models.Plate)))
 
-        search = machine.search(plates=[name])
+        try:
+            utils.machine.createPlate(name,data=dataset.data,experimentalDesign=dataset.meta)
+        except:
+            pass
+
+        search = machine.search(plates=[name], include=dataset.meta.columns)
 
         del search.meta['plate']
 
-        # assert search == dataset, search
+        assert search == dataset, search
 
-        nan_or_zero = lambda x: np.isnan(x) or abs(x) < 1e-9
-        assert ((search.data-dataset.data).applymap(nan_or_zero)).all().all(), search.data-dataset.data
+    # @given(utils.platename, utils.fullfactorialDataset)
+    # @settings(max_examples=5)
+    # def test_search_individual_samples(self, name, ds):
+    #
+    #     utils.machine.createPlate(name,data=ds.data,experimentalDesign=ds.meta)
+    #
+    #     for i, r in ds.meta.iterrows():
+    #         search = machine.search(plates=[name], **r)
+    #
+    #         assert ds.data.iloc[:,i].equals(search.data)
 
     # @given(utils.fullfactorialDataset, utils.fullfactorialDataset, utils.fullfactorialDataset)
     # @settings(max_examples=5)
