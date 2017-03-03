@@ -1,11 +1,9 @@
 import argparse, logging, api
 from core import Core
-from core.operation import PlateCreate, PlateDelete, DesignList, DesignSetType, SearchOperation
+from operation import PlateCreate, PlateDelete, DesignList, DesignSetType, SearchOperation
 import pandas as pd
 from models import Plate, Well, Design, ExperimentalDesign, Base
 from sqlalchemy import Table, Column, Integer, String, Interval, MetaData, ForeignKey, Float, or_, and_
-
-# logging.getLogger('sqlalchemy.engine').setLevel(logging.INFO)
 
 core = None
 

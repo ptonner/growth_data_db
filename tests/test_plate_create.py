@@ -2,12 +2,11 @@ import popmachine, itertools
 from hypothesis import given, settings
 import hypothesis.strategies as st
 import pandas as pd
-from utils import fullfactorialDataset
+from utils import fullfactorialDataset, platename, machine
 
-machine = popmachine.Machine('.test.db')
 
 # utility for making character string with limited range
-charstring = st.characters(min_codepoint=1, max_codepoint=100, blacklist_categories=('Cc', 'Cs'))
+# charstring = st.characters(min_codepoint=1, max_codepoint=100, blacklist_categories=('Cc', 'Cs'))
 
 # @st.composite
 # def buildMeta(draw, numDesigns=None, maxFactors=10, maxTreatments=100):
@@ -24,9 +23,9 @@ charstring = st.characters(min_codepoint=1, max_codepoint=100, blacklist_categor
 # def test_build_data_shape(dataset):
 #     assert dataset.data.shape[1] == dataset.meta.shape[0]
 
-@given(fullfactorialDataset)
+@given(platename, fullfactorialDataset)
 @settings(max_examples=10)
-def test_creating_plate(dataset):
+def test_creating_plate(name,dataset):
     num = len(list(machine.list(popmachine.models.Plate)))
 
-    machine.createPlate('test%d'%num,data=dataset.data,experimentalDesign=dataset.meta)
+    machine.createPlate(name,data=dataset.data,experimentalDesign=dataset.meta)

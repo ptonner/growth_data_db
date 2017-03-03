@@ -5,8 +5,13 @@ import pandas as pd
 import unittest
 from operator import mul
 
+machine = popmachine.Machine('.test.db')
+
 # utility for making character string with limited range
-charstring = st.text(st.characters(min_codepoint=1, max_codepoint=100, blacklist_categories=('Cc', 'Cs')), min_size=1)
+simplechars = st.characters(min_codepoint=1, max_codepoint=100, blacklist_categories=('Cc', 'Cs'))
+charstring = st.text(simplechars, min_size=1)
+
+platename = st.text(simplechars, min_size=5).filter(lambda x: not x in [p.name for p in machine.list(popmachine.models.Plate)])
 
 @st.composite
 def fullfactorialData(draw, minDesigns=1, maxDesigns=3, maxTreatments=3):

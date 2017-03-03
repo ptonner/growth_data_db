@@ -3,34 +3,32 @@ from hypothesis import given, settings
 import hypothesis.strategies as st
 import unittest
 import numpy as np
-
-machine = popmachine.Machine('.test.db')
+from utils import machine
 
 class TestSearch(unittest.TestCase):
 
-    @given(utils.fullfactorialDataset)
+    @given(utils.platename, utils.fullfactorialDataset)
     @settings(max_examples=5)
-    def test_search_returns_same_data(self,dataset):
+    def test_search_returns_same_data(self,name,dataset):
 
         num = len(list(machine.list(popmachine.models.Plate)))
-        machine.createPlate('test%d'%num,data=dataset.data,experimentalDesign=dataset.meta)
+        utils.machine.createPlate(name,data=dataset.data,experimentalDesign=dataset.meta)
 
-        ds = machine.search(plates=['test%d'%num])
+        ds = machine.search(plates=[name])
 
         nan_or_zero = lambda x: np.isnan(x) or abs(x) < 1e-9
         assert ((ds.data-dataset.data).applymap(nan_or_zero)).all().all(), ds.data-dataset.data
 
-    # @given(utils.fullfactorialDataset())
+    # @given(utils.fullfactorialDataset, utils.fullfactorialDataset, utils.fullfactorialDataset)
     # @settings(max_examples=5)
-    # def test_search_design(self,dataset):
+    # def test_search_three_plates(self,ds1, ds2, ds3):
     #
-    #     num = len(list(machine.list(popmachine.models.Plate)))
+    #     plates = []
+    #     for ds in [ds1, ds2, ds3]:
+    #         num = len(list(machine.list(popmachine.models.Plate)))
     #
-    #     machine.createPlate('test%d'%num,data=dataset.data,experimentalDesign=dataset.meta)
+    #         machine.createPlate('test%d'%num,data=ds.data,experimentalDesign=ds.meta)
+    #         plates.append('test%d'%num)
     #
-    #     for i in range(dataset.meta.shape[0]):
-    #         kw = dataset.meta.iloc[i,:]
-    #         print kw
-    #         # search = machine.search(plates=['test%d'%num], **kw)
     #
-    #         # assert (abs(ds.data-dataset.data)<1e-9).all().all(), ds.data-dataset.data
+    #     search = machine.search(plates=plates, )
