@@ -9,3 +9,15 @@ def test_dataset_equality(ds):
 
     assert ds == ds2
     assert ds2 == ds
+
+    assert ds != 1
+    assert ds != 1.0
+    assert ds != 'fdsafdsa'
+
+@given(fullfactorialDataset)
+def test_dataset_copy(ds):
+
+    ds2 = ds.copy()
+
+    assert ds == ds2
+    assert ds2 == ds

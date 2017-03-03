@@ -1,6 +1,8 @@
 import pandas as pd
 import numpy as np
 
+nan_or_zero = lambda x: np.isnan(x) or abs(x) < 1e-9
+
 class DataSet(object):
 
     def __init__(self,data,meta, timeColumn = 0):
@@ -20,6 +22,25 @@ class DataSet(object):
         assert self.data.shape[1] == self.meta.shape[0], 'frames do no match, %d x %d' % (self.data.shape[1], self.meta.shape[0])
 
         self.data.columns = self.meta.index
+
+    def copy(self):
+        return DataSet(self.data, self.meta)
+
+    def __eq__(self,other):
+        if not type(other) == DataSet:
+            return False
+
+        if any([x not in self.meta.columns for x in other.meta.columns]):
+            return False
+
+        if not other.data.shape == self.data.shape or not other.meta.shape == self.meta.shape:
+            return False
+
+        other = other.copy()
+        other.meta = other.meta[self.meta.columns]
+
+        # return ((self.data-other.data).applymap(nan_or_zero)).all().all() and (self.meta == other.meta).all().all()
+        return self.data.equals(other.data) and self.meta.equals(other.meta)#(self.meta == other.meta).all().all()
 
     def __repr__(self,):
         return 'Dataset: %d x %d, %d x %d\n%s\n%s' % (self.data.shape[0], self.data.shape[1], self.meta.shape[0], self.meta.shape[1], str(self.data.head()), str(self.meta.head()))

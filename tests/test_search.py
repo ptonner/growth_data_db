@@ -14,10 +14,14 @@ class TestSearch(unittest.TestCase):
         num = len(list(machine.list(popmachine.models.Plate)))
         utils.machine.createPlate(name,data=dataset.data,experimentalDesign=dataset.meta)
 
-        ds = machine.search(plates=[name])
+        search = machine.search(plates=[name])
+
+        del search.meta['plate']
+
+        # assert search == dataset, search
 
         nan_or_zero = lambda x: np.isnan(x) or abs(x) < 1e-9
-        assert ((ds.data-dataset.data).applymap(nan_or_zero)).all().all(), ds.data-dataset.data
+        assert ((search.data-dataset.data).applymap(nan_or_zero)).all().all(), search.data-dataset.data
 
     # @given(utils.fullfactorialDataset, utils.fullfactorialDataset, utils.fullfactorialDataset)
     # @settings(max_examples=5)
