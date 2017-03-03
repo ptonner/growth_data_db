@@ -23,7 +23,7 @@ class TestPlate(unittest.TestCase):
         data_table = plate.data_table
         assert data_table in machine.metadata.tables
 
-        machine.deletePlate(name=name)
+        machine.deletePlate(name)
 
         assert not name in machine.plates(names=True)
         assert not plate in machine.plates(names=False)

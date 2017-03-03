@@ -29,7 +29,7 @@ class TestSearch(unittest.TestCase):
 
         assert search == dataset, search
 
-    @given(utils.platename, utils.fullfactorialDataset)
+    @given(utils.platename.filter(lambda x: not x in machine.plates(names=True)), utils.fullfactorialDataset)
     @settings(max_examples=10)
     def test_search_individual_samples(self, name, ds):
 

@@ -74,8 +74,8 @@ class PlateCreate(PlateOperation):
 
     argsKwargs = PlateOperation.argsKwargs + [('dataFile', 'data'), ('experimentalDesignFile', 'experimentalDesign'), ('timeColumn', None)]
 
-    def __init__(self,core, plate, data=None, experimentalDesign=None, timeColumn=None, createIfMissing=False, dataFile=None, experimentalDesignFile=None, **kwargs):
-        PlateOperation.__init__(self, core, plate, createIfMissing)
+    def __init__(self,core, plate, data=None, experimentalDesign=None, timeColumn=None, dataFile=None, experimentalDesignFile=None, **kwargs):
+        PlateOperation.__init__(self, core, plate)
 
         self.data = data
         self.meta = experimentalDesign

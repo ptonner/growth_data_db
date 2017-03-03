@@ -35,8 +35,8 @@ class Machine(Core):
         self.session.commit()
         return ret
 
-    def deletePlate(self, plate=None, name=None, *args, **kwargs):
-        pd = delete.PlateDelete(self, name, *args, **kwargs)
+    def deletePlate(self, plate, *args, **kwargs):
+        pd = delete.PlateDelete(self, plate, *args, **kwargs)
         ret = pd.run()
         self.session.commit()
 

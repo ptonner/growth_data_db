@@ -34,12 +34,19 @@ class Operation(object):
         raise NotImplemented()
 
 class PlateOperation(Operation):
-    """Any operation specifying a plate (and by necessity its project)."""
+    """Any operation specifying a plate."""
 
     argsKwargs = [('plate', None)]
 
     def __init__(self, core, plate, *args, **kwargs):
         Operation.__init__(self, core)
-
-        self.plateName = plate
-        self.plate = self.core.session.query(Plate).filter(Plate.name==plate).one_or_none()
+        # self.plateName = plate
+        # self.plate = self.core.session.query(Plate).filter(Plate.name==plate).one_or_none()
+        if isinstance(plate, str) or isinstance(plate, unicode):
+            self.plateName = plate
+            self.plate = self.core.session.query(Plate).filter(Plate.name==plate).one_or_none()
+        elif isinstance(plate, Plate):
+            self.plate = plate
+            self.plateName = self.plate.name
+        else:
+            raise ValueError()
