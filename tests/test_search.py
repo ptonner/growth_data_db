@@ -5,10 +5,10 @@ import unittest
 import numpy as np
 from utils import machine, platename, fullfactorialDataset
 
-class TestSearch(unittest.TestCase):
+class TestSearch(utils.StatelessDatabaseTest):
 
     @given(utils.platename, utils.fullfactorialDataset)
-    @settings(max_examples=10)
+    @settings(max_examples=5)
     def test_search_returns_same_data(self,name,dataset):
         utils.machine.createPlate(name,data=dataset.data,experimentalDesign=dataset.meta)
 
@@ -21,7 +21,7 @@ class TestSearch(unittest.TestCase):
         machine.deletePlate(name)
 
     @given(platename, platename, fullfactorialDataset)
-    @settings(max_examples=10)
+    @settings(max_examples=5)
     def test_search_ignores_garbage_plate_names(self,name, other,dataset):
 
         plate = utils.machine.createPlate(name,data=dataset.data,experimentalDesign=dataset.meta)
@@ -37,7 +37,7 @@ class TestSearch(unittest.TestCase):
     # @given(utils.platename.filter(lambda x: not x in machine.plates(names=True)),\
     @given(utils.platename,\
             utils.fullfactorialDataset)
-    @settings(max_examples=10)
+    @settings(max_examples=5)
     def test_search_individual_samples(self, name, ds):
 
         plate = utils.machine.createPlate(name,data=ds.data,experimentalDesign=ds.meta)
@@ -57,7 +57,7 @@ class TestSearch(unittest.TestCase):
                     utils.platename,\
                     min_size=2,max_size=2, unique=True),\
             utils.fullfactorialDataset)
-    @settings(max_examples=10)
+    @settings(max_examples=5)
     # @settings(suppress_health_check=True)
     def test_search_matching_design_single_plate(self, names, ds):
 
@@ -76,7 +76,7 @@ class TestSearch(unittest.TestCase):
             utils.fullfactorialDataset,\
             st.lists(utils.charstring.filter(lambda x: not x in machine.designs(names=True)), min_size=1))
     # @settings(suppress_health_check=True)
-    @settings(max_examples=10)
+    @settings(max_examples=5)
     def test_search_individual_samples_with_garbage_include(self, name, ds, other):
 
         utils.machine.createPlate(name,data=ds.data,experimentalDesign=ds.meta)

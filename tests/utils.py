@@ -65,3 +65,15 @@ def fullfactorialMeta(draw, minDesigns=1, maxDesigns=3, maxTreatments=3):
 
 fullfactorialDataset = st.builds(popmachine.DataSet,
                             fullfactorialData(), fullfactorialMeta())
+
+class StatelessDatabaseTest(unittest.TestCase):
+    """"Base class for database tests that destroy their operation on completion."""
+
+    def setUp(self,):
+        self.machine = popmachine.Machine(".test.db")
+
+    def tearDown(self):
+        # self.machine.session.query(Plate)
+
+        for tbl in reversed(self.machine.metadata.sorted_tables):
+            self.machine.engine.execute(tbl.delete())
