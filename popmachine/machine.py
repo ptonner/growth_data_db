@@ -26,6 +26,12 @@ class Machine(Core):
             return [p.name for p in plates]
         return plates
 
+    def designs(self,names=False):
+        designs = self.list(Design)
+        if names:
+            return [p.name for p in designs]
+        return designs
+
     def wells(self):
         return self.list(Well)
 
