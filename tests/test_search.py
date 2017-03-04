@@ -34,9 +34,7 @@ class TestSearch(utils.StatelessDatabaseTest):
 
         machine.deletePlate(name)
 
-    # @given(utils.platename.filter(lambda x: not x in machine.plates(names=True)),\
-    @given(utils.platename,\
-            utils.fullfactorialDataset)
+    @given(utils.platename,utils.fullfactorialDataset)
     @settings(max_examples=5)
     def test_search_individual_samples(self, name, ds):
 
@@ -52,13 +50,9 @@ class TestSearch(utils.StatelessDatabaseTest):
 
         machine.deletePlate(name)
 
-    @given(st.lists(\
-                    # utils.platename.filter(lambda x: not x in machine.plates(names=True)),\
-                    utils.platename,\
-                    min_size=2,max_size=2, unique=True),\
+    @given(st.lists(utils.platename,min_size=2,max_size=2, unique=True),\
             utils.fullfactorialDataset)
     @settings(max_examples=5)
-    # @settings(suppress_health_check=True)
     def test_search_matching_design_single_plate(self, names, ds):
 
         p1 = utils.machine.createPlate(names[0],data=ds.data,experimentalDesign=ds.meta)
@@ -71,11 +65,8 @@ class TestSearch(utils.StatelessDatabaseTest):
         machine.deletePlate(names[0])
         machine.deletePlate(names[1])
 
-    # @given(utils.platename.filter(lambda x: not x in machine.plates(names=True)),\
-    @given(utils.platename,\
-            utils.fullfactorialDataset,\
+    @given(utils.platename, utils.fullfactorialDataset,\
             st.lists(utils.charstring.filter(lambda x: not x in machine.designs(names=True)), min_size=1))
-    # @settings(suppress_health_check=True)
     @settings(max_examples=5)
     def test_search_individual_samples_with_garbage_include(self, name, ds, other):
 
@@ -88,17 +79,3 @@ class TestSearch(utils.StatelessDatabaseTest):
             assert ds.data.iloc[:,i].equals(search.data[0])
 
         machine.deletePlate(name)
-
-    # @given(utils.fullfactorialDataset, utils.fullfactorialDataset, utils.fullfactorialDataset)
-    # @settings(max_examples=5)
-    # def test_search_three_plates(self,ds1, ds2, ds3):
-    #
-    #     plates = []
-    #     for ds in [ds1, ds2, ds3]:
-    #         num = len(list(machine.list(popmachine.models.Plate)))
-    #
-    #         machine.createPlate('test%d'%num,data=ds.data,experimentalDesign=ds.meta)
-    #         plates.append('test%d'%num)
-    #
-    #
-    #     search = machine.search(plates=plates, )
