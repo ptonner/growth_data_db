@@ -10,7 +10,7 @@ import numpy as np
 np.seterr(invalid='ignore')
 
 # machine = popmachine.Machine('.test.db')
-machine = popmachine.Machine(':memory:')
+# machine = popmachine.Machine(':memory:')
 
 # utility for making character string with limited range
 simplechars = st.characters(min_codepoint=1, max_codepoint=100, blacklist_categories=('Cc', 'Cs'))
@@ -71,7 +71,7 @@ class StatelessDatabaseTest(unittest.TestCase):
     """"Base class for database tests that destroy their operation on completion."""
 
     def setUp(self,):
-        self.machine = popmachine.Machine(".test.db")
+        self.machine = popmachine.Machine(":memory:")
 
     def tearDown(self):
         # self.machine.session.query(Plate)
