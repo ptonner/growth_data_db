@@ -9,7 +9,8 @@ import numpy as np
 # stop telling me about comparing NaN's!!!
 np.seterr(invalid='ignore')
 
-machine = popmachine.Machine('.test.db')
+# machine = popmachine.Machine('.test.db')
+machine = popmachine.Machine(':memory:')
 
 # utility for making character string with limited range
 simplechars = st.characters(min_codepoint=1, max_codepoint=100, blacklist_categories=('Cc', 'Cs'))
