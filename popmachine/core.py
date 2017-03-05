@@ -14,3 +14,7 @@ class Core(object):
         models.Base.metadata.create_all(self.engine)
         self.metadata = MetaData(self.engine)
         self.metadata.reflect()
+
+    def close(self):
+        self.session.close()
+        self.engine.dispose()
