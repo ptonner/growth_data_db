@@ -1,9 +1,8 @@
 import popmachine, itertools
 from hypothesis import given
 import hypothesis.strategies as st
-import pandas as pd
+
 import unittest
-from operator import mul
 import numpy as np
 
 # stop telling me about comparing NaN's!!!

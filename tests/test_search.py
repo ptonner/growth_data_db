@@ -2,7 +2,7 @@ from hypothesis import given, settings, find
 import hypothesis.strategies as st
 
 import popmachine
-from utils import platename, StatelessDatabaseTest
+from utils import platename, StatelessDatabaseTest, charstring
 from fullfactorial import fullfactorialDataset
 
 class TestSearch(StatelessDatabaseTest):
@@ -59,7 +59,7 @@ class TestSearch(StatelessDatabaseTest):
         p2 = self.machine.createPlate(names[1],data=ds.data,experimentalDesign=ds.meta)
 
         for c in ds.meta.columns:
-            search = self.machine.search(plates=names[0], c=ds.meta[c].unique())
+            search = self.machine.search(plates=names[0], c=ds.meta[c].unique().tolist())
             assert not names[1] in search.meta['plate']
 
         self.machine.deletePlate(names[0])
