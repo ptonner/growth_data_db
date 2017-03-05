@@ -1,12 +1,10 @@
-import popmachine, itertools, unittest
 from hypothesis import given, settings
 import hypothesis.strategies as st
-import pandas as pd
-from utils import fullfactorialDataset, platename, StatelessDatabaseTest
 
-import sys
+import popmachine
+from utils import platename, StatelessDatabaseTest
+from fullfactorial import fullfactorialDataset
 
-# class TestPlate(unittest.TestCase):
 class TestPlate(StatelessDatabaseTest):
 
     # @given(platename.filter(lambda x: not x in machine.plates(names=True)), fullfactorialDataset)

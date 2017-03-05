@@ -1,13 +1,13 @@
-import popmachine, utils
 from hypothesis import given, settings, find
 import hypothesis.strategies as st
-import unittest
-import numpy as np
-from utils import platename, fullfactorialDataset
 
-class TestSearch(utils.StatelessDatabaseTest):
+import popmachine
+from utils import platename, StatelessDatabaseTest
+from fullfactorial import fullfactorialDataset
 
-    @given(utils.platename, utils.fullfactorialDataset)
+class TestSearch(StatelessDatabaseTest):
+
+    @given(platename, fullfactorialDataset)
     # @settings(max_examples=5)
     def test_search_returns_same_data(self,name,dataset):
         self.machine.createPlate(name,data=dataset.data,experimentalDesign=dataset.meta)
@@ -34,7 +34,7 @@ class TestSearch(utils.StatelessDatabaseTest):
 
         self.machine.deletePlate(name)
 
-    @given(utils.platename,utils.fullfactorialDataset)
+    @given(platename,fullfactorialDataset)
     # @settings(max_examples=5)
     def test_search_individual_samples(self, name, ds):
 
@@ -50,8 +50,8 @@ class TestSearch(utils.StatelessDatabaseTest):
 
         self.machine.deletePlate(name)
 
-    @given(st.lists(utils.platename,min_size=2,max_size=2, unique=True),\
-            utils.fullfactorialDataset)
+    @given(st.lists(platename,min_size=2,max_size=2, unique=True),\
+            fullfactorialDataset)
     # @settings(max_examples=5)
     def test_search_matching_design_single_plate(self, names, ds):
 
@@ -65,8 +65,8 @@ class TestSearch(utils.StatelessDatabaseTest):
         self.machine.deletePlate(names[0])
         self.machine.deletePlate(names[1])
 
-    @given(utils.platename, utils.fullfactorialDataset,\
-            st.lists(utils.charstring, min_size=1))
+    @given(platename, fullfactorialDataset,\
+            st.lists(charstring, min_size=1))
     # @settings(max_examples=5)
     def test_search_individual_samples_with_garbage_include(self, name, ds, other):
 
