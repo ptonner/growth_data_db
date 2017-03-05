@@ -8,7 +8,7 @@ from utils import platename, fullfactorialDataset
 class TestSearch(utils.StatelessDatabaseTest):
 
     @given(utils.platename, utils.fullfactorialDataset)
-    @settings(max_examples=5)
+    # @settings(max_examples=5)
     def test_search_returns_same_data(self,name,dataset):
         self.machine.createPlate(name,data=dataset.data,experimentalDesign=dataset.meta)
 
@@ -21,7 +21,7 @@ class TestSearch(utils.StatelessDatabaseTest):
         self.machine.deletePlate(name)
 
     @given(platename, platename, fullfactorialDataset)
-    @settings(max_examples=5)
+    # @settings(max_examples=5)
     def test_search_ignores_garbage_plate_names(self,name, other,dataset):
 
         plate = self.machine.createPlate(name,data=dataset.data,experimentalDesign=dataset.meta)
@@ -30,12 +30,12 @@ class TestSearch(utils.StatelessDatabaseTest):
 
         del search.meta['plate']
 
-        assert search == dataset, search
+        assert search == dataset, search.data
 
         self.machine.deletePlate(name)
 
     @given(utils.platename,utils.fullfactorialDataset)
-    @settings(max_examples=5)
+    # @settings(max_examples=5)
     def test_search_individual_samples(self, name, ds):
 
         plate = self.machine.createPlate(name,data=ds.data,experimentalDesign=ds.meta)
@@ -52,7 +52,7 @@ class TestSearch(utils.StatelessDatabaseTest):
 
     @given(st.lists(utils.platename,min_size=2,max_size=2, unique=True),\
             utils.fullfactorialDataset)
-    @settings(max_examples=5)
+    # @settings(max_examples=5)
     def test_search_matching_design_single_plate(self, names, ds):
 
         p1 = self.machine.createPlate(names[0],data=ds.data,experimentalDesign=ds.meta)
@@ -67,7 +67,7 @@ class TestSearch(utils.StatelessDatabaseTest):
 
     @given(utils.platename, utils.fullfactorialDataset,\
             st.lists(utils.charstring, min_size=1))
-    @settings(max_examples=5)
+    # @settings(max_examples=5)
     def test_search_individual_samples_with_garbage_include(self, name, ds, other):
 
         self.machine.createPlate(name,data=ds.data,experimentalDesign=ds.meta)

@@ -70,11 +70,9 @@ fullfactorialDataset = st.builds(popmachine.DataSet,
 class StatelessDatabaseTest(unittest.TestCase):
     """"Base class for database tests that destroy their operation on completion."""
 
-    def setUp(self,):
+    #setup/teardown_example is called each time by hypothesis, as opposed to setUp
+    def setup_example(self,):
         self.machine = popmachine.Machine(":memory:")
 
-    def tearDown(self):
-        # self.machine.session.query(Plate)
-
-        for tbl in reversed(self.machine.metadata.sorted_tables):
-            self.machine.engine.execute(tbl.delete())
+    # def teardown_example(self):
+    #     self.machine.close()
