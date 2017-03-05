@@ -97,10 +97,13 @@ class Machine(Core):
 
             wells = wells.filter(Well.id.in_(filterwells))
 
+        if wells.count()==0:
+            return None
+
         for i in include:
             design = self.session.query(Design).filter(Design.name==i).one_or_none()
 
-            if design is None:
+            if design is None or design.name in metacols:
                 continue
             metacols.append(i)
 
@@ -143,5 +146,6 @@ class Machine(Core):
 
         data.index = data.time
         del data['time']
+        data = data.astype(float)
 
         return DataSet(data, meta)
