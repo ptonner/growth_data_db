@@ -100,6 +100,9 @@ class Machine(Core):
         if wells.count()==0:
             return None
 
+        # don't duplicate columns we're already using
+        include = filter(lambda x : not x in metacols, include)
+
         for i in include:
             design = self.session.query(Design).filter(Design.name==i).one_or_none()
 
