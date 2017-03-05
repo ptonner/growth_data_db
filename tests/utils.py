@@ -36,7 +36,7 @@ def fullfactorialMeta(draw, minDesigns=1, maxDesigns=3, maxTreatments=3):
     # numDesigns = draw(st.lists(st.integers(min_value=1, max_size=maxTreatments), min_size=1, max_size=maxFactors))
     numDesigns = draw(st.shared(st.lists(st.integers(min_value=1, max_value=maxTreatments), min_size=minDesigns, max_size=maxDesigns), key='numDesigns'))
 
-    designs = [draw(st.lists(st.text(charstring,min_size=1), min_size=d, max_size=d)) for d in numDesigns]
+    designs = [draw(st.lists(st.text(charstring,min_size=1), min_size=d, max_size=d, unique=True)) for d in numDesigns]
     names = draw(st.lists(charstring, min_size=len(designs), max_size=len(designs), unique=True))
 
     meta = [list(x) for x in itertools.product(*designs)]
