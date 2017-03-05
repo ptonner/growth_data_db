@@ -4,7 +4,7 @@ import itertools
 import pandas as pd
 import popmachine
 from operator import mul
-from utils import charstring
+from ..utils import charstring
 
 @st.composite
 def fullfactorialData(draw, minDesigns=1, maxDesigns=3, maxTreatments=3):
