@@ -53,4 +53,4 @@ def dataset(draw, designspace=designSpace(),
 
     return popmachine.DataSet(data, meta)
 
-sharedDesignSpace = st.shared(designSpace(), key='dsp')
+sharedDesignSpace = st.shared(designSpace(), key='incomplete-designspace')
