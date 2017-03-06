@@ -3,14 +3,21 @@ import hypothesis.strategies as st
 
 import popmachine
 from utils import platename, StatelessDatabaseTest
-from fullfactorial import fullfactorialDataset
+from dataset.fullfactorial import fullfactorialDataset
+from dataset import incomplete
 
 class TestPlate(StatelessDatabaseTest):
 
-    # @given(platename.filter(lambda x: not x in machine.plates(names=True)), fullfactorialDataset)
+
     @given(platename, fullfactorialDataset)
-    # @settings(max_examples=30)
-    def test_plate_creation_and_deletion(self, name , dataset):
+    def test_plate_creation_and_deletion_fullfactorial(self, name , dataset):
+        self.general_plate_create_test( name, dataset)
+
+    @given(platename, incomplete.dataset())
+    def test_plate_creation_and_deletion_incomplete(self, name , dataset):
+        self.general_plate_create_test( name, dataset)
+
+    def general_plate_create_test(self, name, dataset):
 
         assert not name in self.machine.plates(names=True)
 
