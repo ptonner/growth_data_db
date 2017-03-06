@@ -54,14 +54,19 @@ class TestSearch(StatelessDatabaseTest):
         assert not n1 in self.machine.plates(names=True)
         assert not n2 in self.machine.plates(names=True)
 
-        p1 = self.machine.createPlate(names[0],data=ds.data,experimentalDesign=ds.meta)
-        p2 = self.machine.createPlate(names[1],data=ds.data,experimentalDesign=ds.meta)
+        p1 = self.machine.createPlate(n1,data=ds.data,experimentalDesign=ds.meta)
+        p2 = self.machine.createPlate(n2,data=ds.data,experimentalDesign=ds.meta)
 
-        search = self.machine.search(plates=names[0],include=ds.meta.columns.tolist())
+        search = self.machine.search(plates=[n1],include=ds.meta.columns.tolist())
         del search.meta['plate']
-        assert search == ds
+        assert search == ds, search
 
-        search = self.machine.search(plates=names[1],include=ds.meta.columns.tolist())
+        #why does this fail???
+        search = self.machine.search(plates=n1,include=ds.meta.columns.tolist())
+        del search.meta['plate']
+        assert search == ds, search
+
+        search = self.machine.search(plates=[n2],include=ds.meta.columns.tolist())
         del search.meta['plate']
         assert search == ds
 
@@ -78,7 +83,7 @@ class TestSearch(StatelessDatabaseTest):
         self.machine.createPlate(name,data=ds.data,experimentalDesign=ds.meta)
 
         for i, r in ds.meta.iterrows():
-            search = self.machine.search(plates=[name], include=other, **r)
+            search = self.machine.search(plates=[name],numbers=[i], include=other, **r)
             del search.meta['plate']
 
             assert ds.data.iloc[:,i].equals(search.data[0])
