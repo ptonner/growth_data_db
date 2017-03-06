@@ -78,7 +78,7 @@ class TestSearch(StatelessDatabaseTest):
         self.machine.createPlate(name,data=ds.data,experimentalDesign=ds.meta)
 
         for i, r in ds.meta.iterrows():
-            search = self.machine.search(plates=[name], include=other, **r)
+            search = self.machine.search(plates=[name], include=other, numbers=[i], **r)
             del search.meta['plate']
 
             assert ds.data.iloc[:,i].equals(search.data[0])
