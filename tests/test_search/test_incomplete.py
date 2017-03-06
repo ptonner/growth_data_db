@@ -3,12 +3,11 @@ import hypothesis.strategies as st
 
 import popmachine
 from ..utils import platename, StatelessDatabaseTest, charstring
-from ..dataset.fullfactorial import fullfactorialDataset
+from ..dataset.incomplete import designSpace, dataset, sharedDesignSpace
 
 class TestSearch(StatelessDatabaseTest):
 
-    @given(platename, fullfactorialDataset)
-    # @settings(max_examples=5)
+    @given(platename, dataset())
     def test_search_returns_same_data(self,name,dataset):
         self.machine.createPlate(name,data=dataset.data,experimentalDesign=dataset.meta)
 
@@ -20,8 +19,7 @@ class TestSearch(StatelessDatabaseTest):
 
         self.machine.deletePlate(name)
 
-    @given(platename, platename, fullfactorialDataset)
-    # @settings(max_examples=5)
+    @given(platename, platename, dataset())
     def test_search_ignores_garbage_plate_names(self,name, other,dataset):
 
         plate = self.machine.createPlate(name,data=dataset.data,experimentalDesign=dataset.meta)
@@ -34,8 +32,7 @@ class TestSearch(StatelessDatabaseTest):
 
         self.machine.deletePlate(name)
 
-    @given(platename,fullfactorialDataset)
-    # @settings(max_examples=5)
+    @given(platename,dataset())
     def test_search_individual_samples(self, name, ds):
 
         plate = self.machine.createPlate(name,data=ds.data,experimentalDesign=ds.meta)
@@ -43,16 +40,14 @@ class TestSearch(StatelessDatabaseTest):
         assert not plate is None
 
         for i, r in ds.meta.iterrows():
-            search = self.machine.search(plates=[name], **r)
+            search = self.machine.search(plates=[name], numbers=[i], **r)
             del search.meta['plate']
 
             assert ds.data.iloc[:,i].equals(search.data[0])
 
         self.machine.deletePlate(name)
 
-    @given(st.lists(platename,min_size=2,max_size=2, unique=True),\
-            fullfactorialDataset)
-    # @settings(max_examples=5)
+    @given(st.lists(platename,min_size=2,max_size=2, unique=True),dataset())
     def test_search_matching_design_single_plate(self, names, ds):
 
         n1, n2 = names
@@ -77,9 +72,7 @@ class TestSearch(StatelessDatabaseTest):
         self.machine.deletePlate(names[0])
         self.machine.deletePlate(names[1])
 
-    @given(platename, fullfactorialDataset,\
-            st.lists(charstring, min_size=1))
-    # @settings(max_examples=5)
+    @given(platename, dataset(),st.lists(charstring, min_size=1))
     def test_search_individual_samples_with_garbage_include(self, name, ds, other):
 
         self.machine.createPlate(name,data=ds.data,experimentalDesign=ds.meta)

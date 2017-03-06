@@ -1,12 +1,17 @@
 from hypothesis import given
 import hypothesis.strategies as st
-from dataset.incomplete import designSpace, dataset
+from dataset.incomplete import dataset, sharedDesignSpace
 
-sharedDesignSpace = st.shared(designSpace(), key='dsp')
-
-# @given(designSpace(), dataset())
-@given(sharedDesignSpace, dataset(sharedDesignSpace))
-def test_incomplete_dataset_comes_from_designspace(dsp, ds):
-
+def assert_dataset_in_designspace(ds, dsp):
     for i in range(ds.meta.shape[0]):
         assert (ds.meta.iloc[i,:] == dsp).all(1).any()
+        assert (ds.meta.iloc[i,:] == dsp).all(1).sum() == 1
+
+@given(sharedDesignSpace, dataset(sharedDesignSpace))
+def test_incomplete_dataset_comes_from_designspace(dsp, ds):
+    assert_dataset_in_designspace(ds, dsp)
+
+@given(sharedDesignSpace, st.lists(dataset(sharedDesignSpace), min_size=1))
+def test_incomplete_compedia_comes_from_designspace(dsp, datasets):
+    for ds in datasets:
+        assert_dataset_in_designspace(ds, dsp)

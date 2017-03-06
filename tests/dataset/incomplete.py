@@ -52,3 +52,5 @@ def dataset(draw, designspace=designSpace(),
     data = pd.DataFrame([[t]+d for t,d in zip(time, data)])
 
     return popmachine.DataSet(data, meta)
+
+sharedDesignSpace = st.shared(designSpace(), key='dsp')
