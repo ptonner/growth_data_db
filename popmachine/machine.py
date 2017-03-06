@@ -100,6 +100,10 @@ class Machine(Core):
                 filterwells.extend([w.id for w in ed.wells if not w in filterwells and not w is None])
 
             wells = wells.filter(Well.id.in_(filterwells))
+            # if len(filterwells)>0:
+            #     wells = wells.filter(Well.id.in_(filterwells))
+            # else:
+            #     wells = wells.filter(sqlalchemy.sql.false())
 
         if wells.count()==0:
             return None
@@ -133,11 +137,11 @@ class Machine(Core):
             if data is None:
                 data = newdata
             else:
-                data = pd.merge(data,newdata,on='time')
+                data = pd.merge(data,newdata,on='time', how='outer')
 
             newmeta = []
             for w in subwells:
-                newmeta.append([p.name])
+                newmeta.append([p.name, w.plate_number])
                 for c in metacols:
                     design = self.session.query(Design).filter(Design.name==c).one()
                     ed = self.session.query(ExperimentalDesign).filter(\
@@ -145,7 +149,7 @@ class Machine(Core):
                                                  ExperimentalDesign.wells.contains(w)).one()
                     newmeta[-1].append(ed.get_value())
 
-            newmeta = pd.DataFrame(newmeta, columns = ['plate']+metacols)
+            newmeta = pd.DataFrame(newmeta, columns = ['plate', 'number']+metacols)
             if meta is None:
                 meta = newmeta
             else:

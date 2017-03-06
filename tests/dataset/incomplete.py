@@ -46,7 +46,7 @@ def dataset(draw, designspace=designSpace(),
     n = draw(nobs)
     observation = st.lists(observations, min_size=p, max_size=p)
 
-    time = draw(st.lists(time, min_size=n, max_size=n))
+    time = draw(st.lists(time, min_size=n, max_size=n, unique=True))
     data = draw(st.lists(observation, min_size=n, max_size=n))
 
     data = pd.DataFrame([[t]+d for t,d in zip(time, data)])
@@ -54,3 +54,16 @@ def dataset(draw, designspace=designSpace(),
     return popmachine.DataSet(data, meta)
 
 sharedDesignSpace = st.shared(designSpace(), key='incomplete-designspace')
+
+@st.composite
+def compendia(draw,designspace=sharedDesignSpace,
+            nrep=st.integers(min_value=0,max_value=3),\
+            nobs=st.integers(min_value=1,max_value=50), observations=st.floats(),\
+            time=st.floats(allow_infinity=False, allow_nan=False)):
+
+    n = draw(st.integers(min_value=2, max_value=5))
+    ds = dataset(designspace, nrep, nobs, observations, time)
+    datasets = draw(st.lists(ds, min_size=n, max_size=n))
+    names = draw(st.lists(charstring, min_size=n, max_size=n, unique=True))
+
+    return names, datasets
