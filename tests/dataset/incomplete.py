@@ -4,6 +4,7 @@ import hypothesis.strategies as st
 import popmachine, itertools
 import pandas as pd
 from ..utils import charstring
+from operator import mul
 
 @st.composite
 def designSpace(draw, minDesigns=1, maxDesigns=3, maxTreatments=3):
@@ -13,7 +14,9 @@ def designSpace(draw, minDesigns=1, maxDesigns=3, maxTreatments=3):
     maxTreatments = max(maxTreatments, 1)
 
     designSize = st.integers(min_value=1, max_value=maxTreatments)
-    designSizes = draw(st.lists(designSize, min_size=minDesigns, max_size=maxDesigns))
+    designSizes = draw(st.shared(\
+                            st.lists(designSize, min_size=minDesigns, max_size=maxDesigns),
+                            key='incomplete-designSizes'))
 
     designs = [draw(st.lists(st.text(charstring,min_size=1), min_size=d, max_size=d, unique=True)) for d in designSizes]
     names = draw(st.lists(charstring, min_size=len(designs), max_size=len(designs), unique=True))
@@ -24,14 +27,15 @@ def designSpace(draw, minDesigns=1, maxDesigns=3, maxTreatments=3):
     return designspace
 
 @st.composite
-def dataset(draw, designspace=designSpace(),nrep=st.integers(min_value=0, max_value=3),\
-            nobs=st.integers(min_value=0,max_value=100), observations=st.floats(),\
+def dataset(draw, designspace=designSpace(),
+            nrep=st.integers(min_value=0, max_value=3),\
+            nobs=st.integers(min_value=1,max_value=100), observations=st.floats(),\
             time=st.floats(allow_infinity=False, allow_nan=False)):
 
     dsp = draw(designspace)
 
-    nreps = draw(st.lists(nrep, min_size=dsp.shape[0], max_size=dsp.shape[0]))
-    # nreps = draw(nreps)
+    k = dsp.shape[0]
+    nreps = draw(st.lists(nrep, min_size=k, max_size=k).filter(lambda x: sum(x)>0))
 
     meta = []
     for i,n in enumerate(nreps):
