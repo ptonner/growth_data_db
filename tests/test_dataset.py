@@ -1,4 +1,4 @@
-from fullfactorial import fullfactorialDataset
+from dataset.fullfactorial import fullfactorialDataset
 from hypothesis import given, settings
 from popmachine import DataSet
 
