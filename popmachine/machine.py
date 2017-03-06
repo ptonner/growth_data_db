@@ -48,7 +48,7 @@ class Machine(Core):
 
         return ret
 
-    def search(self, plates=[],include=[], *args, **kwargs):
+    def search(self, plates=[], numbers=[],include=[], *args, **kwargs):
         """search the database for wells matching the provided kwargs
 
         arguments:
@@ -64,6 +64,10 @@ class Machine(Core):
         elif isinstance(plates, str):
             wells = wells.join(Plate)
             wells = wells.filter(Plate.name==plates)
+
+        # if numbers are provided, filter those
+        if isinstance(numbers, list) and len(numbers)>0:
+            wells = wells.filter(Well.plate_number.in_(numbers))
 
         metacols = []
 
