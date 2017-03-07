@@ -1,7 +1,7 @@
 from core import Core
 from models import Plate, Design, Well, ExperimentalDesign
 from dataset import DataSet
-from sqlalchemy.sql import select
+from sqlalchemy.sql import select, false
 from sqlalchemy import Column, Float
 import pandas as pd
 from plate import create, delete
@@ -99,11 +99,11 @@ class Machine(Core):
             for ed in experimentalDesigns.all():
                 filterwells.extend([w.id for w in ed.wells if not w in filterwells and not w is None])
 
-            wells = wells.filter(Well.id.in_(filterwells))
-            # if len(filterwells)>0:
-            #     wells = wells.filter(Well.id.in_(filterwells))
-            # else:
-            #     wells = wells.filter(sqlalchemy.sql.false())
+            # wells = wells.filter(Well.id.in_(filterwells))
+            if len(filterwells)>0:
+                wells = wells.filter(Well.id.in_(filterwells))
+            else:
+                wells = wells.filter(false())
 
         if wells.count()==0:
             return None
