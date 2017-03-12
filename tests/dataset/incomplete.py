@@ -6,8 +6,26 @@ import pandas as pd
 from ..utils import charstring
 from operator import mul
 
+
 @st.composite
 def designSpace(draw, minDesigns=1, maxDesigns=3, maxTreatments=3):
+    """Build a design space for testing.
+
+    input:
+        minDesigns (int): minimum number of designs possible in design space.
+            Cannot be lower than 1.
+        maxDesigns (int): maximum number of designs
+        maxTreatments: maximum number of treatments for each design, cannot be
+            lower than 1.
+
+    output:
+        designspace (pandas.DataFrame)
+
+    A design space is defined by a pandas DataFrame. Each column is a design
+    variable and each row is a unique design in the design space. This
+    implementation constructs the design space by creating a list of design options
+    varying from size 1 to maxTreatments. All possible design combinations are
+    put into the design space dataframe (cartesian product)."""
 
     minDesigns = max(minDesigns, 1)
     maxDesigns = max(minDesigns, maxDesigns)
@@ -60,6 +78,8 @@ def compendia(draw,designspace=sharedDesignSpace,
             nrep=st.integers(min_value=0,max_value=3),\
             nobs=st.integers(min_value=1,max_value=50), observations=st.floats(),\
             time=st.floats(allow_infinity=False, allow_nan=False)):
+
+    """Create a list of datasets all created from a shared design space."""
 
     n = draw(st.integers(min_value=2, max_value=5))
     ds = dataset(designspace, nrep, nobs, observations, time)
