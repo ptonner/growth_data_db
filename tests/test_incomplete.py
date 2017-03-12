@@ -11,7 +11,7 @@ def assert_dataset_in_designspace(ds, dsp):
 def test_incomplete_dataset_comes_from_designspace(dsp, ds):
     assert_dataset_in_designspace(ds, dsp)
 
-@given(sharedDesignSpace, st.lists(dataset(sharedDesignSpace), min_size=1))
+@given(sharedDesignSpace, st.lists(dataset(sharedDesignSpace), min_size=1,max_size=5))
 def test_incomplete_compedia_comes_from_designspace(dsp, datasets):
     for ds in datasets:
         assert_dataset_in_designspace(ds, dsp)
