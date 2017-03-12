@@ -7,6 +7,31 @@ import popmachine
 from ..utils import platename, StatelessDatabaseTest, charstring
 from ..dataset.incomplete import designSpace, dataset, sharedDesignSpace, compendia
 
+def checkSearchForPlates(search, name, dataset):
+    """check that search contains the right values for the provided datasets"""
+
+    assert dataset.meta.shape[0] == (search.meta.plate==name).sum()
+
+    # compare returned data to replicates matching the design in the original data
+    if dataset.meta.shape[0] > 0:
+        select = search.meta.plate==name
+        temp = popmachine.DataSet(search.data.loc[:,select], search.meta.loc[select,:])
+        temp.data.columns = temp.meta.number
+        del temp.meta['plate']
+        del temp.meta['number']
+
+        # select = (dataset.meta[columns] == values).all(1)
+        # temp2 = popmachine.DataSet(d.data.loc[:,select], d.meta.loc[select,:])
+
+        assert all(temp.data.columns == dataset.data.columns)
+
+        merge = pd.merge(temp.data, dataset.data,\
+                            left_index=True, right_index=True,\
+                            how='inner')
+        diff = merge.iloc[:,:merge.shape[1]/2].values - merge.iloc[:,merge.shape[1]/2:].values
+
+        assert (np.isnan(diff) | np.isclose(diff, 0)).all(), diff
+
 class TestSearch(StatelessDatabaseTest):
 
     @given(platename, dataset())
@@ -119,24 +144,7 @@ class TestSearch(StatelessDatabaseTest):
             else:
                 assert search.data.shape[1] == count
                 for n,d in zip(names,datasets):
-                    assert (d.meta == r).all(1).sum() == (search.meta.plate==n).sum()
 
-                    # compare returned data to replicates matching the design in the original data
-                    if (d.meta == r).all(1).sum() > 0:
-                        select = search.meta.plate==n
-                        temp = popmachine.DataSet(search.data.loc[:,select], search.meta.loc[select,:])
-                        temp.data.columns = temp.meta.number
-                        del temp.meta['plate']
-                        del temp.meta['number']
-
-                        select = (d.meta == r).all(1)
-                        temp2 = popmachine.DataSet(d.data.loc[:,select], d.meta.loc[select,:])
-
-                        assert all(temp.data.columns == temp2.data.columns)
-
-                        merge = pd.merge(temp.data, temp2.data,\
-                                            left_index=True, right_index=True,\
-                                            how='inner')
-                        diff = merge.iloc[:,:merge.shape[1]/2].values - merge.iloc[:,merge.shape[1]/2:].values
-
-                        assert (np.isnan(diff) | np.isclose(diff, 0)).all(), diff
+                    select = (d.meta == r).all(1)
+                    temp2 = popmachine.DataSet(d.data.loc[:,select], d.meta.loc[select,:])
+                    checkSearchForPlates(search, n, temp2)
