@@ -61,9 +61,10 @@ class Machine(Core):
         if isinstance(plates, list) and len(plates)>0:
             wells = wells.join(Plate)
             wells = wells.filter(Plate.name.in_(plates))
-        elif isinstance(plates, str):
+        elif isinstance(plates, str) or isinstance(plates, unicode):
             wells = wells.join(Plate)
             wells = wells.filter(Plate.name==plates)
+            plates = [plates]
 
         # if numbers are provided, filter those
         if isinstance(numbers, list) and len(numbers)>0:
