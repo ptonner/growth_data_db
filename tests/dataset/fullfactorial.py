@@ -16,7 +16,7 @@ def fullfactorialData(draw, minDesigns=1, maxDesigns=3, maxTreatments=3):
     # number of observations
     n = draw(st.integers(min_value=1, max_value=100))
 
-    time = draw(st.lists(st.floats(allow_infinity=False, allow_nan=False), min_size=n, max_size=n))
+    time = draw(st.lists(st.floats(allow_infinity=False, allow_nan=False), min_size=n, max_size=n, unique=True))
     data = draw(st.lists(st.lists(st.floats(), min_size=p, max_size=p), min_size=n, max_size=n))
 
     return [[t]+d for t,d in zip(time, data)]

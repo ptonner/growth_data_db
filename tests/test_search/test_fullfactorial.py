@@ -12,7 +12,7 @@ class TestSearch(StatelessDatabaseTest):
     def test_search_returns_same_data(self,name,dataset):
         self.machine.createPlate(name,data=dataset.data,experimentalDesign=dataset.meta)
 
-        search = self.machine.search(plates=[name], include=dataset.meta.columns)
+        search = self.machine.search(plates=[name], include=dataset.meta.columns.tolist())
 
         del search.meta['plate']; del search.meta['number']
 
@@ -26,7 +26,7 @@ class TestSearch(StatelessDatabaseTest):
 
         plate = self.machine.createPlate(name,data=dataset.data,experimentalDesign=dataset.meta)
 
-        search = self.machine.search(plates=[name, other], include=dataset.meta.columns)
+        search = self.machine.search(plates=[name, other], include=dataset.meta.columns.tolist())
 
         del search.meta['plate']; del search.meta['number']
 

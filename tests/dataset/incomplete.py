@@ -87,3 +87,11 @@ def compendia(draw,designspace=sharedDesignSpace,
     names = draw(st.lists(charstring, min_size=n, max_size=n, unique=True))
 
     return names, datasets
+
+@st.composite
+def DesignSpaceAndCompendia(draw):
+
+    dsp = draw(sharedDesignSpace)
+    comp = draw(compendia())
+
+    return dsp, comp

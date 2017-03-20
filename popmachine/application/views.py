@@ -134,6 +134,9 @@ def search():
             v = [z.strip().rstrip() for z in v]
             kwargs[k] = v
 
+        wells = machine.filter(**kwargs)
+        
+
         ds = machine.search(**kwargs)
 
         return datasetHtml(ds, 'dataset.html',searchform=searchform, dataset=ds)

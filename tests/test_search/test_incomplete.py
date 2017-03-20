@@ -51,11 +51,11 @@ class TestSearch(StatelessDatabaseTest):
 
         plate = self.machine.createPlate(name,data=dataset.data,experimentalDesign=dataset.meta)
 
-        search = self.machine.search(plates=[name, other], include=dataset.meta.columns)
+        search = self.machine.search(plates=[name, other], include=dataset.meta.columns.tolist())
 
         del search.meta['plate']; del search.meta['number']
 
-        assert search == dataset, search.data
+        assert search == dataset, search
 
         self.machine.deletePlate(name)
 
