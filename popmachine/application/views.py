@@ -9,9 +9,9 @@ machine = Machine()
 @app.route('/')
 def index():
     plates = machine.plates()
-    form = SearchForm()
+    searchform = SearchForm()
 
-    return render_template("index.html", plates=plates, form=form)
+    return render_template("index.html", plates=plates, searchform=searchform)
 
 @app.route('/hello')
 def hello():
@@ -20,10 +20,13 @@ def hello():
 @app.route('/plates/')
 def plates():
     plates = machine.plates()
-    return render_template("plates.html", plates=plates)
+    searchform = SearchForm()
+
+    return render_template("plates.html", plates=plates, searchform=searchform)
 
 @app.route('/plate/<platename>')
 def plate(platename):
+    searchform = SearchForm()
     plate = machine.session.query(models.Plate).filter(models.Plate.name==platename).one_or_none()
 
     experimentalDesigns = machine.session.query(models.ExperimentalDesign)\
@@ -31,7 +34,7 @@ def plate(platename):
                 .join(models.Well)\
                 .filter(models.Well.id.in_([w.id for w in plate.wells]))
 
-    return render_template("plate.html", plate=plate, experimentalDesigns=experimentalDesigns)
+    return render_template("plate.html", plate=plate, experimentalDesigns=experimentalDesigns, searchform = searchform)
 
 @app.route('/experimentaldesign/<_id>')
 @app.route('/experimentaldesign/<_id>/<plate>')
@@ -52,13 +55,24 @@ def experimentalDesign(_id, plate=None):
 @app.route('/search/',methods=['GET', 'POST'])
 def search():
 
-    if request.method=='GET':
-        from .forms import SearchForm
-        form = SearchForm()
+    searchform = SearchForm()
 
-        return render_template("search.html", form=form)
+    if request.method=='GET':
+        return render_template("search.html", searchform=searchform)
     else:
         groups = re.findall("(([0-9a-zA-Z ]+)=([0-9a-zA-Z ,.]+))", request.form['search'])
+
+        kwargs = {}
+        for _, k, v in groups:
+            k = k.strip().rstrip()
+            v = v.split(",")
+            v = [z.strip().rstrip() for z in v]
+            kwargs[k] = v
+
+        ds = machine.search(**kwargs)
+
+        return render_template("dataset.html", searchform=searchform, dataset=ds )
+
         return str(groups)
 
         return str(request.form)
