@@ -5,6 +5,18 @@ nan_or_zero = lambda x: np.isnan(x) or abs(x) < 1e-9
 
 class DataSet(object):
 
+    @classmethod
+    def fromDirectory(cls, dir, datafile = 'data.csv', metafile = 'meta.csv', *args, **kwargs):
+        import os
+
+        assert datafile in os.listdir(dir)
+        assert metafile in os.listdir(dir)
+
+        data = pd.read_csv(os.path.join(dir, datafile))
+        meta = pd.read_csv(os.path.join(dir, metafile))
+
+        return cls(data, meta, *args, **kwargs)
+
     def __init__(self,data,meta, timeColumn = 0):
 
         if not type(data) == pd.DataFrame:
@@ -17,7 +29,7 @@ class DataSet(object):
 
         if self.data.shape[1] == self.meta.shape[0] + 1:
             self.data.index = self.data.iloc[:,timeColumn]
-            self.data = self.data.drop(timeColumn,1)
+            self.data = self.data.drop(self.data.columns[timeColumn],1)
 
         assert self.data.shape[1] == self.meta.shape[0], 'frames do no match, %d x %d' % (self.data.shape[1], self.meta.shape[0])
 
