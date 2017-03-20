@@ -1,0 +1,30 @@
+{% extends "base.html" %}
+
+{% block subheading %}
+{{experimentalDesign.design.name}}={{experimentalDesign.value}}
+{% endblock %}
+
+{% block content %}
+
+{% if wells %}
+<div>
+  <table class='table table-hover'>
+    <thead>
+      <tr>
+        <th class='text-center'>well</th>
+        <th class='text-center'>plate</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for w in wells %}
+          <tr>
+            <td> {{ w.id }} </td>
+            <td> {{ w.plate}} </td>
+          </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endif %}
+
+{% endblock %}

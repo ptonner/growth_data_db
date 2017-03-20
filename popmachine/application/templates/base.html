@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+      <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='style.css') }}" />
+      <!-- Latest compiled and minified CSS -->
+      <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css" integrity="sha384-1q8mTJOASx8j1Au+a5WDVnPi2lkFfwwEAa8hDDdjZlpLegxhjVME1fgjWPGmkzs7" crossorigin="anonymous">
+      <script type="text/javascript" src="/media/main.js"></script>
+      {% block head %}{% endblock %}
+      <title>popmachine</title>
+  </head>
+
+  <body>
+
+      <div id="header">
+        <h1>popmachine</h1>
+      </div>
+
+      <div class="container">
+
+          <div id='navigation' class="row">
+            <div class='col-md-1'> <h2> {# {% block subheading %}{% endblock %} #}</h2> </div>
+            <div class='col-md-11'>
+              <ul class="nav nav-tabs">
+                <li role="presentation"><a href="{{url_for("index")}}">Home</a></li>
+                <li role="presentation"><a href="{{url_for("plates")}}">Plates</a></li>
+                <li role="presentation"><a href="#">Messages</a></li>
+              </ul>
+            </div>
+          </div>
+
+          <div class = 'row'>
+            <div id="controls" class='col-md-1'>
+                {% block controls %}{% endblock %}
+            </div>
+
+            <div id="content" class='col-md-8'>
+                {% block content %}{% endblock %}
+            </div>
+          </div>
+
+      </div>
+  </body>
+</html>

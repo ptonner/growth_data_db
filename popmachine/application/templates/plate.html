@@ -1,0 +1,59 @@
+{% extends "base.html" %}
+
+{% block head %}
+  <!-- td a {
+   display: block;
+   border: 1px solid black;
+   padding: 16px;
+  } -->
+{% endblock %}
+
+{% block subheading %}
+{{plate.name}}
+{% endblock %}
+
+{% block controls %}
+<nav class="bs-docs-sidebar hidden-print hidden-sm hidden-xs affix-top">
+  <ul class="nav bs-docs-sidenav">
+    <li class=""> <button type="button" class="btn btn-primary">Design</button> </li>
+    <li class=""> <button type="button" class="btn btn-danger">Delete</button> </li>
+  </ul>
+</nav>
+
+{% endblock %}
+
+{% block content %}
+
+{% if plate %}
+  <div class='container'>
+    {% if experimentalDesigns %}
+      <div class='row'>
+        <div class="col-md-6">
+            <h2> Experimental Designs </h2>
+        </div>
+      </div>
+      <div class='row'>
+        <div class="col-md-6">
+          <table class='table table-hover'>
+              <thead>
+                <tr>
+                  <th class='text-center'>design</th>
+                  <th class='text-center'>value</th>
+                </tr>
+              </thead>
+              <tbody>
+                {% for ed in experimentalDesigns %}
+                    <tr>
+                      <td> <a href='{{url_for('experimentalDesign', _id=ed.id, plate=plate.name)}}'> {{ ed.design.name }} </a></td>
+                      <td> <a href='{{url_for('experimentalDesign', _id=ed.id, plate=plate.name)}}'> {{ed.value}} </a> </td>
+                    </tr>
+                {% endfor %}
+              </tbody>
+            </table>
+          </div>
+      </div>
+    </div>
+    {% endif %}
+{% endif %}
+
+{% endblock %}
