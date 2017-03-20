@@ -71,6 +71,29 @@ def search():
 
         ds = machine.search(**kwargs)
 
+        from bokeh.embed import components
+        from bokeh.plotting import figure
+        from bokeh.resources import INLINE
+        from bokeh.util.string import encode_utf8
+
+        fig = figure(title="Dataset")
+        fig.line(ds.data.index.values, ds.data.values[:,0], line_width=2)
+        # fig.line(range(10), range(10))
+
+        js_resources = INLINE.render_js()
+        css_resources = INLINE.render_css()
+        script, div = components(fig)
+
+        html = render_template(
+            'dataset.html',
+            plot_script=script,
+            plot_div=div,
+            js_resources=js_resources,
+            css_resources=css_resources,
+            searchform=searchform
+        )
+        return encode_utf8(html)
+
         return render_template("dataset.html", searchform=searchform, dataset=ds )
 
         return str(groups)
