@@ -20,7 +20,7 @@ def create_plate_data_table(plate, core):
     cols = [Column('id', Integer, primary_key=True), Column('time', Float)] + \
         [Column(str(wn), Float) for wn in well_numbers]
 
-    table = Table("_plate_data_%d"%plate.id,core.metadata,*cols)
+    table = Table(u'_plate_data_%d'%plate.id,core.metadata,*cols)
     core.metadata.create_all(core.engine)
 
     plate.data_table = table.name

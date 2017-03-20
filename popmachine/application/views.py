@@ -6,6 +6,7 @@ import re
 
 from bokeh.embed import components
 from bokeh.plotting import figure
+from bokeh.charts import TimeSeries
 from bokeh.resources import INLINE
 from bokeh.util.string import encode_utf8
 
@@ -13,12 +14,18 @@ machine = Machine()
 
 def datasetHtml(ds,template,title='Dataset',*args, **kwargs):
 
+    ds = ds.copy()
+    ds.data.columns = ds.data.columns.astype(str)
+
+    ts = TimeSeries(ds.data)
+
     fig = figure(title=title)
     fig.line(ds.data.index.values, ds.data, line_width=2)
 
     js_resources = INLINE.render_js()
     css_resources = INLINE.render_css()
-    script, div = components(fig)
+
+    script, div = components(ts)
 
     html = render_template(
         template,
@@ -84,6 +91,7 @@ def design(_id, plate=None):
                 .filter(models.Design.id==_id)
 
     ds = machine.get(wells, include=[design.name])
+    # ds.data.columns = ds.meta[design.name]
 
     assert not any(ds.meta[design.name].isnull())
 
@@ -135,7 +143,6 @@ def search():
             kwargs[k] = v
 
         wells = machine.filter(**kwargs)
-        
 
         ds = machine.search(**kwargs)
 
