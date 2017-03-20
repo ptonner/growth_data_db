@@ -27,7 +27,6 @@ def plate_create_check(machine, name, dataset):
 
 class TestPlate(StatelessDatabaseTest):
 
-
     @given(platename, fullfactorialDataset)
     def test_plate_creation_and_deletion_fullfactorial(self, name , dataset):
         plate_create_check(self.machine, name, dataset)

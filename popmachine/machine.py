@@ -1,5 +1,5 @@
 from core import Core
-from models import Plate, Design, Well, ExperimentalDesign
+from models import Plate, Design, Well, ExperimentalDesign, well_experimental_design
 from dataset import DataSet
 from sqlalchemy.sql import select, false
 from sqlalchemy import Column, Float
@@ -48,12 +48,102 @@ class Machine(Core):
 
         return ret
 
-    def search(self, plates=[], numbers=[],include=[], *args, **kwargs):
+    def get(self, wells, include=[]):
+        """Given a query on wells, return a dataset with the wells's data."""
+
+        if wells.count()==0:
+            return None
+
+        designs = self.session.query(Design)
+        if len(include) > 0:
+            designs = designs.filter(Design.name.in_(include))
+        else:
+            designs = designs.filter(false())
+
+        metacols = [d.name for d in designs]
+
+        meta = data = None
+
+        for w in wells:
+            cols = [Column('time', Float), Column(str(w.plate_number), Float)]
+            table = self.metadata.tables[w.plate.data_table]
+            s = select(cols,from_obj=table)
+            res = self.engine.execute(s)
+
+            newdata = pd.DataFrame(list(res), columns = ['time', "%d_%d"%(w.plate.id,w.plate_number)])
+            if data is None:
+                data = newdata
+            else:
+                data = pd.merge(data,newdata,on='time', how='outer')
+
+            newmeta = [w.plate.name, w.plate_number]
+            for d in designs:
+                ed = self.session.query(ExperimentalDesign).filter(\
+                                             ExperimentalDesign.design==d,\
+                                             ExperimentalDesign.wells.contains(w)).one()
+                newmeta.append(ed.get_value())
+            newmeta = pd.DataFrame([newmeta], columns = ['plate', 'number']+[d.name for d in designs])
+
+            if meta is None:
+                meta = newmeta
+            else:
+                meta = pd.concat((meta, newmeta),ignore_index=True)
+
+        data.index = data.time
+        del data['time']
+        data = data.astype(float)
+
+        return DataSet(data, meta)
+
+    def filter(self, plates=[], numbers=[], *args, **kwargs):
+        wells = self.session.query(Well)
+        wells = wells.join(well_experimental_design).join(ExperimentalDesign)
+
+        # if plates provided, filter on those
+        if isinstance(plates, list) and len(plates)>0:
+            wells = wells.join(Plate)
+            wells = wells.filter(Plate.name.in_(plates))
+        elif isinstance(plates, str) or isinstance(plates, unicode):
+            wells = wells.join(Plate)
+            wells = wells.filter(Plate.name==plates)
+            plates = [plates]
+
+        # if numbers are provided, filter those
+        if isinstance(numbers, list) and len(numbers)>0:
+            wells = wells.filter(Well.plate_number.in_(numbers))
+
+        designs = self.session.query(Design)
+        if len(kwargs.keys()) > 0:
+            designs = designs.filter(Design.name.in_(kwargs.keys()))
+        else:
+            designs = designs.filter(false())
+
+        for d in designs:
+            ed = self.session.query(ExperimentalDesign).filter(\
+                                            ExperimentalDesign.design==d)
+            v = kwargs[d.name]
+            if isinstance(v, list):
+                # convert non-string values
+                v = [str(z) for z in v]
+                ed = ed.filter(ExperimentalDesign.value.in_(v))
+            else:
+                # convert non-string values
+                v = str(v)
+                ed = ed.filter(ExperimentalDesign.value==v)
+
+            wells = wells.filter(ExperimentalDesign.id.in_([e.id for e in ed]))
+
+        return wells
+
+    def search(self, plates=[], numbers=[], include=[], *args, **kwargs):
+        q = self.filter(plates, numbers, **kwargs)
+        return self.get(q, include+kwargs.keys())
+
+    def search2(self, plates=[], numbers=[],include=[], *args, **kwargs):
         """search the database for wells matching the provided kwargs
 
         arguments:
         For each key, value pair filter wells with matching experimental designs. If the value of the pair is a list, any possible value in the list is accepted."""
-
 
         wells = self.session.query(Well)
 

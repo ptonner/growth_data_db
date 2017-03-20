@@ -38,7 +38,7 @@ class TestSearch(StatelessDatabaseTest):
     def test_search_returns_same_data(self,name,dataset):
         self.machine.createPlate(name,data=dataset.data,experimentalDesign=dataset.meta)
 
-        search = self.machine.search(plates=[name], include=dataset.meta.columns)
+        search = self.machine.search(plates=[name], include=dataset.meta.columns.tolist())
 
         del search.meta['plate']; del search.meta['number']
 
@@ -145,7 +145,7 @@ class TestSearch(StatelessDatabaseTest):
             if count == 0:
                 assert search is None
             else:
-                assert search.data.shape[1] == count
+                assert search.data.shape[1] == count, r
                 for n,d in zip(names,datasets):
 
                     select = (d.meta == r).all(1)
