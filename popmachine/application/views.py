@@ -9,23 +9,40 @@ from bokeh.plotting import figure
 from bokeh.charts import TimeSeries
 from bokeh.resources import INLINE
 from bokeh.util.string import encode_utf8
+from bokeh.palettes import Spectral11, viridis
 
 machine = Machine()
 
-def datasetHtml(ds,template,title='Dataset',*args, **kwargs):
+def datasetHtml(ds,template,title='Dataset',color=None,*args, **kwargs):
 
     ds = ds.copy()
     ds.data.columns = ds.data.columns.astype(str)
 
     ts = TimeSeries(ds.data)
 
+    numlines=len(ds.data.columns)
+
+    if color is None:
+        color = viridis(numlines)
+    else:
+        v = viridis(max(color)+1)
+        color = [v[c] for c in color]
+
     fig = figure(title=title)
-    fig.line(ds.data.index.values, ds.data, line_width=2)
+    # fig.line(ds.data.index.values, ds.data, line_width=2)
+
+    fig.multi_line(xs=[ds.data.index.values]*ds.data.shape[1],
+    # fig.multi_line(xs=ds.data.index,
+                ys = [ds.data[name].values for name in ds.data],
+                # ys=ds.data,
+                line_color=color,
+                line_width=5)
 
     js_resources = INLINE.render_js()
     css_resources = INLINE.render_css()
 
-    script, div = components(ts)
+    # script, div = components(ts)
+    script, div = components(fig)
 
     html = render_template(
         template,
@@ -104,7 +121,9 @@ def design(_id, plate=None):
     # else:
     #     plate = ""
 
-    return datasetHtml(ds, 'design.html', values=values, design=design, searchform=searchform, plate=plate)
+    color = map(lambda x: ds.meta[design.name].unique().tolist().index(x), ds.meta[design.name])
+
+    return datasetHtml(ds, 'design.html', color=color, values=values, design=design, searchform=searchform, plate=plate)
     # return render_template("design.html", wells=wells, design=design, searchform=searchform)
 
 @app.route('/experimentaldesign/<_id>')
@@ -146,4 +165,8 @@ def search():
 
         ds = machine.search(**kwargs)
 
-        return datasetHtml(ds, 'dataset.html',searchform=searchform, dataset=ds)
+        color = None
+        if len(groups)>0:
+            color = map(lambda x: ds.meta[groups[0][1]].unique().tolist().index(x), ds.meta[groups[0][1]])
+
+        return datasetHtml(ds, 'dataset.html', color=color,searchform=searchform, dataset=ds)
