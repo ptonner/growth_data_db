@@ -4,7 +4,31 @@ from popmachine import Machine, models
 from .forms import SearchForm
 import re
 
+from bokeh.embed import components
+from bokeh.plotting import figure
+from bokeh.resources import INLINE
+from bokeh.util.string import encode_utf8
+
 machine = Machine()
+
+def datasetHtml(ds,template,title='Dataset',*args, **kwargs):
+
+    fig = figure(title=title)
+    fig.line(ds.data.index.values, ds.data, line_width=2)
+
+    js_resources = INLINE.render_js()
+    css_resources = INLINE.render_css()
+    script, div = components(fig)
+
+    html = render_template(
+        template,
+        plot_script=script,
+        plot_div=div,
+        js_resources=js_resources,
+        css_resources=css_resources,
+        *args, **kwargs
+    )
+    return encode_utf8(html)
 
 @app.route('/')
 def index():
@@ -13,16 +37,21 @@ def index():
 
     return render_template("index.html", plates=plates, searchform=searchform)
 
-@app.route('/hello')
-def hello():
-    return 'Hello, World'
-
 @app.route('/plates/')
 def plates():
     plates = machine.plates()
     searchform = SearchForm()
 
     return render_template("plates.html", plates=plates, searchform=searchform)
+
+
+@app.route('/designs/')
+def designs():
+    designs = machine.designs()
+    searchform = SearchForm()
+
+    return render_template("designs.html", designs=designs, searchform=searchform)
+
 
 @app.route('/plate/<platename>')
 def plate(platename):
@@ -36,9 +65,45 @@ def plate(platename):
 
     return render_template("plate.html", plate=plate, experimentalDesigns=experimentalDesigns, searchform = searchform)
 
+@app.route('/design/<_id>')
+@app.route('/design/<_id>/<plate>')
+def design(_id, plate=None):
+    searchform = SearchForm()
+
+    design = machine.session.query(models.Design)\
+                .filter(models.Design.id==_id).one_or_none()
+
+    values = machine.session.query(models.ExperimentalDesign)\
+                .join(models.Design)\
+                .filter(models.Design.id==_id)
+
+    wells = machine.session.query(models.Well)\
+                .join(models.well_experimental_design)\
+                .join(models.ExperimentalDesign)\
+                .join(models.Design)\
+                .filter(models.Design.id==_id)
+
+    ds = machine.get(wells, include=[design.name])
+
+    assert not any(ds.meta[design.name].isnull())
+
+    if not plate is None:
+        # wells = wells.join(models.Plate).filter(models.Plate.name==plate)
+
+        values = values.join(models.well_experimental_design)\
+                    .join(models.Well)\
+                    .join(models.Plate).filter(models.Plate.name==plate)
+    # else:
+    #     plate = ""
+
+    return datasetHtml(ds, 'design.html', values=values, design=design, searchform=searchform, plate=plate)
+    # return render_template("design.html", wells=wells, design=design, searchform=searchform)
+
 @app.route('/experimentaldesign/<_id>')
 @app.route('/experimentaldesign/<_id>/<plate>')
 def experimentalDesign(_id, plate=None):
+    searchform = SearchForm()
+
     ed = machine.session.query(models.ExperimentalDesign)\
                 .filter(models.ExperimentalDesign.id==_id).one_or_none()
 
@@ -50,7 +115,7 @@ def experimentalDesign(_id, plate=None):
     if not plate is None:
         wells = wells.join(models.Plate).filter(models.Plate.name==plate)
 
-    return render_template("experimental-design.html", wells=wells, experimentalDesign=ed)
+    return render_template("experimental-design.html", wells=wells, experimentalDesign=ed, searchform=searchform)
 
 @app.route('/search/',methods=['GET', 'POST'])
 def search():
@@ -71,33 +136,4 @@ def search():
 
         ds = machine.search(**kwargs)
 
-        from bokeh.embed import components
-        from bokeh.plotting import figure
-        from bokeh.resources import INLINE
-        from bokeh.util.string import encode_utf8
-
-        fig = figure(title="Dataset")
-        fig.line(ds.data.index.values, ds.data.values[:,0], line_width=2)
-        # fig.line(range(10), range(10))
-
-        js_resources = INLINE.render_js()
-        css_resources = INLINE.render_css()
-        script, div = components(fig)
-
-        html = render_template(
-            'dataset.html',
-            plot_script=script,
-            plot_div=div,
-            js_resources=js_resources,
-            css_resources=css_resources,
-            searchform=searchform
-        )
-        return encode_utf8(html)
-
-        return render_template("dataset.html", searchform=searchform, dataset=ds )
-
-        return str(groups)
-
-        return str(request.form)
-        # all_args = request.args.lists()
-        # return jsonify(all_args)
+        return datasetHtml(ds, 'dataset.html',searchform=searchform, dataset=ds)

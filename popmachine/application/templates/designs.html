@@ -1,11 +1,11 @@
 {% extends "base.html" %}
 
 {% block subheading %}
-plates
+designs
 {% endblock %}
 
 {% block content %}
-{% if plates %}
+{% if designs %}
 
 <div class="container">
   <div class='row'>
@@ -14,15 +14,15 @@ plates
     <table class='table table-hover'>
       <thead>
         <tr>
-          <th class='text-center'>plate</th>
-          <th class='text-center'>wells</th>
+          <th class='text-center'>design</th>
+          <th class='text-center'>values</th>
         </tr>
       </thead>
       <tbody>
-        {% for plate in plates %}
+        {% for d in designs %}
             <tr>
-              <td class='text-center'> <a href="{{url_for('plate', platename=plate.name)}}"> {{ plate.name|e }} </a></td>
-              <td class='text-center'>{{plate.wells | length}}</td>
+              <td class='text-center'> <a href="{{url_for('design', _id=d.id)}}"> {{ d.name|e }} </a></td>
+              <td class='text-center'>{{d.values | length}}</td>
             </tr>
         {% endfor %}
       </tbody>

@@ -46,13 +46,15 @@
                 <tr>
                   <th class='text-center'>design</th>
                   <th class='text-center'>value</th>
+                  <th class='text-center'>count</th>
                 </tr>
               </thead>
               <tbody>
                 {% for ed in experimentalDesigns %}
                     <tr>
-                      <td> <a href='{{url_for('experimentalDesign', _id=ed.id, plate=plate.name)}}'> {{ ed.design.name }} </a></td>
-                      <td> <a href='{{url_for('experimentalDesign', _id=ed.id, plate=plate.name)}}'> {{ed.value}} </a> </td>
+                      <td class='text-center'> <a href='{{url_for('design', _id=ed.design.id, plate=plate.name)}}'> {{ ed.design.name }} </a></td>
+                      <td class='text-center'> <a href='{{url_for('experimentalDesign', _id=ed.id, plate=plate.name)}}'> {{ ed.value }} </a> </td>
+                      <td class='text-center'> {{ed.count}} </td>
                     </tr>
                 {% endfor %}
               </tbody>

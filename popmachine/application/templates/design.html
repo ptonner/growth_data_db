@@ -1,0 +1,39 @@
+{% extends "base.html" %}
+
+{% block head %}
+    {{ js_resources|indent(4)|safe }}
+    {{ css_resources|indent(4)|safe }}
+    {{ plot_script|indent(4)|safe }}
+{% endblock %}
+
+{% block subheading %}
+<a href='{{url_for('design', _id=design.id)}}'> {{design.name}} </a>
+{% if plate is not none %}
+  ({{plate}})
+{% endif %}
+{% endblock %}
+
+{% block content %}
+
+{{ plot_div|indent(4)|safe }}
+
+<div>
+  <table class='table table-hover'>
+    <thead>
+      <tr>
+        <th class='text-center'>value</th>
+        <th class='text-center'>size</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for v in values %}
+          <tr>
+            <td> <a href='{{url_for('experimentalDesign', _id=v.id)}}'>  {{ v.value }} </a> </td>
+            <td> {{ v.wells | length}} </td>
+          </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+
+{% endblock %}
