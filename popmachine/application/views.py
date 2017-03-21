@@ -2,6 +2,7 @@ from app import app
 from flask import Flask, render_template, request, jsonify, url_for, redirect
 from popmachine import Machine, models
 from .forms import SearchForm, PlateCreate
+from .plot import plotDataset
 import pandas as pd
 import re
 
@@ -14,46 +15,46 @@ from bokeh.palettes import Spectral11, viridis
 
 machine = Machine()
 
-def datasetHtml(ds,template,title='Dataset',color=None,*args, **kwargs):
-
-    ds = ds.copy()
-    ds.data.columns = ds.data.columns.astype(str)
-
-    ts = TimeSeries(ds.data)
-
-    numlines=len(ds.data.columns)
-
-    if color is None:
-        color = viridis(numlines)
-    else:
-        v = viridis(max(color)+1)
-        color = [v[c] for c in color]
-
-    fig = figure(title=title)
-    # fig.line(ds.data.index.values, ds.data, line_width=2)
-
-    fig.multi_line(xs=[ds.data.index.values]*ds.data.shape[1],
-    # fig.multi_line(xs=ds.data.index,
-                ys = [ds.data[name].values for name in ds.data],
-                # ys=ds.data,
-                line_color=color,
-                line_width=5)
-
-    js_resources = INLINE.render_js()
-    css_resources = INLINE.render_css()
-
-    # script, div = components(ts)
-    script, div = components(fig)
-
-    html = render_template(
-        template,
-        plot_script=script,
-        plot_div=div,
-        js_resources=js_resources,
-        css_resources=css_resources,
-        *args, **kwargs
-    )
-    return encode_utf8(html)
+# def datasetHtml(ds,template,title='Dataset',color=None,*args, **kwargs):
+#
+#     ds = ds.copy()
+#     ds.data.columns = ds.data.columns.astype(str)
+#
+#     ts = TimeSeries(ds.data)
+#
+#     numlines=len(ds.data.columns)
+#
+#     if color is None:
+#         color = viridis(numlines)
+#     else:
+#         v = viridis(max(color)+1)
+#         color = [v[c] for c in color]
+#
+#     fig = figure(title=title)
+#     # fig.line(ds.data.index.values, ds.data, line_width=2)
+#
+#     fig.multi_line(xs=[ds.data.index.values]*ds.data.shape[1],
+#     # fig.multi_line(xs=ds.data.index,
+#                 ys = [ds.data[name].values for name in ds.data],
+#                 # ys=ds.data,
+#                 line_color=color,
+#                 line_width=5)
+#
+#     js_resources = INLINE.render_js()
+#     css_resources = INLINE.render_css()
+#
+#     # script, div = components(ts)
+#     script, div = components(fig)
+#
+#     html = render_template(
+#         template,
+#         plot_script=script,
+#         plot_div=div,
+#         js_resources=js_resources,
+#         css_resources=css_resources,
+#         *args, **kwargs
+#     )
+#     return encode_utf8(html)
 
 @app.route('/')
 def index():
@@ -166,7 +167,7 @@ def design(_id, plate=None):
 
     color = map(lambda x: ds.meta[design.name].unique().tolist().index(x), ds.meta[design.name])
 
-    return datasetHtml(ds, 'design.html', color=color, values=values, design=design, searchform=searchform, plate=plate)
+    return plotDataset(ds, 'design.html', color=ds.meta[design.name], values=values, design=design, searchform=searchform, plate=plate)
     # return render_template("design.html", wells=wells, design=design, searchform=searchform)
 
 @app.route('/experimentaldesign/<_id>')
@@ -212,4 +213,4 @@ def search():
         if len(groups)>0:
             color = map(lambda x: ds.meta[groups[0][1]].unique().tolist().index(x), ds.meta[groups[0][1]])
 
-        return datasetHtml(ds, 'dataset.html', color=color,searchform=searchform, dataset=ds)
+        return plotDataset(ds, 'dataset.html', searchform=searchform, dataset=ds)
