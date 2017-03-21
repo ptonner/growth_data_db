@@ -12,4 +12,6 @@ class SearchForm(FlaskForm):
 class PlateCreate(FlaskForm):
     name = StringField('name')
     data = FileField('data')
+    design = FileField('design')
+    ignore = StringField('ignore')
     source = SelectField("source", choices=[('csv', 'csv'), ('bioscreen', 'bioscreen')])

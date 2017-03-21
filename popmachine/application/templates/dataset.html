@@ -11,5 +11,28 @@ dataset
 {% endblock %}
 
 {% block content %}
-   {{ plot_div|indent(4)|safe }}
+
+  <div class='row'>
+    <div class='col-md-8'>
+      {% block beforeplot %}
+      {% endblock %}
+    </div>
+  </div>
+
+  <div class='row'>
+    <div class='col-md-2'>
+      {% block sideplot %}
+      {% endblock %}
+    </div>
+    <div class='col-md-6'>
+      {{ plot_div|indent(4)|safe }}
+    </div>
+  </div>
+  
+  <div class='row'>
+    <div class='col-md-8'>
+     {% block afterplot %}
+     {% endblock %}
+   </div>
+  </div>
 {% endblock %}
