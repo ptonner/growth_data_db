@@ -22,8 +22,8 @@
 
 <nav class="bs-docs-sidebar">
   <ul class="nav nav-pills nav-stacked">
-    <li class=""> <button type="button" class="btn btn-primary">Design</button> </li>
-    <li class=""> <button type="button" class="btn btn-danger">Delete</button> </li>
+    <!-- <li class=""> <button type="button" class="btn btn-primary">Design</button> </li> -->
+    <li class=""> <a href='{{url_for("plate_delete", platename=plate.name)}}'> <button type="button" class="btn btn-danger">Delete</button> </a> </li>
   </ul>
 </nav>
 

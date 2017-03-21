@@ -1,5 +1,5 @@
 from app import app
-from flask import Flask, render_template, request, jsonify
+from flask import Flask, render_template, request, jsonify, url_for, redirect
 from popmachine import Machine, models
 from .forms import SearchForm, PlateCreate
 import pandas as pd
@@ -69,28 +69,6 @@ def plates():
 
     return render_template("plates.html", plates=plates, searchform=searchform)
 
-@app.route('/plate-create/', methods=['GET', "POST"])
-def plate_create():
-
-    searchform = SearchForm()
-
-    if request.method=="GET":
-        form = PlateCreate()
-        return render_template("plate-create.html", form=form, searchform = searchform)
-    else:
-        f = request.files['data']
-        data = pd.read_csv(f)
-
-        
-
-@app.route('/designs/')
-def designs():
-    designs = machine.designs()
-    searchform = SearchForm()
-
-    return render_template("designs.html", designs=designs, searchform=searchform)
-
-
 @app.route('/plate/<platename>')
 def plate(platename):
     searchform = SearchForm()
@@ -102,6 +80,57 @@ def plate(platename):
                 .filter(models.Well.id.in_([w.id for w in plate.wells]))
 
     return render_template("plate.html", plate=plate, experimentalDesigns=experimentalDesigns, searchform = searchform)
+
+@app.route('/plate-delete/<platename>', methods=['GET', 'POST'])
+def plate_delete(platename):
+    searchform = SearchForm()
+
+    if request.method=='GET':
+        return render_template('plate-delete.html', searchform = searchform, platename=platename)
+    else:
+        plate = machine.session.query(models.Plate).filter(models.Plate.name==platename).one_or_none()
+        machine.deletePlate(plate)
+
+        return redirect(url_for('plates'))
+
+@app.route('/plate-create/', methods=['GET', "POST"])
+def plate_create():
+
+    searchform = SearchForm()
+
+    if request.method=="GET":
+        form = PlateCreate()
+        return render_template("plate-create.html", form=form, searchform = searchform)
+    else:
+
+        name = request.form['name']
+        ignore = request.form['ignore'].split(",")
+        f = request.files['data']
+        data = pd.read_csv(f)
+
+        if 'design' in request.files:
+            f = request.files['design']
+            meta = pd.read_csv(f)
+
+            for i in ignore:
+                del meta[i]
+        else:
+            meta = None
+
+        if request.form['source'] == 'csv':
+            machine.createPlate(name, data, meta)
+        else:
+            pass
+
+        return redirect(url_for('plates'))
+
+
+@app.route('/designs/')
+def designs():
+    designs = machine.designs()
+    searchform = SearchForm()
+
+    return render_template("designs.html", designs=designs, searchform=searchform)
 
 @app.route('/design/<_id>')
 @app.route('/design/<_id>/<plate>')

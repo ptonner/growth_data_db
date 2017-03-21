@@ -1,0 +1,23 @@
+{% extends "base.html" %}
+
+{% block head %}
+{% endblock %}
+
+{% block subheading %}
+{{platename}} delete
+{% endblock %}
+
+{% block content %}
+
+<form action="{{url_for('plate_delete',platename=platename)}}" method='POST'>
+  <button type="submit" id="myButton" class="btn btn-danger" data-loading-text="Deleting...">
+     <span class="glyphicon glyphicon-trash" aria-hidden="true"></span> Delete plate (are you sure?)
+  </button>
+  <script>
+    $('#myButton').on('click', function () {
+      var $btn = $(this).button('loading')
+    })
+  </script>
+</form>
+
+{% endblock %}
