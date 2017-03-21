@@ -17,10 +17,14 @@ class DataSet(object):
 
         return cls(data, meta, *args, **kwargs)
 
-    def __init__(self,data,meta, timeColumn = 0):
+    def __init__(self,data,meta=None, timeColumn = 0):
 
         if not type(data) == pd.DataFrame:
             data = pd.DataFrame(data)
+
+        if meta is None:
+            meta = pd.DataFrame(index=range(data.shape[1]))
+
         if not type(meta) == pd.DataFrame:
             meta = pd.DataFrame(meta)
 

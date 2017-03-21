@@ -1,5 +1,5 @@
 from flask_wtf import FlaskForm
-from wtforms import StringField, BooleanField
+from wtforms import StringField, BooleanField, FileField, SelectField
 from wtforms.validators import DataRequired
 
 class LoginForm(FlaskForm):
@@ -8,3 +8,8 @@ class LoginForm(FlaskForm):
 
 class SearchForm(FlaskForm):
     search = StringField("search")
+
+class PlateCreate(FlaskForm):
+    name = StringField('name')
+    data = FileField('data')
+    source = SelectField("source", choices=[('csv', 'csv'), ('bioscreen', 'bioscreen')])

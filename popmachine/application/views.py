@@ -1,7 +1,8 @@
 from app import app
 from flask import Flask, render_template, request, jsonify
 from popmachine import Machine, models
-from .forms import SearchForm
+from .forms import SearchForm, PlateCreate
+import pandas as pd
 import re
 
 from bokeh.embed import components
@@ -68,6 +69,19 @@ def plates():
 
     return render_template("plates.html", plates=plates, searchform=searchform)
 
+@app.route('/plate-create/', methods=['GET', "POST"])
+def plate_create():
+
+    searchform = SearchForm()
+
+    if request.method=="GET":
+        form = PlateCreate()
+        return render_template("plate-create.html", form=form, searchform = searchform)
+    else:
+        f = request.files['data']
+        data = pd.read_csv(f)
+
+        
 
 @app.route('/designs/')
 def designs():
