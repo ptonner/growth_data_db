@@ -1,6 +1,6 @@
 from flask import Flask
 
-app = Flask(__name__)
+app = Flask('popmachine.application')
 app.config.from_object('popmachine.application.config')
 
 from . import views

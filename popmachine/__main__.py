@@ -1,6 +1,7 @@
 import argparse, logging, api
 from popmachine import Machine
 from operation import PlateCreate, PlateDelete, DesignList, DesignSetType, SearchOperation
+from operation.server import ServerOperation
 import pandas as pd
 from models import Plate, Well, Design, ExperimentalDesign, Base
 from sqlalchemy import Table, Column, Integer, String, Interval, MetaData, ForeignKey, Float, or_, and_
@@ -39,6 +40,9 @@ def main():
     parser.add_argument("--verbose", action='store_true')
 
     subparsers = parser.add_subparsers(help='command to run')
+
+    server = subparsers.add_parser("server", help='run the server')
+    server.set_defaults(func=lambda x: ServerOperation.fromArgs(machine, x).run())
 
     # search
     search = subparsers.add_parser("search", help='search database')
