@@ -1,5 +1,7 @@
 from flask import render_template
 
+import numpy as np
+
 from bokeh.embed import components
 from bokeh.plotting import figure
 from bokeh.charts import TimeSeries
@@ -11,7 +13,7 @@ from bokeh.layouts import widgetbox
 from bokeh.models import CustomJS, ColumnDataSource, Plot
 from bokeh.models.widgets import Dropdown
 from bokeh.models.glyphs import MultiLine
-from bokeh.layouts import column
+from bokeh.layouts import column, row
 
 def colorby(values):
 
@@ -42,7 +44,7 @@ def plotDataset(ds,template='dataset.html',title='Dataset',color=None,*args, **k
 
     # source = ColumnDataSource(data=ds.data)
     source = ColumnDataSource(dict(xs=[ds.data.index.values]*ds.data.shape[1],
-                ys = [ds.data[name].values for name in ds.data], color=color, label=label))
+                ys = [ds.data[name].values for name in ds.data], yslog = [np.log2(ds.data[name].values) for name in ds.data], color=color, label=label))
 
     labelsource = ColumnDataSource(ds.meta)
     colorsource = ColumnDataSource({k:colorby(ds.meta[k]) for k in ds.meta.columns.tolist()})
@@ -56,8 +58,8 @@ def plotDataset(ds,template='dataset.html',title='Dataset',color=None,*args, **k
     #     # color = [v[c] for c in color]
     #     color = colorby(color)
 
-    fig = figure(title=title)
-    plot = Plot()
+    fig = figure(title=title,plot_width=1000,)
+    # plot = Plot()
     # fig.line(ds.data.index.values, ds.data, line_width=2)
 
     # fig.multi_line(xs=[ds.data.index.values]*ds.data.shape[1],
@@ -86,6 +88,14 @@ def plotDataset(ds,template='dataset.html',title='Dataset',color=None,*args, **k
             color[i] = color2[i]
             label[i] = label2[i]
         }
+
+        source.trigger('change');
+    """)
+
+    logcallback = CustomJS(args=dict(source=source), code="""
+        var data = source.get('data');
+
+        data['ys'] = data['yslog']
 
         source.trigger('change');
     """)

@@ -151,17 +151,17 @@ def design(_id, plate=None):
                 .join(models.Design)\
                 .filter(models.Design.id==_id)
 
-    ds = machine.get(wells, include=[design.name])
-    # ds.data.columns = ds.meta[design.name]
-
-    assert not any(ds.meta[design.name].isnull())
-
     if not plate is None:
-        # wells = wells.join(models.Plate).filter(models.Plate.name==plate)
+        wells = wells.join(models.Plate).filter(models.Plate.name==plate)
 
         values = values.join(models.well_experimental_design)\
                     .join(models.Well)\
                     .join(models.Plate).filter(models.Plate.name==plate)
+
+    ds = machine.get(wells, include=[design.name])
+
+    assert not any(ds.meta[design.name].isnull())
+
     # else:
     #     plate = ""
 
