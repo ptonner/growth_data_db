@@ -81,8 +81,12 @@ class Machine(Core):
             for d in designs:
                 ed = self.session.query(ExperimentalDesign).filter(\
                                              ExperimentalDesign.design==d,\
-                                             ExperimentalDesign.wells.contains(w)).one()
-                newmeta.append(ed.get_value())
+                                             ExperimentalDesign.wells.contains(w)).one_or_none()
+
+                if not ed is None:
+                    newmeta.append(ed.get_value())
+                else:
+                    newmeta.append(None)
             newmeta = pd.DataFrame([newmeta], columns = ['plate', 'number']+[d.name for d in designs])
 
             if meta is None:

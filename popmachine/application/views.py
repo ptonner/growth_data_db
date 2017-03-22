@@ -113,8 +113,11 @@ def plate_create():
             f = request.files['design']
             meta = pd.read_csv(f)
 
-            for i in ignore:
-                del meta[i]
+            if len(ignore) > 0:
+                for i in ignore:
+                    if i == "":
+                        continue
+                    del meta[i]
         else:
             meta = None
 
@@ -210,7 +213,11 @@ def search():
         ds = machine.search(**kwargs)
 
         color = None
-        if len(groups)>0:
-            color = map(lambda x: ds.meta[groups[0][1]].unique().tolist().index(x), ds.meta[groups[0][1]])
+        # if len(groups)>0:
+        for _, k, v in groups:
+            if k in ['include', 'plates']:
+                continue
+            color = map(lambda x: ds.meta[k].unique().tolist().index(x), ds.meta[k])
+            break
 
         return plotDataset(ds, 'dataset.html', searchform=searchform, dataset=ds)
