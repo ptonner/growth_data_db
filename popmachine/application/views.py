@@ -80,7 +80,14 @@ def plate(platename):
                 .join(models.Well)\
                 .filter(models.Well.id.in_([w.id for w in plate.wells]))
 
-    return render_template("plate.html", plate=plate, experimentalDesigns=experimentalDesigns, searchform = searchform)
+    designs = machine.session.query(models.Design)\
+                .join(models.ExperimentalDesign)\
+                .join(models.well_experimental_design)\
+                .join(models.Well)\
+                .filter(models.Well.id.in_([w.id for w in plate.wells]))
+
+
+    return render_template("plate.html", plate=plate, experimentalDesigns=experimentalDesigns, designs=designs, searchform = searchform)
 
 @app.route('/plate-delete/<platename>', methods=['GET', 'POST'])
 def plate_delete(platename):

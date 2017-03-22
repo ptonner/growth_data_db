@@ -33,10 +33,10 @@
 
 {% if plate %}
   <div class='container'>
-    {% if experimentalDesigns %}
+    {% if designs %}
       <div class='row'>
         <div class="col-md-6">
-            <h2> Experimental Designs </h2>
+            <h2> Designs </h2>
         </div>
       </div>
       <div class='row'>
@@ -45,16 +45,18 @@
               <thead>
                 <tr>
                   <th class='text-center'>design</th>
-                  <th class='text-center'>value</th>
-                  <th class='text-center'>count</th>
+                  <th class='text-center'>values</th>
                 </tr>
               </thead>
               <tbody>
-                {% for ed in experimentalDesigns %}
+                {% for d in designs %}
                     <tr>
-                      <td class='text-center'> <a href='{{url_for('design', _id=ed.design.id, plate=plate.name)}}'> {{ ed.design.name }} </a></td>
-                      <td class='text-center'> <a href='{{url_for('experimentalDesign', _id=ed.id, plate=plate.name)}}'> {{ ed.value }} </a> </td>
-                      <td class='text-center'> {{ed.count}} </td>
+                      <td class='text-center'> <a href='{{url_for('design', _id=d.id, plate=plate.name)}}'> {{ d.name }} </a></td>
+                      <td class='text-center'>
+                        {% for ed in d.values|sort(attribute='value') %}
+                          <a href='{{url_for('experimentalDesign', _id=ed.id, plate=plate.name)}}'> {{ ed.value }} </a>,
+                        {% endfor %}
+                      </td>
                     </tr>
                 {% endfor %}
               </tbody>
