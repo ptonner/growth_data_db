@@ -80,7 +80,14 @@ def plate(platename):
                 .join(models.Well)\
                 .filter(models.Well.id.in_([w.id for w in plate.wells]))
 
-    return render_template("plate.html", plate=plate, experimentalDesigns=experimentalDesigns, searchform = searchform)
+    designs = machine.session.query(models.Design)\
+                .join(models.ExperimentalDesign)\
+                .join(models.well_experimental_design)\
+                .join(models.Well)\
+                .filter(models.Well.id.in_([w.id for w in plate.wells]))
+
+
+    return render_template("plate.html", plate=plate, experimentalDesigns=experimentalDesigns, designs=designs, searchform = searchform)
 
 @app.route('/plate-delete/<platename>', methods=['GET', 'POST'])
 def plate_delete(platename):
@@ -154,17 +161,17 @@ def design(_id, plate=None):
                 .join(models.Design)\
                 .filter(models.Design.id==_id)
 
-    ds = machine.get(wells, include=[design.name])
-    # ds.data.columns = ds.meta[design.name]
-
-    assert not any(ds.meta[design.name].isnull())
-
     if not plate is None:
-        # wells = wells.join(models.Plate).filter(models.Plate.name==plate)
+        wells = wells.join(models.Plate).filter(models.Plate.name==plate)
 
         values = values.join(models.well_experimental_design)\
                     .join(models.Well)\
                     .join(models.Plate).filter(models.Plate.name==plate)
+
+    ds = machine.get(wells, include=[design.name])
+
+    assert not any(ds.meta[design.name].isnull())
+
     # else:
     #     plate = ""
 
