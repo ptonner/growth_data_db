@@ -4,4 +4,4 @@ from popmachine.application.app import app
 class ServerOperation(Operation):
 
     def _run(self):
-        app.run()
+        app.run(debug=False,host='0.0.0.0')

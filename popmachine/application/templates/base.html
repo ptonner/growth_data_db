@@ -77,6 +77,19 @@
         <div id="content" class='col-md-8'>
             {% block content %}{% endblock %}
         </div>
+
+        <div id="content" class='col-md-3'>
+          {% with messages = get_flashed_messages() %}
+            {% if messages %}
+              <h4> messages </h4>
+              <ul class=flashes>
+              {% for message in messages %}
+                <li>{{ message }}</li>
+              {% endfor %}
+              </ul>
+            {% endif %}
+          {% endwith %}
+        </div>
       </div>
     </div>
 

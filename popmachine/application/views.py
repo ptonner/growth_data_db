@@ -1,5 +1,5 @@
 from app import app
-from flask import Flask, render_template, request, jsonify, url_for, redirect
+from flask import Flask, render_template, request, jsonify, url_for, redirect, flash
 from popmachine import Machine, models
 from .forms import SearchForm, PlateCreate
 from .plot import plotDataset
@@ -206,7 +206,7 @@ def search():
     if request.method=='GET':
         return render_template("search.html", searchform=searchform)
     else:
-        groups = re.findall("(([0-9a-zA-Z ]+)=([0-9a-zA-Z ,.]+))", request.form['search'])
+        groups = re.findall("(([0-9a-zA-Z -]+)=([0-9a-zA-Z ,.-]+))", request.form['search'])
 
         kwargs = {}
         for _, k, v in groups:
@@ -215,16 +215,20 @@ def search():
             v = [z.strip().rstrip() for z in v]
             kwargs[k] = v
 
-        wells = machine.filter(**kwargs)
+        # wells = machine.filter(**kwargs)
 
         ds = machine.search(**kwargs)
 
-        color = None
-        # if len(groups)>0:
-        for _, k, v in groups:
-            if k in ['include', 'plates']:
-                continue
-            color = map(lambda x: ds.meta[k].unique().tolist().index(x), ds.meta[k])
-            break
+        if ds is None:
+            flash('No data found for search: %s'%str(kwargs))
+            return render_template("dataset.html", searchform=searchform)
+        else:
+            color = None
+            # if len(groups)>0:
+            for k, v in kwargs.iteritems():
+                if str(k) in ['include', 'plates']:
+                    continue
+                color = map(lambda x: ds.meta[k].unique().tolist().index(x), ds.meta[k])
+                break
 
-        return plotDataset(ds, 'dataset.html', searchform=searchform, dataset=ds)
+            return plotDataset(ds, 'dataset.html', searchform=searchform, dataset=ds)

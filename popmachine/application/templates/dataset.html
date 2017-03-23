@@ -1,9 +1,11 @@
 {% extends "base.html" %}
 
 {% block head %}
+  {% if js_resources %}
     {{ js_resources|indent(4)|safe }}
     {{ css_resources|indent(4)|safe }}
     {{ plot_script|indent(4)|safe }}
+  {% endif %}
 {% endblock %}
 
 {% block subheading %}
@@ -21,7 +23,13 @@ dataset
 
   <div class='row'>
     <div class='col-md-10'>
-      {{ plot_div|indent(4)|safe }}
+      {% if js_resources %}
+        {{ plot_div|indent(4)|safe }}
+
+      {% else %}
+        <h2> No data found! </h2>        
+      {% endif %}
+
     </div>
   </div>
 
