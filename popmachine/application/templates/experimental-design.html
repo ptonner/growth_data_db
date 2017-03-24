@@ -4,7 +4,21 @@
 {{experimentalDesign.design.name}}={{experimentalDesign.value}}
 {% endblock %}
 
+{% block head %}
+  {% if js_resources %}
+    {{ js_resources|indent(4)|safe }}
+    {{ css_resources|indent(4)|safe }}
+    {{ plot_script|indent(4)|safe }}
+  {% endif %}
+{% endblock %}
+
 {% block content %}
+
+{% if js_resources %}
+    {{ plot_div|indent(4)|safe }}
+  {% else %}
+    <h2> No data found! </h2>
+{% endif %}
 
 {% if wells %}
 <div>

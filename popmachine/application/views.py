@@ -15,47 +15,6 @@ from bokeh.palettes import Spectral11, viridis
 
 machine = Machine()
 
-# def datasetHtml(ds,template,title='Dataset',color=None,*args, **kwargs):
-#
-#     ds = ds.copy()
-#     ds.data.columns = ds.data.columns.astype(str)
-#
-#     ts = TimeSeries(ds.data)
-#
-#     numlines=len(ds.data.columns)
-#
-#     if color is None:
-#         color = viridis(numlines)
-#     else:
-#         v = viridis(max(color)+1)
-#         color = [v[c] for c in color]
-#
-#     fig = figure(title=title)
-#     # fig.line(ds.data.index.values, ds.data, line_width=2)
-#
-#     fig.multi_line(xs=[ds.data.index.values]*ds.data.shape[1],
-#     # fig.multi_line(xs=ds.data.index,
-#                 ys = [ds.data[name].values for name in ds.data],
-#                 # ys=ds.data,
-#                 line_color=color,
-#                 line_width=5)
-#
-#     js_resources = INLINE.render_js()
-#     css_resources = INLINE.render_css()
-#
-#     # script, div = components(ts)
-#     script, div = components(fig)
-#
-#     html = render_template(
-#         template,
-#         plot_script=script,
-#         plot_div=div,
-#         js_resources=js_resources,
-#         css_resources=css_resources,
-#         *args, **kwargs
-#     )
-#     return encode_utf8(html)
-
 @app.route('/')
 def index():
     plates = machine.plates()
@@ -85,7 +44,6 @@ def plate(platename):
                 .join(models.well_experimental_design)\
                 .join(models.Well)\
                 .filter(models.Well.id.in_([w.id for w in plate.wells]))
-
 
     return render_template("plate.html", plate=plate, experimentalDesigns=experimentalDesigns, designs=designs, searchform = searchform)
 
@@ -172,9 +130,6 @@ def design(_id, plate=None):
 
     assert not any(ds.meta[design.name].isnull())
 
-    # else:
-    #     plate = ""
-
     color = map(lambda x: ds.meta[design.name].unique().tolist().index(x), ds.meta[design.name])
 
     return plotDataset(ds, 'design.html', color=ds.meta[design.name], values=values, design=design, searchform=searchform, plate=plate)
@@ -196,6 +151,9 @@ def experimentalDesign(_id, plate=None):
     if not plate is None:
         wells = wells.join(models.Plate).filter(models.Plate.name==plate)
 
+    ds = machine.get(wells, include=[ed.design.name])
+
+    return plotDataset(ds, "experimental-design.html", color=ds.meta[ed.design.name], wells=wells, experimentalDesign=ed, searchform=searchform)
     return render_template("experimental-design.html", wells=wells, experimentalDesign=ed, searchform=searchform)
 
 @app.route('/search/',methods=['GET', 'POST'])
