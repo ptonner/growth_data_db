@@ -15,3 +15,6 @@ class PlateCreate(FlaskForm):
     design = FileField('design')
     ignore = StringField('ignore')
     source = SelectField("source", choices=[('csv', 'csv'), ('bioscreen', 'bioscreen')])
+
+class DesignForm(FlaskForm):
+    type = SelectField("type", choices=[('str', 'str'), ('int', 'int'), ('float', 'float'), ('bool', 'bool')])

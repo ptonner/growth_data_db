@@ -1,7 +1,7 @@
 from app import app
 from flask import Flask, render_template, request, jsonify, url_for, redirect, flash
 from popmachine import Machine, models
-from .forms import SearchForm, PlateCreate
+from .forms import SearchForm, PlateCreate, DesignForm
 from .plot import plotDataset
 import pandas as pd
 import re
@@ -101,39 +101,50 @@ def designs():
 
     return render_template("designs.html", designs=designs, searchform=searchform)
 
-@app.route('/design/<_id>')
+@app.route('/design/<_id>',methods=['GET', 'POST'])
 @app.route('/design/<_id>/<plate>')
 def design(_id, plate=None):
     searchform = SearchForm()
+    designform = DesignForm()
 
     design = machine.session.query(models.Design)\
                 .filter(models.Design.id==_id).one_or_none()
 
-    values = machine.session.query(models.ExperimentalDesign)\
-                .join(models.Design)\
-                .filter(models.Design.id==_id)
+    if request.method == 'GET':
 
-    wells = machine.session.query(models.Well)\
-                .join(models.well_experimental_design)\
-                .join(models.ExperimentalDesign)\
-                .join(models.Design)\
-                .filter(models.Design.id==_id)
+        designform.type.default = design.type
 
-    if not plate is None:
-        wells = wells.join(models.Plate).filter(models.Plate.name==plate)
+        values = machine.session.query(models.ExperimentalDesign)\
+                    .join(models.Design)\
+                    .filter(models.Design.id==_id)
 
-        values = values.join(models.well_experimental_design)\
-                    .join(models.Well)\
-                    .join(models.Plate).filter(models.Plate.name==plate)
+        wells = machine.session.query(models.Well)\
+                    .join(models.well_experimental_design)\
+                    .join(models.ExperimentalDesign)\
+                    .join(models.Design)\
+                    .filter(models.Design.id==_id)
 
-    ds = machine.get(wells, include=[design.name])
+        if not plate is None:
+            wells = wells.join(models.Plate).filter(models.Plate.name==plate)
 
-    assert not any(ds.meta[design.name].isnull())
+            values = values.join(models.well_experimental_design)\
+                        .join(models.Well)\
+                        .join(models.Plate).filter(models.Plate.name==plate)
 
-    color = map(lambda x: ds.meta[design.name].unique().tolist().index(x), ds.meta[design.name])
+        ds = machine.get(wells, include=[design.name])
 
-    return plotDataset(ds, 'design.html', color=ds.meta[design.name], values=values, design=design, searchform=searchform, plate=plate)
-    # return render_template("design.html", wells=wells, design=design, searchform=searchform)
+        assert not any(ds.meta[design.name].isnull())
+
+        color = map(lambda x: ds.meta[design.name].unique().tolist().index(x), ds.meta[design.name])
+
+        return plotDataset(ds, 'design.html', color=ds.meta[design.name], values=values, design=design,
+                searchform=searchform, plate=plate, designform=designform)
+
+    else:
+        design.type = request.designform.type
+        machine.session.commit()
+
+        return redirect(url_for("design", _id=design.id))
 
 @app.route('/experimentaldesign/<_id>')
 @app.route('/experimentaldesign/<_id>/<plate>')
