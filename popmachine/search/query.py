@@ -13,26 +13,34 @@ def query(wells, **kwargs):
         designAlias = aliased(Design)
 
         wells = wells.join(valueAlias, Well.experimentalDesigns)
-        wells = wells.join(designAlias)
+        wells = wells.join(designAlias, valueAlias.design)
 
         if isinstance(v, list):
             # convert non-string values
-            v = [str(z) for z in v]
+            # v = [str(z) for z in v]
 
-            # wells = wells.filter(and_(valueAlias.design_id==design.id, valueAlias.value.in_(v)))
             wells = wells.filter(or_(
                                         ~exists().where(designAlias.name==d),
-                                        and_(designAlias.name==d, valueAlias.value.in_(v))
+                                        or_(
+                                            and_(designAlias.name==d, designAlias.type=='str', valueAlias.value.in_(v)),
+                                            and_(designAlias.name==d, designAlias.type=='int', cast(valueAlias.value, Integer).in_(v)),
+                                            and_(designAlias.name==d, designAlias.type=='float', cast(valueAlias.value, Float).in_(v)),
+                                        )
                                     )
                                 )
 
         else:
             # convert non-string values
             v = str(v)
-            # wells = wells.filter(and_(valueAlias.design_id==design.id, valueAlias.value==v))
+
             wells = wells.filter(or_(
                                         ~exists().where(designAlias.name==d),
-                                        and_(designAlias.name==d, valueAlias.value==v)
+                                        # and_(designAlias.name==d, valueAlias.value==v)
+                                        or_(
+                                            and_(designAlias.name==d, designAlias.type=='str', valueAlias.value==v),
+                                            and_(designAlias.name==d, designAlias.type=='int', cast(valueAlias.value, Integer)==v),
+                                            and_(designAlias.name==d, designAlias.type=='float', cast(valueAlias.value, Float)==v),
+                                        )
                                     )
                                 )
 
