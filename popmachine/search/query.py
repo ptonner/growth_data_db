@@ -31,7 +31,7 @@ def query(wells, **kwargs):
 
         else:
             # convert non-string values
-            v = str(v)
+            # v = str(v)
 
             wells = wells.filter(or_(
                                         ~exists().where(designAlias.name==d),
