@@ -6,6 +6,7 @@ from sqlalchemy.orm import aliased
 from sqlalchemy import Column, Float, or_, and_
 import pandas as pd
 from plate import create, delete
+import search.query
 
 class Machine(Core):
 
@@ -117,50 +118,44 @@ class Machine(Core):
         if isinstance(numbers, list) and len(numbers)>0:
             wells = wells.filter(Well.plate_number.in_(numbers))
 
-        # designs = self.session.query(Design)
-        # if len(kwargs.keys()) > 0:
-        #     designs = designs.filter(Design.name.in_(kwargs.keys()))
-        # else:
-        #     designs = designs.filter(false())
+        wells = search.query.query(wells, **kwargs)
 
-
-
-        for k, v in kwargs.iteritems():
-            design = self.session.query(Design).filter(Design.name==k).one_or_none()
-            if design is None:
-                continue
-
-            valueAlias = aliased(ExperimentalDesign)
-
-            wells = wells.join(valueAlias, Well.experimentalDesigns)
-
-            if isinstance(v, list):
-                # convert non-string values
-                v = [str(z) for z in v]
-                wells = wells.filter(and_(valueAlias.design_id==design.id, valueAlias.value.in_(v)))
-            else:
-                # convert non-string values
-                v = str(v)
-                wells = wells.filter(and_(valueAlias.design_id==design.id, valueAlias.value==v))
+        # for k, v in kwargs.iteritems():
+        #     design = self.session.query(Design).filter(Design.name==k).one_or_none()
+        #     if design is None:
+        #         continue
+        #
+        #     valueAlias = aliased(ExperimentalDesign)
+        #
+        #     wells = wells.join(valueAlias, Well.experimentalDesigns)
+        #
+        #     if isinstance(v, list):
+        #         # convert non-string values
+        #         v = [str(z) for z in v]
+        #         wells = wells.filter(and_(valueAlias.design_id==design.id, valueAlias.value.in_(v)))
+        #     else:
+        #         # convert non-string values
+        #         v = str(v)
+        #         wells = wells.filter(and_(valueAlias.design_id==design.id, valueAlias.value==v))
 
         return wells
 
-        for d in designs:
-            ed = self.session.query(ExperimentalDesign).filter(\
-                                            ExperimentalDesign.design==d)
-            v = kwargs[d.name]
-            if isinstance(v, list):
-                # convert non-string values
-                v = [str(z) for z in v]
-                ed = ed.filter(ExperimentalDesign.value.in_(v))
-            else:
-                # convert non-string values
-                v = str(v)
-                ed = ed.filter(ExperimentalDesign.value==v)
-
-            wells = wells.filter(ExperimentalDesign.id.in_([e.id for e in ed]))
-
-        return wells
+        # for d in designs:
+        #     ed = self.session.query(ExperimentalDesign).filter(\
+        #                                     ExperimentalDesign.design==d)
+        #     v = kwargs[d.name]
+        #     if isinstance(v, list):
+        #         # convert non-string values
+        #         v = [str(z) for z in v]
+        #         ed = ed.filter(ExperimentalDesign.value.in_(v))
+        #     else:
+        #         # convert non-string values
+        #         v = str(v)
+        #         ed = ed.filter(ExperimentalDesign.value==v)
+        #
+        #     wells = wells.filter(ExperimentalDesign.id.in_([e.id for e in ed]))
+        #
+        # return wells
 
     def search(self, plates=[], numbers=[], include=[], *args, **kwargs):
         q = self.filter(plates, numbers, **kwargs)
