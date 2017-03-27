@@ -141,7 +141,7 @@ def design(_id, plate=None):
                 searchform=searchform, plate=plate, designform=designform)
 
     else:
-        design.type = request.designform.type
+        design.type = request.form['type']
         machine.session.commit()
 
         return redirect(url_for("design", _id=design.id))
