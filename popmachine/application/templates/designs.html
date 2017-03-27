@@ -16,6 +16,7 @@ designs
         <tr>
           <th class='text-center'>design</th>
           <th class='text-center'>values</th>
+          <th class='text-center'>type</th>
         </tr>
       </thead>
       <tbody>
@@ -23,6 +24,7 @@ designs
             <tr>
               <td class='text-center'> <a href="{{url_for('design', _id=d.id)}}"> {{ d.name|e }} </a></td>
               <td class='text-center'>{{d.values | length}}</td>
+              <td class='text-center'>{{d.type }}</td>
             </tr>
         {% endfor %}
       </tbody>

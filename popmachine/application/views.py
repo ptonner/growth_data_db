@@ -110,6 +110,9 @@ def design(_id, plate=None):
     design = machine.session.query(models.Design)\
                 .filter(models.Design.id==_id).one_or_none()
 
+    designform.type.default = design.type
+    designform.process()
+
     if request.method == 'GET':
 
         designform.type.default = design.type
