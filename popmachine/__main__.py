@@ -1,6 +1,6 @@
 import argparse, logging, api
 from popmachine import Machine
-from operation import PlateCreate, PlateDelete, DesignList, DesignSetType, SearchOperation
+from operation import PlateCreate, PlateDelete, DesignList, DesignSetType, SearchOperation, Import
 from operation.server import ServerOperation
 import pandas as pd
 from models import Plate, Well, Design, ExperimentalDesign, Base
@@ -54,6 +54,12 @@ def main():
     _list = subparsers.add_parser('list', help='list plates in the database')
     _list.set_defaults(func=ProjectList)
 
+    # create from directory
+
+    imp = subparsers.add_parser('import', help='import data from a directory')
+    imp.add_argument("directory", help='directory to import from')
+    imp.set_defaults(func=lambda x: Import.fromArgs(machine, x).run())
+
     #   Plates
     plate = subparsers.add_parser('plate', help='plate commands')
     plate.add_argument('plate', help='name of the plate')
@@ -71,10 +77,10 @@ def main():
 
     plateCreate = plateSubparsers.add_parser('create', help='create new plate')
     plateCreate.set_defaults(func=lambda x: PlateCreate.fromArgs(machine, x, createIfMissing=True, **designKwargs(x.designs)).run())
-    plateCreate.add_argument("data", help='data file')
-    plateCreate.add_argument("experimentalDesign", help='experimental design file')
+    plateCreate.add_argument("--data", help='data file', default='data.csv')
+    plateCreate.add_argument("--design", help='experimental design file', default='meta.csv')
     plateCreate.add_argument("--timeColumn",type=int,default=0)
-    plateCreate.add_argument("designs", help='extra designs to apply to all wells',nargs='*')
+    plateCreate.add_argument("--directory",type=str,default=None,help='directory of plate')
 
     #       delete
 
