@@ -22,16 +22,43 @@ dataset
   </div>
 
   <div class='row'>
-    <div class='col-md-10'>
+    <div class='col-md-8'>
       {% if js_resources %}
         {{ plot_div|indent(4)|safe }}
-
       {% else %}
-        <h2> No data found! </h2>        
+        <h2> No data found! </h2>
       {% endif %}
-
     </div>
   </div>
+
+  {% if dataset %}
+  <div class='row'>
+    <div class='col-md-8'>
+      <div class="center-block">
+        <table class='table'>
+          <thead>
+            <tr>
+              <th class='text-center'>design</th>
+              <th class='text-center'>values</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for d in dataset.meta.columns %}
+                <tr>
+                  <td class='text-center'> {{ d }} </td>
+                  <td class='text-center'>
+                    {% for v in dataset.meta[d].unique() %}
+                        {{ v }},
+                    {% endfor %}
+                  </td>
+                </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+  {% endif %}
 
   <div class='row'>
     <div class='col-md-8'>

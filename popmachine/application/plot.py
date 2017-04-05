@@ -58,7 +58,7 @@ def plotDataset(ds,template='dataset.html',title='Dataset',color=None,*args, **k
     #     # color = [v[c] for c in color]
     #     color = colorby(color)
 
-    fig = figure(title=title,plot_width=1000,)
+    fig = figure(title=title,plot_width=97*8,)
     # plot = Plot()
     # fig.line(ds.data.index.values, ds.data, line_width=2)
 
@@ -67,6 +67,8 @@ def plotDataset(ds,template='dataset.html',title='Dataset',color=None,*args, **k
     #             line_color=color,
     #             line_width=5)
     fig.multi_line('xs', 'ys', color='color', legend='label', source=source)
+
+    fig.legend.location = "top_left"
 
     # glyph = MultiLine(xs="xs", ys="ys", line_color="", line_width=2)
     # fig.add_glyph(source, glyph)
