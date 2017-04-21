@@ -7,6 +7,24 @@ from sqlalchemy import MetaData
 Base = declarative_base()
 metadata = MetaData()
 
+class User(Base):
+	__tablename__='users'
+
+	id=Column(Integer, primary_key=True)
+	name = Column(String)
+	email = Column(String)
+	password = Column(String)
+
+	permissions = Column(Enum('global', 'local'))
+
+class Project(Base):
+	__tablename__ = 'projects'
+
+	id = Column(Integer, primary_key=True)
+	name = Column(String)
+	user_id = Column(Integer, ForeignKey('users.id'))
+	user = relationship('User', back_populates='projects')
+
 class Plate(Base):
 	__tablename__ = "plates"
 	id = Column(Integer, primary_key=True)
