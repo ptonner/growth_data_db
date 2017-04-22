@@ -6,3 +6,4 @@ data
 examples
 popmachine.egg-info
 .hypothesis
+venv
