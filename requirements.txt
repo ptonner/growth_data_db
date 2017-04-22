@@ -1,18 +1,23 @@
 appdirs==1.4.2
+click==6.7
 cycler==0.10.0
 enum34==1.1.6
+Flask==0.12.1
+Flask-WTF==0.14.2
 functools32==3.2.3.post2
 hypothesis==3.6.1
-matplotlib==2.0.0
+itsdangerous==0.24
+Jinja2==2.9.6
+MarkupSafe==1.0
 nose2==0.6.5
 numpy==1.12.0
 packaging==16.8
 pandas==0.19.2
-#pkg-resources==0.0.0
--e git+https://github.com/ptonner/popmachine.git@d53035926004695b5782461490c31e47f17afdab#egg=popmachine
 pyparsing==2.1.10
 python-dateutil==2.6.0
 pytz==2016.10
 six==1.10.0
 SQLAlchemy==1.1.6
 subprocess32==3.2.7
+Werkzeug==0.12.1
+WTForms==2.1
