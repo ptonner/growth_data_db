@@ -5,7 +5,7 @@ from sqlalchemy.sql import select, false
 from sqlalchemy import Column, Float
 import pandas as pd
 from plate import create, delete
-import search.query
+import search
 
 class Machine(Core):
 
@@ -49,65 +49,6 @@ class Machine(Core):
 
         return ret
 
-    def get(self, wells, include=[]):
-        """Given a query on wells, return a dataset with the wells's data."""
-
-        if wells.count()==0:
-            return None
-
-        designs = self.session.query(Design)
-        if len(include) > 0:
-            designs = designs.filter(Design.name.in_(include))
-        else:
-            designs = designs.filter(false())
-
-        metacols = [d.name for d in designs]
-
-        meta = data = None
-
-        plates = self.session.query(Plate).join(Well)
-        plates = plates.filter(Well.id.in_([w.id for w in wells]))
-
-        for p in plates:
-            subwells = wells.filter(Well.plate==p)
-            cols = [Column('time', Float)]+[Column(str(w.plate_number), Float) for w in subwells]
-
-            table = self.metadata.tables[p.data_table]
-            s = select(cols,from_obj=table)
-            res = self.engine.execute(s)
-
-            newdata = pd.DataFrame(list(res), columns = ['time'] + ["%d_%d"%(p.id,w.plate_number) for w in subwells])
-            if data is None:
-                data = newdata
-            else:
-                data = pd.merge(data,newdata,on='time')
-
-            newmeta = []
-            for w in subwells:
-                newmeta.append([p.name, w.plate_number])
-                for c in metacols:
-                    design = self.session.query(Design).filter(Design.name==c).one()
-                    ed = self.session.query(ExperimentalDesign).filter(\
-                                                 ExperimentalDesign.design==design,\
-                                                 ExperimentalDesign.wells.contains(w)).one()
-                    newmeta[-1].append(ed.get_value())
-
-            newmeta = pd.DataFrame(newmeta, columns = ['plate', 'number']+metacols)
-            if meta is None:
-                meta = newmeta
-            else:
-                meta = pd.concat((meta, newmeta))
-
-        data.index = data.time
-        del data['time']
-        data = data.astype(float)
-
-        for i in include:
-            if not i in meta.columns:
-                logging.warning('no design %s found, ignored' % i)
-
-        return DataSet(data, meta)
-
     def filter(self, plates=[], numbers=[], *args, **kwargs):
         wells = self.session.query(Well)
         wells = wells.join(well_experimental_design)#.join(ExperimentalDesign)
@@ -131,4 +72,6 @@ class Machine(Core):
 
     def search(self, plates=[], numbers=[], include=[], *args, **kwargs):
         q = self.filter(plates, numbers, **kwargs)
-        return self.get(q, include+kwargs.keys())
+
+        return search.get.get(self.session, self.metadata, self.engine, q, include=include+kwargs.keys())
+        # return self.get(q, include+kwargs.keys())
