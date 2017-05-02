@@ -77,13 +77,19 @@ class DataSet(object):
 
         self.data = np.log2(self.data)
 
-    def melt(self):
+    def melt(self, norm=False):
 
         pivot = pd.concat((self.meta, self.data.T),1,ignore_index=False)
 
         idvars = pivot.columns[:self.meta.shape[1]].tolist()
         valuevars = pivot.columns[self.meta.shape[1]:].tolist()
-        return pd.melt(pivot, idvars, valuevars, var_name='time', value_name='od')
+        melt = pd.melt(pivot, idvars, valuevars, var_name='time', value_name='od')
+        melt.time = melt.time.astype(float)
+
+        if norm:
+            melt.od = (melt.od-melt.od.mean())/melt.od.std()
+
+        return melt
 
     def build(self,effects=[],covariates=[],scale=None,**kwargs):
 
