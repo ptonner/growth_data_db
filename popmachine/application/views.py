@@ -1,10 +1,12 @@
 from app import app
 from flask import Flask, render_template, request, jsonify, url_for, redirect, flash
 from popmachine import Machine, models
-from .forms import SearchForm, PlateCreate, DesignForm
+from .forms import SearchForm, PlateCreate, DesignForm, LoginForm
 from .plot import plotDataset
+from safeurl import is_safe_url
+from flask_login import LoginManager, login_user, login_required, logout_user
 import pandas as pd
-import re
+import re, flask
 
 from bokeh.embed import components
 from bokeh.plotting import figure
@@ -14,13 +16,25 @@ from bokeh.util.string import encode_utf8
 from bokeh.palettes import Spectral11, viridis
 
 machine = Machine()
+login_manager = LoginManager()
+
+@login_manager.user_loader
+def load_user(user_id):
+    return machine.session.query(models.User).filter_by(id=user_id).one_or_none()
 
 @app.route('/')
 def index():
-    plates = machine.plates()
+    plates = list(machine.plates())
+    if len(plates) > 10:
+        plates = plates[:10]
+
+    designs = list(machine.designs())
+    if len(designs) > 10:
+        designs = designs[:10]
+
     searchform = SearchForm()
 
-    return render_template("index.html", plates=plates, searchform=searchform)
+    return render_template("index.html", plates=plates, designs=designs, searchform=searchform)
 
 @app.route('/plates/')
 def plates():
@@ -60,6 +74,7 @@ def plate_delete(platename):
         return redirect(url_for('plates'))
 
 @app.route('/plate-create/', methods=['GET', "POST"])
+@login_required
 def plate_create():
 
     searchform = SearchForm()
@@ -204,3 +219,46 @@ def search():
                 break
 
             return plotDataset(ds, 'dataset.html', searchform=searchform, dataset=ds)
+
+@app.route('/login', methods=['GET', 'POST'])
+def login():
+
+    searchform = SearchForm()
+    # Here we use a class of some kind to represent and validate our
+    # client-side form data. For example, WTForms is a library that will
+    # handle this for us, and we use a custom LoginForm to validate.
+    form = LoginForm()
+    if form.validate_on_submit():
+
+        user = machine.session.query(models.User).filter_by(username=request.form['name'], password=request.form['password']).one_or_none()
+
+        if user is None:
+            flask.flash('Incorrect username or password.')
+            flask.redirect(flask.url_for('login', form=form))
+
+        # Login and validate the user.
+        # user should be an instance of your `User` class
+        login_user(user)
+
+        flask.flash('Logged in successfully.')
+
+        next = flask.request.args.get('next')
+        # is_safe_url should check if the url is safe for redirects.
+        # See http://flask.pocoo.org/snippets/62/ for an example.
+        if not is_safe_url(next):
+            return flask.abort(400)
+
+        return flask.redirect(next or flask.url_for('index'))
+    return flask.render_template('login.html', form=form, searchform=searchform)
+
+@app.route("/logout")
+@login_required
+def logout():
+    logout_user()
+    return redirect(url_for('index'))
+
+@login_manager.unauthorized_handler
+def unauthorized():
+    # do stuff
+    flask.flash('you must be logged in to do that!')
+    return redirect(flask.url_for('login'))

@@ -1,8 +1,10 @@
 from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy import Column, Integer, String, Enum, Float
+from sqlalchemy import Column, Integer, String, Enum, Float, Date, Boolean
 from sqlalchemy import ForeignKey, UniqueConstraint, Table, PrimaryKeyConstraint
-from sqlalchemy.orm import relationship, backref
+from sqlalchemy.orm import relationship, backref, validates
 from sqlalchemy import MetaData
+
+from flask_login import UserMixin
 
 Base = declarative_base()
 metadata = MetaData()
@@ -21,18 +23,30 @@ project_namespace = Table("project_namespace", Base.metadata,
     PrimaryKeyConstraint('project_id', 'ns_id')
 )
 
-class User(Base):
+class User(Base, UserMixin):
     __tablename__='users'
 
     id=Column(Integer, primary_key=True)
     name = Column(String)
-    username = Column(String)
-    password = Column(String)
+    username = Column(String(50))
+    password = Column(String(50))
+    email = Column(String(50))
+    organization = Column(String(50))
+
+    address = Column(String(50))
+    city = Column(String(50))
+    state = Column(String(50))
+    country = Column(String(20))
 
     permissions = Column(Enum('admin', 'pleb'))
 
     def __repr__(self):
         return "User: %s" % (self.name)
+
+    @validates('email')
+    def validate_email(self, key, address):
+        assert '@' in address
+        return address
 
 class Namespace(Base):
     """A group of design variables, which can be shared across plates."""
@@ -69,6 +83,15 @@ class Project(Base):
     owner_id = Column(Integer, ForeignKey('users.id'))
     owner = relationship("User", backref='projects')
 
+    description = Column(String(1000), doc = 'description of project')
+    design = Column(String(1000), doc = 'overall design of project')
+
+    views = Column(Integer, doc='number of views')
+
+    published = Column(Boolean, doc='availability on website')
+    citation_text = Column(String(300), doc='name of project citation, if applicable')
+    citation_pmid = Column(Integer, doc='pubmed id of citation, if applicable')
+
     namespaces = relationship(
         "Namespace",
         secondary=project_namespace,
@@ -80,12 +103,21 @@ class Project(Base):
 class Plate(Base):
     __tablename__ = "plates"
     id = Column(Integer, primary_key=True)
+    submission_date = Column(Date)
+    modified_date = Column(Date, doc='last modification date')
+    protocol = Column(String(1000), doc='description of the plate protocol')
+
     project_id = Column(Integer, ForeignKey('projects.id'))
     project = relationship("Project", backref="plates")
+
+    views = Column(Integer, doc='number of views')
 
     name = Column(String)
     data_table = Column(String)
     wells = relationship("Well",back_populates="plate", cascade="all, delete, delete-orphan")
+
+    def owner(self):
+        return self.project.owner
 
     def __repr__(self):
         return "%s (%d)" % (self.name, len(self.wells))
@@ -102,7 +134,8 @@ class Well(Base):
     plate_id = Column(Integer, ForeignKey('plates.id'))
     plate = relationship("Plate", back_populates="wells")
     plate_number = Column(Integer)
-    # design_values = relationship("ExperimentalDesign",back_populates="well")
+
+    organism_id = Column(Integer, doc='NCBI taxonomy id')
 
     experimentalDesigns = relationship(
         "ExperimentalDesign",
@@ -112,11 +145,21 @@ class Well(Base):
     def __repr__(self):
         return "%d, %s" % (self.plate_number,self.plate.name)
 
+    def organism(self):
+        from Bio import Entrez
+        Entrez.email = 'peter.tonner@duke.edu'
+        data = Entrez.read(Entrez.efetch(id = '%d'%self.organism_id, db = "taxonomy", retmode = "xml"))
+
+        assert len(data) == 1, 'no record found or more than one found!'
+        data = data[0]
+
+        return data
+
 class Design(Base):
     __tablename__ = "designs"
     id = Column(Integer, primary_key=True)
     name = Column(String, nullable=False)
-    description = Column(String,)
+    description = Column(String(100), doc='details of design')
     type = Column(Enum("str","int","float",'bool'))
     values = relationship("ExperimentalDesign",back_populates="design")
 
