@@ -134,6 +134,7 @@ class Machine(Core):
 
         for i in include:
             if not i in meta.columns:
+                import logging
                 logging.warning('no design %s found, ignored' % i)
 
         return DataSet(data, meta)
