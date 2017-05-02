@@ -49,6 +49,9 @@ class Machine(Core):
 
         return ret
 
+    def get(self,*args, **kwargs):
+        return search.get.get(self.session, self.metadata, self.engine, *args, **kwargs)
+
     def filter(self, plates=[], numbers=[], *args, **kwargs):
         wells = self.session.query(Well)
         wells = wells.join(well_experimental_design)#.join(ExperimentalDesign)

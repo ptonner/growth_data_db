@@ -4,7 +4,7 @@ from popmachine import Machine, models
 from .forms import SearchForm, PlateCreate, DesignForm, LoginForm
 from .plot import plotDataset
 from safeurl import is_safe_url
-from flask_login import LoginManager, login_user, login_required, logout_user
+from flask_login import LoginManager, login_user, login_required, logout_user, current_user
 import pandas as pd
 import re, flask
 
@@ -24,11 +24,18 @@ def load_user(user_id):
 
 @app.route('/')
 def index():
-    plates = list(machine.plates())
+
+    if not current_user.is_authenticated:
+        plates = list(machine.plates())
+        designs = list(machine.designs())
+
+    else:
+        plates = machine.session.query(models.Plate).join(models.Project).filter(models.Project.owner==current_user).all()
+
+        designs = machine.session.query(models.Design).join(models.Namespace).filter(models.Namespace.owners.contains(current_user)).all()
+
     if len(plates) > 10:
         plates = plates[:10]
-
-    designs = list(machine.designs())
     if len(designs) > 10:
         designs = designs[:10]
 
