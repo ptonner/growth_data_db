@@ -43,6 +43,14 @@ def index():
 
     return render_template("index.html", plates=plates, designs=designs, searchform=searchform)
 
+# @app.route('/projects/')
+# def plates():
+#     plates = machine.plates()
+#     searchform = SearchForm()
+#
+#     return render_template("plates.html", plates=plates, searchform=searchform)
+
+
 @app.route('/plates/')
 def plates():
     plates = machine.plates()
