@@ -11,6 +11,9 @@ class LoginForm(FlaskForm):
 class SearchForm(FlaskForm):
     search = StringField("search")
 
+class PhenotypeForm(FlaskForm):
+    name = StringField('name')
+
 class PlateCreate(FlaskForm):
     name = StringField('name')
     # data = FileField('data',validators=[DataValidator()])

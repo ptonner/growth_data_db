@@ -204,3 +204,48 @@ class ExperimentalDesign(Base):
 
     def __repr__(self):
         return "%s(%s)" % (self.design.name, self.value)
+
+
+well_phenotype = Table('well_phenotype', Base.metadata,
+    Column('well_id', Integer, ForeignKey('wells.id')),
+    Column('phenotype_id', Integer, ForeignKey('phenotypes.id')),
+    PrimaryKeyConstraint('well_id', 'phenotype_id')
+)
+
+# experimental_design_phenotype= Table('experimental_design_phenotype', Base.metadata,
+#     Column('ed_id', Integer, ForeignKey('experimental_design.id')),
+# 	Column('phenotype_id', Integer, ForeignKey('phenotypes.id')),
+#     PrimaryKeyConstraint('ed_id', 'phenotype_id')
+# )
+
+design_phenotype = Table('design_phenotype', Base.metadata,
+	Column('design_id', Integer, ForeignKey('designs.id')),
+	Column('phenotype_id', Integer, ForeignKey('phenotypes.id')),
+    PrimaryKeyConstraint('design_id', 'phenotype_id')
+)
+
+class Phenotype(Base):
+
+	__tablename__ = 'phenotypes'
+	id = Column(Integer, primary_key=True)
+
+	name = Column(String(50))
+	owner_id = Column(Integer, ForeignKey('users.id'))
+	owner = relationship('User', backref='phenotypes')
+
+	omp_id = Column(String(10))
+
+	wells = relationship(
+        "Well",
+        secondary=well_phenotype,
+        backref="phenotypes")
+
+	# experimentalDesigns = relationship(
+    #     "ExperimentalDesign",
+    #     secondary=experimental_design_phenotype,
+    #     back_populates="phenotypes")
+
+	designs = relationship(
+        "Design",
+        secondary=design_phenotype,
+        backref="phenotypes")

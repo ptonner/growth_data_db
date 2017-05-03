@@ -217,8 +217,8 @@ def search():
             v = [z.strip().rstrip() for z in v]
             kwargs[k] = v
 
-        # wells = machine.filter(**kwargs)
-
+        session['designs'] = machine.session.query(models.Design).filter(models.Design.name.in_(kwargs.keys()))
+        session['wells'] = machine.filter(**kwargs)
         ds = machine.search(**kwargs)
 
         if ds is None:
@@ -234,6 +234,34 @@ def search():
                 break
 
             return plotDataset(ds, 'dataset.html', searchform=searchform, dataset=ds)
+
+@app.route('/phenotype')
+def phenotype(id):
+    searchform = SearchForm()
+
+    phenotype = machine.session.query(models.Phenotype).filter_by(id=id).one_or_none()
+
+    return render_template('phenotype.html', phenotype=phenotype, searchform = searchform)
+
+@app.route('/phenotype-create', methods=['GET', 'POST'])
+@login_required
+def phenotype_create():
+    searchform = SearchForm()
+    phenotype_form = PhenotypeForm()
+
+    if request.method == 'GET':
+        return render_template("phenotype-edit.html", searchform=searchform, form=phenotype_form, operation='create')
+    else:
+        wells = session.get('wells', None)
+        designs = session.get('designs', None)
+        name = request.form['name']
+
+        phenotype = models.Phenotype(name=name, owner=current_user, wells=wells, designs=designs)
+        machine.session.add(phenotype)
+        machine.session.commit()
+
+        return redirect(url_for('phenotype', id=phenotype.id))
+
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
