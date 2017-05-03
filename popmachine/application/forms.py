@@ -1,5 +1,5 @@
 from flask_wtf import FlaskForm
-from wtforms import StringField, BooleanField, FileField, SelectField, PasswordField
+from wtforms import StringField, BooleanField, FileField, SelectField, PasswordField, IntegerField
 from wtforms.validators import DataRequired
 # from validators import DataValidator
 
@@ -18,6 +18,16 @@ class PlateCreate(FlaskForm):
     design = FileField('design')
     ignore = StringField('ignore')
     source = SelectField("source", choices=[('csv', 'csv'), ('bioscreen', 'bioscreen')])
+
+class ProjectForm(FlaskForm):
+
+    name = StringField('name')
+    description = StringField('description')
+    design = StringField('design')
+    published = BooleanField('published')
+
+    citation = StringField('citation')
+    citation_pmid = IntegerField('citation_pmid')
 
 class DesignForm(FlaskForm):
     type = SelectField("type", choices=[('str', 'str'), ('int', 'int'), ('float', 'float'), ('bool', 'bool')])

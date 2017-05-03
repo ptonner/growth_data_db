@@ -83,10 +83,13 @@ class Project(Base):
     owner_id = Column(Integer, ForeignKey('users.id'))
     owner = relationship("User", backref='projects')
 
+    submission_date = Column(Date)
+    modified_date = Column(Date, doc='last modification date')
+
     description = Column(String(1000), doc = 'description of project')
     design = Column(String(1000), doc = 'overall design of project')
 
-    views = Column(Integer, doc='number of views')
+    views = Column(Integer, doc='number of views', default=0)
 
     published = Column(Boolean, doc='availability on website')
     citation_text = Column(String(300), doc='name of project citation, if applicable')
@@ -127,6 +130,12 @@ well_experimental_design = Table('well_experimental_design', Base.metadata,
     Column('ed_id', Integer, ForeignKey('experimental_design.id')),
     PrimaryKeyConstraint('well_id', 'ed_id')
 )
+
+# many to many mapping of genes knocked-out in a sample
+well_gene_id = Table('well_gene_id', Base.metadata,
+    Column('well_id', Integer, ForeignKey('wells.id')),
+    Column('pubmed_gene_id', Integer) # pubmed id to gene database
+    )
 
 class Well(Base):
     __tablename__ = "wells"

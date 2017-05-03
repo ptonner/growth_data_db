@@ -22,7 +22,8 @@
 
 <nav class="bs-docs-sidebar">
   <ul class="nav nav-pills nav-stacked">
-    <!-- <li class=""> <button type="button" class="btn btn-primary">Design</button> </li> -->
+    <li class=""> <a href='{{url_for("index")}}'> <button type="button" class="btn btn-default"> Edit </button> </a> </li>
+    <li class=""> <a href='{{url_for("index")}}'> <button type="button" class="btn btn-default"> Design </button> </a> </li>
     <li class=""> <a href='{{url_for("plate_delete", platename=plate.name)}}'> <button type="button" class="btn btn-danger">Delete</button> </a> </li>
   </ul>
 </nav>
@@ -33,6 +34,41 @@
 
 {% if plate %}
   <div class='container'>
+    <div class='row'>
+      <div class="col-md-2">
+        <h4>project:</h4>
+      </div>
+      <div class="col-md-4">
+        <a href='{{url_for("project",projectid=plate.project.id)}}'
+          <p>{{plate.project.name}}</p>
+        </a>
+      </div>
+    </div>
+    <div class='row'>
+      <div class="col-md-2">
+        <h4>submission date:</h4>
+      </div>
+      <div class="col-md-4">
+        {{plate.submission_date}}
+      </div>
+    </div>
+    <div class='row'>
+      <div class="col-md-2">
+        <h4>protocol:</h4>
+      </div>
+      <div class="col-md-4">
+        {{plate.protocol}}
+      </div>
+    </div>
+    <div class='row'>
+      <div class="col-md-2">
+        <h4>wells:</h4>
+      </div>
+      <div class="col-md-4">
+        {{plate.wells | length}}
+      </div>
+    </div>
+
     {% if designs %}
       <div class='row'>
         <div class="col-md-6">

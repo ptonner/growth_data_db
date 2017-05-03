@@ -14,13 +14,43 @@ home
 <h3>popmachine: a database for microbial population growth experiments</h3>
 
 <p>
+  popmachine is a comprehensive storage solution for microbial population growth data, a ubiquitous measure in microbiology.
   popmachine provides a number of services for organizing and analyzing microbial population growth data:
   <ul>
-    <li>searching for key terms and experimental designs</li>
+    <li>storage and organiziation of population growth data, with reliable identification for sharing with others</li>
+    <li>combine data across projects and labs by searching for key terms and experimental designs</li>
+    <li>analysis of data through non-parametric model Gaussian processes</li>
     <li>easy download of data for further analysis</li>
-    <li></li>
+    <li>a full web api for accessing data through the python programming language</li>
   </ul>
 </p>
+
+{% if projects %}
+  <h4>Projects <small><a href="{{url_for('projects')}}"> more </a></small></h4>
+
+  <div class="container">
+    <div class='row'>
+      <div class="col-md-6">
+        <table class='table table-hover'>
+          <thead>
+            <tr>
+              <th class='text-center'>name</th>
+              <th class='text-center'>plates</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for project in projects%}
+                <tr>
+                  <td class='text-center'> <a href="{{url_for('project', projectid=project.id)}}"> {{ project.name|e }} </a></td>
+                  <td class='text-center'>{{project.plates | length}}</td>
+                </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+{% endif %}
 
 {% if plates %}
   <h4>Plates <small><a href="{{url_for('plates')}}"> more </a></small></h4>

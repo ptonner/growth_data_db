@@ -1,5 +1,5 @@
 from core import Core
-from models import Plate, Design, Well, ExperimentalDesign, well_experimental_design
+from models import Project, Plate, Design, Well, ExperimentalDesign, well_experimental_design
 from dataset import DataSet
 from sqlalchemy.sql import select, false
 from sqlalchemy import Column, Float
