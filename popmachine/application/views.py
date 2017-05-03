@@ -1,7 +1,7 @@
 from app import app
-from flask import Flask, render_template, request, jsonify, url_for, redirect, flash
+from flask import Flask, render_template, request, jsonify, url_for, redirect, flash, session
 from popmachine import Machine, models
-from .forms import SearchForm, PlateCreate, DesignForm, LoginForm, ProjectForm
+from .forms import SearchForm, PlateCreate, DesignForm, LoginForm, ProjectForm, PhenotypeForm
 from .plot import plotDataset
 from safeurl import is_safe_url
 from flask_login import LoginManager, login_user, login_required, logout_user, current_user
@@ -78,7 +78,7 @@ def project_create():
         return render_template("project-create.html", form=form, searchform = searchform)
     else:
 
-        print request.form
+        # print request.form
 
         name = request.form['name']
         description = request.form['description']
@@ -273,11 +273,11 @@ def search():
             v = [z.strip().rstrip() for z in v]
             kwargs[k] = v
 
-        session['designs'] = machine.session.query(models.Design).filter(models.Design.name.in_(kwargs.keys()))
-        session['wells'] = machine.filter(**kwargs)
+        session['designs'] = [d.id for d in machine.session.query(models.Design).filter(models.Design.name.in_(kwargs.keys()))]
+        session['wells'] = [w.id for w in machine.filter(**kwargs)]
         ds = machine.search(**kwargs)
 
-        print ds.data.head()
+        # print ds.data.head()
 
         if ds is None:
             flash('No data found for search: %s'%str(kwargs))
@@ -294,7 +294,7 @@ def search():
             # return plotDataset(ds, 'dataset.html', searchform=searchform, dataset=ds)
             return plotDataset(ds, 'dataset.html', searchform=searchform)
 
-@app.route('/phenotype')
+@app.route('/phenotype/<id>')
 def phenotype(id):
     searchform = SearchForm()
 
@@ -311,8 +311,8 @@ def phenotype_create():
     if request.method == 'GET':
         return render_template("phenotype-edit.html", searchform=searchform, form=phenotype_form, operation='create')
     else:
-        wells = session.get('wells', None)
-        designs = session.get('designs', None)
+        wells = machine.session.query(models.Well).filter(models.Well.id.in_(session.pop('wells', None))).all()
+        designs = machine.session.query(models.Design).filter(models.Design.id.in_(session.pop('designs', None))).all()
         name = request.form['name']
 
         phenotype = models.Phenotype(name=name, owner=current_user, wells=wells, designs=designs)
