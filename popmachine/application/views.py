@@ -1,12 +1,13 @@
 from app import app
 from flask import Flask, render_template, request, jsonify, url_for, redirect, flash
 from popmachine import Machine, models
-from .forms import SearchForm, PlateCreate, DesignForm, LoginForm
+from .forms import SearchForm, PlateCreate, DesignForm, LoginForm, ProjectForm
 from .plot import plotDataset
 from safeurl import is_safe_url
 from flask_login import LoginManager, login_user, login_required, logout_user, current_user
+from wtforms import SelectField
 import pandas as pd
-import re, flask
+import re, flask, datetime
 
 from bokeh.embed import components
 from bokeh.plotting import figure
@@ -24,9 +25,11 @@ def load_user(user_id):
 
 @app.route('/')
 def index():
+    projects = machine.session.query(models.Project).filter_by(published=True).all()
 
     if not current_user.is_authenticated:
-        plates = list(machine.plates())
+
+        plates = machine.session.query(models.Plate).join(models.Project).filter(models.Project.published).all()
         designs = list(machine.designs())
 
     else:
@@ -34,6 +37,8 @@ def index():
 
         designs = machine.session.query(models.Design).join(models.Namespace).filter(models.Namespace.owners.contains(current_user)).all()
 
+    if len(projects) > 10:
+        projects = projects[:10]
     if len(plates) > 10:
         plates = plates[:10]
     if len(designs) > 10:
@@ -41,15 +46,55 @@ def index():
 
     searchform = SearchForm()
 
-    return render_template("index.html", plates=plates, designs=designs, searchform=searchform)
+    return render_template("index.html", projects=projects, plates=plates, designs=designs, searchform=searchform)
 
-# @app.route('/projects/')
-# def plates():
-#     plates = machine.plates()
-#     searchform = SearchForm()
-#
-#     return render_template("plates.html", plates=plates, searchform=searchform)
 
+@app.route('/project/<projectid>')
+def project(projectid):
+    searchform = SearchForm()
+    project = machine.session.query(models.Project).filter_by(id=projectid).one_or_none()
+
+    return render_template("project.html", project=project, searchform = searchform)
+
+@app.route('/projects/')
+def projects():
+
+    if not current_user.is_authenticated:
+        myprojects = None
+    else:
+        myprojects = machine.session.query(models.Project).filter_by(owner=current_user)
+    searchform = SearchForm()
+
+    return render_template("projects.html", myprojects=myprojects, searchform=searchform)
+
+@app.route('/project-create/', methods=['GET', "POST"])
+@login_required
+def project_create():
+
+    searchform = SearchForm()
+    form = ProjectForm()
+
+    if request.method=="GET":
+        return render_template("project-create.html", form=form, searchform = searchform)
+    else:
+
+        print request.form
+
+        name = request.form['name']
+        description = request.form['description']
+        design = request.form['design']
+        published = 'published' in request.form and request.form['published']
+        citation = request.form['citation']
+        citation_pmid = request.form['citation_pmid']
+
+        now = datetime.datetime.now()
+
+        project = models.Project(name=name, description=description, design=design, published=published, citation_text=citation, citation_pmid=citation_pmid, owner=current_user, submission_date=now, modified_date=now)
+        machine.session.add(project)
+        machine.session.commit()
+
+        return redirect(url_for('project', projectid=project.id))
+    return redirect(url_for('project_create'))
 
 @app.route('/plates/')
 def plates():
@@ -94,10 +139,17 @@ def plate_create():
 
     searchform = SearchForm()
 
+    myprojects = machine.session.query(models.Project).filter_by(owner=current_user).all()
+
+    class DynamicPlateCreate(PlateCreate):
+        project = SelectField("project", choices=[(p.name, p.name) for p in myprojects])
+
     if request.method=="GET":
-        form = PlateCreate()
+        form = DynamicPlateCreate()
         return render_template("plate-create.html", form=form, searchform = searchform)
     else:
+
+        project = machine.session.query(models.Project).filter_by(owner=current_user, name=request.form['project']).one_or_none()
 
         name = request.form['name']
         ignore = request.form['ignore'].split(",")
@@ -117,8 +169,12 @@ def plate_create():
             meta = None
 
         if request.form['source'] == 'csv':
-            machine.createPlate(name, data, meta)
+            plate = machine.createPlate(name, data, meta)
+            plate.project = project
+            machine.session.add(plate)
+            machine.session.commit()
         else:
+            flask.flash('only csv source supported currently!')
             pass
 
         return redirect(url_for('plates'))
@@ -208,7 +264,7 @@ def search():
     if request.method=='GET':
         return render_template("search.html", searchform=searchform)
     else:
-        groups = re.findall("(([0-9a-zA-Z -]+)=([0-9a-zA-Z ,.-]+))", request.form['search'])
+        groups = re.findall("(([0-9a-zA-Z -.]+)=([0-9a-zA-Z ,.-]+))", request.form['search'])
 
         kwargs = {}
         for _, k, v in groups:
@@ -220,6 +276,8 @@ def search():
         session['designs'] = machine.session.query(models.Design).filter(models.Design.name.in_(kwargs.keys()))
         session['wells'] = machine.filter(**kwargs)
         ds = machine.search(**kwargs)
+
+        print ds.data.head()
 
         if ds is None:
             flash('No data found for search: %s'%str(kwargs))
@@ -233,7 +291,8 @@ def search():
                 color = map(lambda x: ds.meta[k].unique().tolist().index(x), ds.meta[k])
                 break
 
-            return plotDataset(ds, 'dataset.html', searchform=searchform, dataset=ds)
+            # return plotDataset(ds, 'dataset.html', searchform=searchform, dataset=ds)
+            return plotDataset(ds, 'dataset.html', searchform=searchform)
 
 @app.route('/phenotype')
 def phenotype(id):
@@ -277,17 +336,13 @@ def login():
 
         if user is None:
             flask.flash('Incorrect username or password.')
-            flask.redirect(flask.url_for('login', form=form))
+            return flask.redirect(flask.url_for('login', form=form, method='GET'))
 
-        # Login and validate the user.
-        # user should be an instance of your `User` class
         login_user(user)
 
         flask.flash('Logged in successfully.')
 
         next = flask.request.args.get('next')
-        # is_safe_url should check if the url is safe for redirects.
-        # See http://flask.pocoo.org/snippets/62/ for an example.
         if not is_safe_url(next):
             return flask.abort(400)
 

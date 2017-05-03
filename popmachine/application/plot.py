@@ -43,8 +43,10 @@ def plotDataset(ds,template='dataset.html',title='Dataset',color=None,*args, **k
     # print color
 
     # source = ColumnDataSource(data=ds.data)
+    # source = ColumnDataSource(dict(xs=[ds.data.index.values]*ds.data.shape[1],
+    #             ys = [ds.data[name].values for name in ds.data], yslog = [np.log2(ds.data[name].values) for name in ds.data], color=color, label=label))
     source = ColumnDataSource(dict(xs=[ds.data.index.values]*ds.data.shape[1],
-                ys = [ds.data[name].values for name in ds.data], yslog = [np.log2(ds.data[name].values) for name in ds.data], color=color, label=label))
+                ys = [ds.data[name].values for name in ds.data], color=color, label=label))
 
     labelsource = ColumnDataSource(ds.meta)
     colorsource = ColumnDataSource({k:colorby(ds.meta[k]) for k in ds.meta.columns.tolist()})
@@ -94,14 +96,13 @@ def plotDataset(ds,template='dataset.html',title='Dataset',color=None,*args, **k
         source.trigger('change');
     """)
 
-    logcallback = CustomJS(args=dict(source=source), code="""
-        var data = source.get('data');
-
-        data['ys'] = data['yslog']
-
-        source.trigger('change');
-    """)
-
+    # logcallback = CustomJS(args=dict(source=source), code="""
+    #     var data = source.get('data');
+    #
+    #     data['ys'] = data['yslog']
+    #
+    #     source.trigger('change');
+    # """)
 
     menu = [(c,c) for c in ds.meta.columns]
     dropdown = Dropdown(label="Color by", button_type="warning", menu=menu, callback=callback)

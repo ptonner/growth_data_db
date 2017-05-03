@@ -1,0 +1,49 @@
+{% extends "base.html" %}
+
+{% block head %}
+{% endblock %}
+
+{% block subheading %}
+{{project.name}}
+{% endblock %}
+
+{% block controls %}
+<div class="btn-group-vertical" role="group" >
+  <a href='{{url_for("index")}}' role="button" class="btn btn-success btn-large">Edit</a>
+  <a href='{{url_for("index")}}' role="button" class="btn btn-danger btn-large">Delete</a>
+</div>
+
+{% endblock %}
+
+{% block content %}
+
+{% if project %}
+
+  <div class='container'>
+    <div class='row'>
+      <div class="col-md-8">
+        <table class="table table-bordered">
+          <tr>
+            <td class="col-md-2"> created by </td>
+            <td> {{project.owner.name}}</td>
+          </tr>
+          <tr>
+            <td class="col-md-2"> creation date </td>
+            <td> {{project.submission_date}}</td>
+          </tr>
+          <tr>
+            <td class="col-md-2"> last modified </td>
+            <td> {{project.modified_date}}</td>
+          </tr>
+          <tr>
+            <td class="col-md-2"> published </td>
+            <td> {% if project.published %} yes {% else %} no {% endif %}</td>
+          </tr>
+        </table>
+      </div>
+    </div>
+  </div>
+
+{% endif %}
+
+{% endblock %}

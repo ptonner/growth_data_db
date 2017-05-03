@@ -1,0 +1,49 @@
+{% extends "base.html" %}
+
+{% block head %}
+{% endblock %}
+
+{% block subheading %}
+project edit
+{% endblock %}
+
+{% block content %}
+
+<form action="{{url_for('project_create')}}" method='POST' enctype="multipart/form-data">
+  <div class="form-group">
+    <label for="platename">name</label>
+    {{ form.name(size=30,placeholder="project name", class_="form-control") }}
+  </div>
+  <div class="form-group">
+    <label for="description">description</label>
+    {{ form.name(size=200,placeholder="description of project, e.g. goals, research question", class_="form-control") }}
+  </div>
+  <div class="form-group">
+    <label for="design">design</label>
+    {{ form.name(size=400,placeholder="overall design", class_="form-control") }}
+  </div>
+  <div class="form-group">
+    <label for="source">publish</label>
+    {{ form.published(class_="form-control") }}
+    <p class="help-block">Publishing a project makes it publicly available (can be changed later).</p>
+  </div>
+  <div class="form-group">
+    <label for="citation">citation</label>
+    {{ form.name(size=50,placeholder="citation, if applicable", class_="form-control") }}
+  </div>
+  <div class="form-group">
+    <label for="citation">citation pubmed id</label>
+    {{ form.name(size=50,placeholder="if applicable", class_="form-control") }}
+  </div>
+
+  <button type="submit" id="myButton" class="btn btn-default" data-loading-text="Creating...">
+     <span class="glyphicon glyphicon-upload" aria-hidden="true"></span> Create
+  </button>
+  <script>
+    $('#myButton').on('click', function () {
+      var $btn = $(this).button('loading')
+    })
+  </script>
+</form>
+
+{% endblock %}

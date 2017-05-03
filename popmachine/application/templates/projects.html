@@ -1,0 +1,49 @@
+{% extends "base.html" %}
+
+{% block subheading %}
+projects
+{% endblock %}
+
+{% block controls %}
+
+<nav class="bs-docs-sidebar">
+  <ul class="nav nav-stacked">
+    <li class=""> <a href="{{url_for('project_create')}}" ><button type="button" class="btn btn-primary">Create</button> </a> </li>
+  </ul>
+</nav>
+
+{% endblock %}
+
+{% block content %}
+  {% if myprojects %}
+    <h2> {{current_user.name}}'s projects </h2>
+    <div class="container">
+      <div class='row'>
+        <div class="col-md-6">
+          <table class='table table-hover'>
+            <thead>
+              <tr>
+                <th class='text-center'>project</th>
+                <th class='text-center'>plates</th>
+                <th class='text-center'>published?</th>
+                <th class='text-center'>created</th>
+                <th class='text-center'>modified</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for project in myprojects %}
+                  <tr>
+                    <td class='text-center'> <a href="{{url_for('project', projectid=project.id)}}"> {{ project.name|e }} </a></td>
+                    <td class='text-center'>{{project.plates | length}}</td>
+                    <td class='text-center'>{% if project.published %} <span class="glyphicon glyphicon-ok" aria-hidden="true"></span>  {% endif %}</td>
+                    <td class='text-center'>{{project.submission_date}}</td>
+                    <td class='text-center'>{{project.modified_date}}</td>
+                  </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  {% endif %}
+{% endblock %}
