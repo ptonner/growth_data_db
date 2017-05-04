@@ -49,6 +49,50 @@
     </div>
   </div> -->
 
+  <h3> plates </h3>
+  <table class='table table-hover'>
+    <thead>
+      <tr>
+        <th class='text-center'>plate</th>
+        <th class='text-center'>project</th>
+        <th class='text-center'>wells</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for plate in project.plates %}
+          <tr>
+            <td class='text-center'> <a href="{{url_for('plate', platename=plate.name)}}"> {{ plate.name|e }} </a></td>
+            <!-- <td class='text-center'>{{plate.project }}</td> -->
+            <td class='text-center'> <a href="{{url_for('project', projectid=plate.project.id)}}"> {{plate.project.name }} </a></td>
+            <td class='text-center'>{{plate.wells | length}}</td>
+          </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+
+  <h3> designs </h3>
+  <table class='table table-hover'>
+    <thead>
+      <tr>
+        <th class='text-center'>design</th>
+        <th class='text-center'>project</th>
+        <th class='text-center'>values</th>
+        <th class='text-center'>type</th>
+
+      </tr>
+    </thead>
+    <tbody>
+      {% for d in project.designs %}
+          <tr>
+            <td class='text-center'> <a href="{{url_for('design', _id=d.id)}}"> {{ d.name|e }} </a></td>
+            <td class='text-center'> <a href="{{url_for('project', projectid=d.project.id)}}"> {{d.project.name }} </a></td>
+            <td class='text-center'>{{d.values | length}}</td>
+            <td class='text-center'>{{d.type }}</td>
+          </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+
 {% endif %}
 
 {% endblock %}

@@ -23,6 +23,7 @@ plates
       <thead>
         <tr>
           <th class='text-center'>plate</th>
+          <th class='text-center'>project</th>
           <th class='text-center'>wells</th>
         </tr>
       </thead>
@@ -30,6 +31,8 @@ plates
         {% for plate in plates %}
             <tr>
               <td class='text-center'> <a href="{{url_for('plate', platename=plate.name)}}"> {{ plate.name|e }} </a></td>
+              <!-- <td class='text-center'>{{plate.project }}</td> -->
+              <td class='text-center'> <a href="{{url_for('project', projectid=plate.project.id)}}"> {{plate.project.name }} </a></td>
               <td class='text-center'>{{plate.wells | length}}</td>
             </tr>
         {% endfor %}

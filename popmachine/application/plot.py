@@ -17,7 +17,7 @@ from bokeh.layouts import column, row
 
 def colorby(values):
 
-    if not values.dtype == int:
+    if not values.dtype == int or max(values) > 256:
         values = [values.unique().tolist().index(v) for v in values]
 
     v = viridis(max(values)+1)

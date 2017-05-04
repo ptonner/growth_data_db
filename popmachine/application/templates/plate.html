@@ -20,13 +20,11 @@
   </ul>
 </nav> -->
 
-<nav class="bs-docs-sidebar">
-  <ul class="nav nav-pills nav-stacked">
-    <li class=""> <a href='{{url_for("index")}}'> <button type="button" class="btn btn-default"> Edit </button> </a> </li>
-    <li class=""> <a href='{{url_for("index")}}'> <button type="button" class="btn btn-default"> Design </button> </a> </li>
-    <li class=""> <a href='{{url_for("plate_delete", platename=plate.name)}}'> <button type="button" class="btn btn-danger">Delete</button> </a> </li>
-  </ul>
-</nav>
+<div class="btn-group-vertical" role="group" >
+  <a href='{{url_for("index")}}' role="button" class="btn btn-success btn-large"> Edit </a>
+  <a href='{{url_for("index")}}' role="button" class="btn btn-primary btn-large"> Design </a>
+  <a href='{{url_for("plate_delete", platename=plate.name)}}' role="button" class="btn btn-success btn-danger">Delete</a>
+</div>
 
 {% endblock %}
 

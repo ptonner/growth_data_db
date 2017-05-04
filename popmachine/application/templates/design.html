@@ -15,7 +15,7 @@
 
 {% block controls %}
 
-<form action="{{url_for('design',_id=design.id)}}" method='POST' enctype="multipart/form-data">
+<!-- <form action="{{url_for('design',_id=design.id)}}" method='POST' enctype="multipart/form-data">
   <div class="form-group">
     <label for="platename">Design type</label>
     {{ designform.type(class_="form-control") }}
@@ -28,11 +28,42 @@
       var $btn = $(this).button('loading')
     })
   </script>
-</form>
+</form> -->
+
+<div class="btn-group-vertical" role="group" >
+  <a href='{{url_for("design_edit", _id=design.id)}}' role="button" class="btn btn-success btn-large">Edit</a>
+  <!-- <a href='{{url_for("index")}}' role="button" class="btn btn-danger btn-large">Delete</a> -->
+</div>
 
 {% endblock %}
 
 {% block content %}
+
+<h2> {{design.name}} </h2>
+
+<table class="table table-bordered">
+  <tr>
+    <td class="col-md-2"> description </td>
+    <td> {{design.description}}</td>
+  </tr>
+  <tr>
+    <td class="col-md-2"> protocol </td>
+    <td> {{design.protocol}}</td>
+  </tr>
+  <tr>
+    <td class="col-md-2"> type </td>
+    <td> {{design.type}}</td>
+  </tr>
+  <tr>
+    <td class="col-md-2"> unique values </td>
+    <td> {{values.all() | length}} </td>
+  </tr>
+  <tr>
+    <td class="col-md-2"> project </td>
+    <td> <a href="{{url_for('project', projectid=design.project.id)}}"> {{ design.project.name|e }} </a> </td>
+  </tr>
+
+</table>
 
 {{ plot_div|indent(4)|safe }}
 

@@ -25,9 +25,10 @@ home
       <ul>
         <li>storage and organiziation of population growth data, with reliable identification for sharing with others</li>
         <li>combine data across projects and labs by searching for key terms and experimental designs</li>
+        <li>creation of growth phenotypes represented by data</li>
         <li>analysis of data through non-parametric model Gaussian processes and the <a href="{{url_for('bgreat')}}">B-GREAT</a> method</li>
         <li>easy download of data for further analysis</li>
-        <li>a full web api for accessing data through the python programming language</li>
+        <!-- <li>a full web api for accessing data through the python programming language</li> -->
       </ul>
     </p>
   </div>
@@ -126,6 +127,39 @@ home
                   <td class='text-center'> <a href="{{url_for('project', projectid=d.project.id)}}"> {{d.project.name }} </a></td>
                   <td class='text-center'>{{d.values | length}}</td>
                   <td class='text-center'>{{d.type }}</td>
+                </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  <!-- </div> -->
+{% endif %}
+
+{% if phenotypes %}
+  <h4>Phenotypes <small><a href="{{url_for('index')}}"> more </a></small> </h4>
+
+  <!-- <div class="container"> -->
+    <div class='row'>
+      <div class="col-md-12">
+        <table class='table table-hover'>
+          <thead>
+            <tr>
+              <th class='text-center'>name</th>
+              <th class='text-center'>project</th>
+              <th class='text-center'>pheno(type)^2</th>
+              <th class='text-center'>wells</th>
+              <th class='text-center'>designs</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for p in phenotypes %}
+                <tr>
+                  <td class='text-center'> <a href="{{url_for('phenotype', id=p.id)}}"> {{ p.name|e }} </a></td>
+                  <td class='text-center'> <a href="{{url_for('project', projectid=p.project.id)}}"> {{p.project.name }} </a></td>
+                  <td class='text-center'>{{p.omp_id}}</td>
+                  <td class='text-center'>{{p.wells | length}}</td>
+                  <td class='text-center'>{{p.designs | length}}</td>
                 </tr>
             {% endfor %}
           </tbody>

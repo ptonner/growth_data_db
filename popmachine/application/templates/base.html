@@ -5,6 +5,7 @@
       <script src="//ajax.googleapis.com/ajax/libs/jquery/1.11.0/jquery.min.js"></script>
       <script src="//netdna.bootstrapcdn.com/bootstrap/3.1.1/js/bootstrap.min.js"></script>
       <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css" integrity="sha384-1q8mTJOASx8j1Au+a5WDVnPi2lkFfwwEAa8hDDdjZlpLegxhjVME1fgjWPGmkzs7" crossorigin="anonymous">
+      <link href="{{url_for('static', filename='sticky-footer.css')}}" rel="stylesheet">
       <script type="text/javascript" src="/media/main.js"></script>
       {% block head %}{% endblock %}
       <title>popmachine</title>
@@ -16,10 +17,6 @@
       <div class="page-header">
         <h1><a href="{{url_for('index')}}">popmachine</a> <small> {% block subheading %}{% endblock %} </small></h1>
       </div>
-
-      {% if current_user.is_authenticated %}
-        <p class='text-right'>Hi {{ current_user.name }}!</p>
-      {% endif %}
     </div>
 
 <!-- <div class='container'> -->
@@ -61,7 +58,7 @@
                <span class="glyphicon glyphicon-search" aria-hidden="true"></span> Search
             </button>
             <div class="form-group">
-              {{ searchform.search(size=50,placeholder=" e.g. species=E. coli, P. aeruginosa") }}
+              {{ searchform.search(size=40,placeholder=" e.g. species=E. coli, P. aeruginosa") }}
               <!-- <input type="text" class="form-control" placeholder="Search"> -->
             </div>
             <!-- <button type="submit" class="btn btn-default">Submit</button> -->
@@ -73,6 +70,10 @@
               <li><a href="{{url_for('logout')}}">log-out</a></li>
             {% else %}
               <li><a href="{{url_for('login')}}">log-in</a></li>
+            {% endif %}
+
+            {% if current_user.is_authenticated %}
+              <li class="navbar-text navbar-right">Hi {{ current_user.name }}!</li>
             {% endif %}
           </ul>
         </div><!-- /.navbar-collapse -->
@@ -109,12 +110,21 @@
           {% endwith %}
         </div>
       </div>
-      <div class = 'row'>
+      <!-- <div class = 'row'>
         <div id="controls" class='navbar navbar-fixed-bottom'>
             <p class="text-center">&copy; 2017 Peter Tonner</p>
         </div>
-      </div>
+      </div> -->
+      <!-- <footer class = 'bs-class-footer'>
+            &copy; 2017 Peter Tonner
+      </footer> -->
     </div>
+
+    <footer class="footer">
+      <div class="container">
+        <p class="text-muted text-center">&copy; 2017 Peter Tonner</p>
+      </div>
+    </footer>
 
   </body>
 </html>

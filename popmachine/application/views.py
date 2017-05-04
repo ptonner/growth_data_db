@@ -5,10 +5,10 @@ from .forms import SearchForm, PlateCreate, DesignForm, LoginForm, ProjectForm, 
 from .plot import plotDataset
 from safeurl import is_safe_url
 from flask_login import LoginManager, login_user, login_required, logout_user, current_user
-from wtforms import SelectField
+from wtforms import SelectField, StringField, TextAreaField
 import pandas as pd
 import re, flask, datetime
-from sqlalchemy import or_
+from sqlalchemy import or_, not_
 
 from bokeh.embed import components
 from bokeh.plotting import figure
@@ -32,10 +32,14 @@ def index():
         plates = machine.session.query(models.Plate).join(models.Project).filter(models.Project.published).all()
         designs = machine.session.query(models.Design).join(models.Project).filter(models.Project.published).all()
 
+        phenotypes = machine.session.query(models.Phenotype).join(models.Project).filter(models.Project.published).all()
+
     else:
         projects = machine.session.query(models.Project).filter(or_(models.Project.owner ==current_user, models.Project.published)).all()
         plates = machine.session.query(models.Plate).join(models.Project).filter(models.Project.owner==current_user).all()
         designs = machine.session.query(models.Design).join(models.Project).filter(or_(models.Project.owner ==current_user, models.Project.published)).all()
+
+        phenotypes = machine.session.query(models.Phenotype).join(models.Project).filter(or_(models.Project.owner==current_user, models.Project.published)).all()
 
     if len(projects) > 5:
         projects = projects[:5]
@@ -43,10 +47,12 @@ def index():
         plates = plates[:5]
     if len(designs) > 5:
         designs = designs[:5]
+    if len(phenotypes) > 5:
+        phenotypes = phenotypes[:5]
 
     searchform = SearchForm()
 
-    return render_template("index.html", projects=projects, plates=plates, designs=designs, searchform=searchform)
+    return render_template("index.html", projects=projects, plates=plates, designs=designs, phenotypes=phenotypes, searchform=searchform)
 
 @app.route('/bgreat')
 def bgreat():
@@ -58,6 +64,10 @@ def project(projectid):
     searchform = SearchForm()
     project = machine.session.query(models.Project).filter_by(id=projectid).one_or_none()
 
+    if not project or (not project.published and (not current_user.is_authenticated or project.owner != current_user)):
+        flask.flash('project not found or you do not have permissions to view it!')
+        return redirect(url_for('index'))
+
     return render_template("project.html", project=project, searchform = searchform)
 
 @app.route('/projects/')
@@ -65,11 +75,14 @@ def projects():
 
     if not current_user.is_authenticated:
         myprojects = None
+        projects = machine.session.query(models.Project).filter_by(published=True)
     else:
         myprojects = machine.session.query(models.Project).filter_by(owner=current_user)
+        projects = machine.session.query(models.Project).filter_by(published=True).filter(not_(models.Project.owner==current_user))
+
     searchform = SearchForm()
 
-    return render_template("projects.html", myprojects=myprojects, searchform=searchform)
+    return render_template("projects.html", myprojects=myprojects, searchform=searchform, projects=projects)
 
 @app.route('/project/<projectid>/publish')
 @login_required
@@ -135,7 +148,7 @@ def project_create():
 
 @app.route('/plates/')
 def plates():
-    plates = machine.session.query(models.Plate).join(models.Project).filter(models.Project.published).all()
+    plates = machine.session.query(models.Plate).join(models.Project).filter(or_(models.Project.published, models.Project.owner==current_user)).all()
     searchform = SearchForm()
 
     return render_template("plates.html", plates=plates, searchform=searchform)
@@ -216,12 +229,12 @@ def plate_create():
 
 @app.route('/designs/')
 def designs():
-    designs = machine.session.query(models.Design).join(models.Project).filter(models.Project.published).all()
+    designs = machine.session.query(models.Design).join(models.Project).filter(or_(models.Project.published, models.Project.owner==current_user)).all()
     searchform = SearchForm()
 
     return render_template("designs.html", designs=designs, searchform=searchform)
 
-@app.route('/design/<_id>',methods=['GET', 'POST'])
+@app.route('/design/<_id>',methods=['GET'])
 @app.route('/design/<_id>/<plate>')
 def design(_id, plate=None):
     searchform = SearchForm()
@@ -268,6 +281,40 @@ def design(_id, plate=None):
         machine.session.commit()
 
         return redirect(url_for("design", _id=design.id))
+
+@app.route('/design_edit/<_id>', methods=['GET', 'POST'])
+@login_required
+def design_edit(_id):
+
+    searchform = SearchForm()
+
+    design = machine.session.query(models.Design)\
+                .filter(models.Design.id==_id).one_or_none()
+
+    class DynamicDesignForm(DesignForm):
+
+        description = TextAreaField('description', default=design.description)
+        protocol = TextAreaField('protocol', default=design.protocol)
+
+    designform = DynamicDesignForm()
+
+    designform.type.default = design.type
+    designform.description.default = design.description
+    designform.protocol.default = design.protocol
+    designform.process()
+
+    if request.method == 'GET':
+
+        return render_template('design-edit.html', searchform=searchform, designform=designform, design=design)
+
+    else:
+        design.type = request.form['type']
+        design.description = request.form['description']
+        design.protocol = request.form['protocol']
+        machine.session.commit()
+
+        return redirect(url_for("design", _id=design.id))
+
 
 @app.route('/experimentaldesign/<_id>')
 @app.route('/experimentaldesign/<_id>/<plate>')
