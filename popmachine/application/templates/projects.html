@@ -6,20 +6,18 @@ projects
 
 {% block controls %}
 
-<nav class="bs-docs-sidebar">
-  <ul class="nav nav-stacked">
-    <li class=""> <a href="{{url_for('project_create')}}" ><button type="button" class="btn btn-primary">Create</button> </a> </li>
-  </ul>
-</nav>
+<div class="btn-group-vertical" role="group" >
+  <a href="{{url_for('project_create')}}" role='button' class="btn btn-success btn-large">Create</a>
+</div>
 
 {% endblock %}
 
 {% block content %}
   {% if myprojects %}
     <h2> {{current_user.name}}'s projects </h2>
-    <div class="container">
+    <!-- <div class="container">
       <div class='row'>
-        <div class="col-md-6">
+        <div class="col-md-12"> -->
           <table class='table table-hover'>
             <thead>
               <tr>
@@ -42,8 +40,8 @@ projects
               {% endfor %}
             </tbody>
           </table>
-        </div>
+        <!-- </div>
       </div>
-    </div>
+    </div> -->
   {% endif %}
 {% endblock %}

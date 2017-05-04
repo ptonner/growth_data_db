@@ -31,17 +31,7 @@ def create_plate_data_table(plate, core):
 
     return table
 
-# def copy_plate_dataframe_to_table(data,table,data_columns,column_names):
-#
-# 	conn = engine.connect()
-# 	ins = table.insert()
-#
-# 	# add each row to the table
-# 	for i in range(data.shape[0]):
-# 		newrow = dict([('time',data.iloc[i,0])] + [(cn,data.iloc[i,j]) for cn,j in zip(column_names,data_columns)])
-# 		conn.execute(ins,**newrow)
-
-def add_experimental_design(core,design_name,design_value,*args,**kwargs):
+def add_experimental_design(core,project,design_name,design_value,*args,**kwargs):
     # check if design exists, create if needed
     design = core.session.query(Design).filter(Design.name==design_name).one_or_none()
     if not design:
@@ -51,7 +41,7 @@ def add_experimental_design(core,design_name,design_value,*args,**kwargs):
         else:
             design_type = kwargs['design_type']
 
-        design = Design(name=design_name,type=design_type)
+        design = Design(name=design_name,type=design_type,project=project)
         core.session.add(design)
 
     experimentalDesign = core.session.query(ExperimentalDesign).filter(ExperimentalDesign.design==design,ExperimentalDesign.value==design_value).one_or_none()
@@ -74,8 +64,8 @@ class PlateCreate(PlateOperation):
 
     argsKwargs = PlateOperation.argsKwargs + [('dataFile', 'data'), ('experimentalDesignFile', 'experimentalDesign'), ('timeColumn', None)]
 
-    def __init__(self,core, plate, data=None, experimentalDesign=None, timeColumn=None, dataFile=None, experimentalDesignFile=None, **kwargs):
-        PlateOperation.__init__(self, core, plate)
+    def __init__(self,core, project, plate, data=None, experimentalDesign=None, timeColumn=None, dataFile=None, experimentalDesignFile=None, **kwargs):
+        PlateOperation.__init__(self, core, project, plate)
 
         self.data = data
         self.meta = experimentalDesign
@@ -103,7 +93,7 @@ class PlateCreate(PlateOperation):
             # logging.error("plate named %s already exists!"%(self.plate.name))
             return self.plate
 
-        self.plate = Plate(name=self.plateName)
+        self.plate = Plate(name=self.plateName, project=self.project)
         self.core.session.add(self.plate)
         self.core.session.commit()
 
@@ -120,19 +110,25 @@ class PlateCreate(PlateOperation):
         # copy in data
         conn = self.core.engine.connect()
         ins = table.insert()
+        newrows = []
 
         # add each row to the table
         for i in range(self.data.shape[0]):
             # newrow = dict([('time',self.data.iloc[i,0])] + [(str(j),self.data.iloc[i,j]) for j in data_columns])
-            newrow = dict([('time',self.dataset.data.index[i])] + [(str(j),self.dataset.data.iloc[i,j]) for j in range(self.dataset.data.shape[1])])
-            conn.execute(ins,**newrow)
+            newrows.append(
+                dict(
+                        [('time',self.dataset.data.index[i])] +
+                        [(str(j),self.dataset.data.iloc[i,j]) for j in range(self.dataset.data.shape[1])]
+                    )
+            )
+        conn.execute(ins,newrows)
 
         # add experimental designs
         for c in self.dataset.meta.columns:
             for u in self.dataset.meta[c].unique():
                 select = self.dataset.meta[c] == u
                 temp = [w for w,s in zip(wells, select.tolist()) if s]
-                add_experimental_design(self.core,c,u,*temp)
+                add_experimental_design(self.core, self.project,c,u,*temp)
 
         # add extra designs
         for k,v in self.extraDesigns.iteritems():

@@ -9,20 +9,6 @@ from flask_login import UserMixin
 Base = declarative_base()
 metadata = MetaData()
 
-# relationship between namespace and its owners (users)
-# only owners of a namespace may modify it and its designs
-user_namespace = Table('user_namespace', Base.metadata,
-    Column('user_id', Integer, ForeignKey('users.id')),
-    Column('ns_id', Integer, ForeignKey('namespaces.id')),
-    PrimaryKeyConstraint('user_id', 'ns_id')
-)
-
-project_namespace = Table("project_namespace", Base.metadata,
-    Column('project_id', Integer, ForeignKey('projects.id')),
-    Column('ns_id', Integer, ForeignKey('namespaces.id')),
-    PrimaryKeyConstraint('project_id', 'ns_id')
-)
-
 class User(Base, UserMixin):
     __tablename__='users'
 
@@ -48,33 +34,6 @@ class User(Base, UserMixin):
         assert '@' in address
         return address
 
-class Namespace(Base):
-    """A group of design variables, which can be shared across plates."""
-
-    __tablename__ = 'namespaces'
-
-    id = Column(Integer, primary_key=True)
-    name = Column(String, unique=True)
-    description = Column(String(500))
-
-    owners = relationship(
-        "User",
-        secondary=user_namespace,
-        backref="namespaces")
-
-    def overlap(self, other):
-        if not type(other) == Namespace:
-            raise ValueError('must provide namespace!')
-
-        names = [d.name for d in self.designs]
-        return [d for d in other.designs if d.name in names]
-
-    def conflictsWith(self, other):
-        return len(self.overlap(other))>0
-
-    def __repr__(self):
-        return "namespace %s, owned by %s. (%d designs)" % (self.name, ','.join([o.name for o in self.owners]) , len(self.designs))
-
 class Project(Base):
     __tablename__ = "projects"
     id = Column(Integer, primary_key=True)
@@ -94,11 +53,6 @@ class Project(Base):
     published = Column(Boolean, doc='availability on website')
     citation_text = Column(String(300), doc='name of project citation, if applicable')
     citation_pmid = Column(Integer, doc='pubmed id of citation, if applicable')
-
-    namespaces = relationship(
-        "Namespace",
-        secondary=project_namespace,
-        backref="projects")
 
     def __repr__(self):
         return "project %s, owned by %s (%d plates)" % (self.name, self.owner.name, len(self.plates))
@@ -169,13 +123,14 @@ class Design(Base):
     id = Column(Integer, primary_key=True)
     name = Column(String, nullable=False)
     description = Column(String(100), doc='details of design')
+    protocol = Column(String(100), doc='protocol of design')
     type = Column(Enum("str","int","float",'bool'))
     values = relationship("ExperimentalDesign",back_populates="design")
 
-    namespace_id = Column(Integer, ForeignKey('namespaces.id'))
-    namespace = relationship('Namespace', backref='designs')
+    project_id = Column(Integer, ForeignKey('projects.id'))
+    project = relationship('Project', backref='designs')
 
-    __table_args__ = (UniqueConstraint('name', 'namespace_id', name='_name_ns_uc'),)
+    __table_args__ = (UniqueConstraint('name', 'project_id', name='_name_project_uc'),)
 
     def __repr__(self):
     	return "%s (%s)" % (self.name,self.type)
@@ -241,6 +196,9 @@ class Phenotype(Base):
 	name = Column(String(50))
 	owner_id = Column(Integer, ForeignKey('users.id'))
 	owner = relationship('User', backref='phenotypes')
+
+	project_id = Column(Integer, ForeignKey('projects.id'))
+	project = relationship('Project', backref='phenotypes')
 
 	omp_id = Column(String(10))
 

@@ -8,6 +8,7 @@ from flask_login import LoginManager, login_user, login_required, logout_user, c
 from wtforms import SelectField
 import pandas as pd
 import re, flask, datetime
+from sqlalchemy import or_
 
 from bokeh.embed import components
 from bokeh.plotting import figure
@@ -25,17 +26,16 @@ def load_user(user_id):
 
 @app.route('/')
 def index():
-    projects = machine.session.query(models.Project).filter_by(published=True).all()
 
     if not current_user.is_authenticated:
-
+        projects = machine.session.query(models.Project).filter_by(published=True).all()
         plates = machine.session.query(models.Plate).join(models.Project).filter(models.Project.published).all()
-        designs = list(machine.designs())
+        designs = machine.session.query(models.Design).join(models.Project).filter(models.Project.published).all()
 
     else:
+        projects = machine.session.query(models.Project).filter(or_(models.Project.owner ==current_user, models.Project.published)).all()
         plates = machine.session.query(models.Plate).join(models.Project).filter(models.Project.owner==current_user).all()
-
-        designs = machine.session.query(models.Design).join(models.Namespace).filter(models.Namespace.owners.contains(current_user)).all()
+        designs = machine.session.query(models.Design).join(models.Project).filter(or_(models.Project.owner ==current_user, models.Project.published)).all()
 
     if len(projects) > 5:
         projects = projects[:5]
@@ -48,6 +48,10 @@ def index():
 
     return render_template("index.html", projects=projects, plates=plates, designs=designs, searchform=searchform)
 
+@app.route('/bgreat')
+def bgreat():
+    searchform = SearchForm()
+    return render_template("bgreat.html", searchform=searchform)
 
 @app.route('/project/<projectid>')
 def project(projectid):
@@ -66,6 +70,39 @@ def projects():
     searchform = SearchForm()
 
     return render_template("projects.html", myprojects=myprojects, searchform=searchform)
+
+@app.route('/project/<projectid>/publish')
+@login_required
+def project_publish(projectid):
+
+    project = machine.session.query(models.Project).filter_by(id=projectid, owner=current_user).one_or_none()
+
+    if project:
+
+        project.published = True
+        machine.session.add(project)
+        machine.session.commit()
+
+        return redirect((url_for('project', projectid=project.id)))
+
+    return redirect(url_for('projects'))
+
+@app.route('/project/<projectid>/unpublish')
+@login_required
+def project_unpublish(projectid):
+
+    project = machine.session.query(models.Project).filter_by(id=projectid, owner=current_user).one_or_none()
+
+    if project:
+
+        project.published = False
+        machine.session.add(project)
+        machine.session.commit()
+
+        return redirect((url_for('project', projectid=project.id)))
+
+    return redirect(url_for('projects'))
+
 
 @app.route('/project-create/', methods=['GET', "POST"])
 @login_required
@@ -98,7 +135,7 @@ def project_create():
 
 @app.route('/plates/')
 def plates():
-    plates = machine.plates()
+    plates = machine.session.query(models.Plate).join(models.Project).filter(models.Project.published).all()
     searchform = SearchForm()
 
     return render_template("plates.html", plates=plates, searchform=searchform)
@@ -169,10 +206,7 @@ def plate_create():
             meta = None
 
         if request.form['source'] == 'csv':
-            plate = machine.createPlate(name, data, meta)
-            plate.project = project
-            machine.session.add(plate)
-            machine.session.commit()
+            plate = machine.createPlate(project, name, data, meta)
         else:
             flask.flash('only csv source supported currently!')
             pass
@@ -182,7 +216,7 @@ def plate_create():
 
 @app.route('/designs/')
 def designs():
-    designs = machine.designs()
+    designs = machine.session.query(models.Design).join(models.Project).filter(models.Project.published).all()
     searchform = SearchForm()
 
     return render_template("designs.html", designs=designs, searchform=searchform)
@@ -315,7 +349,9 @@ def phenotype_create():
         designs = machine.session.query(models.Design).filter(models.Design.id.in_(session.pop('designs', None))).all()
         name = request.form['name']
 
-        phenotype = models.Phenotype(name=name, owner=current_user, wells=wells, designs=designs)
+        project = wells[0].plate.project
+
+        phenotype = models.Phenotype(name=name, owner=current_user, wells=wells, designs=designs, project=project)
         machine.session.add(phenotype)
         machine.session.commit()
 

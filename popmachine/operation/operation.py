@@ -1,5 +1,17 @@
 import logging
-from ..models import Plate, Well, Design, ExperimentalDesign
+from ..models import Project, Plate
+
+def query_or_copy(core, obj, model):
+
+    if isinstance(obj, str) or isinstance(obj, unicode):
+        name = obj
+        obj = core.session.query(model).filter(model.name==name).one_or_none()
+    elif isinstance(obj, model):
+        name = obj.name
+    else:
+        raise ValueError()
+
+    return obj, name
 
 class Operation(object):
     """General operation object of the system."""
@@ -38,10 +50,11 @@ class PlateOperation(Operation):
 
     argsKwargs = [('plate', None)]
 
-    def __init__(self, core, plate, *args, **kwargs):
+    def __init__(self, core, project, plate, *args, **kwargs):
         Operation.__init__(self, core)
-        # self.plateName = plate
-        # self.plate = self.core.session.query(Plate).filter(Plate.name==plate).one_or_none()
+
+        self.project, self.projectName = query_or_copy(self.core, project, Project)
+
         if isinstance(plate, str) or isinstance(plate, unicode):
             self.plateName = plate
             self.plate = self.core.session.query(Plate).filter(Plate.name==plate).one_or_none()

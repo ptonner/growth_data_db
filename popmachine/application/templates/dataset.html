@@ -14,14 +14,14 @@ dataset
 
 {% block controls %}
 <div class="btn-group-vertical" role="group" >
-  <a href='{{url_for("phenotype_create")}}' role="button" class="btn btn-success btn-large">Create phenotype</a>
+  <a href='{{url_for("phenotype_create")}}' role="button" class="btn btn-success btn-large">Create <br/> phenotype</a>
 </div>
 {% endblock %}
 
 {% block content %}
 
   <div class='row'>
-    <div class='col-md-8'>
+    <div class='col-md-12'>
       {% block beforeplot %}
       {% endblock %}
     </div>
@@ -30,7 +30,7 @@ dataset
   <div class='row'>
     <div class='col-md-8'>
       {% if js_resources %}
-        {{ plot_div|indent(4)|safe }}
+        {{ plot_div|safe }}
       {% else %}
         <h2> No data found! </h2>
       {% endif %}
@@ -39,7 +39,7 @@ dataset
 
   {% if dataset %}
   <div class='row'>
-    <div class='col-md-8'>
+    <div class='col-md-12'>
       <div class="center-block">
         <table class='table'>
           <thead>
