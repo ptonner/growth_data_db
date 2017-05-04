@@ -383,6 +383,17 @@ def phenotype(id):
 
     return render_template('phenotype.html', phenotype=phenotype, searchform = searchform)
 
+@app.route('/phenotypes')
+def phenotypes():
+    searchform = SearchForm()
+    if not current_user.is_authenticated:
+        phenotypes = machine.session.query(models.Phenotype).join(models.Project).filter(models.Project.published).all()
+
+    else:
+        phenotypes = machine.session.query(models.Phenotype).join(models.Project).filter(or_(models.Project.owner==current_user, models.Project.published)).all()
+
+    return render_template('phenotypes.html', phenotypes=phenotypes, searchform=searchform)
+
 @app.route('/phenotype-create', methods=['GET', 'POST'])
 @login_required
 def phenotype_create():
