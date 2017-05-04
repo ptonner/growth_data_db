@@ -17,13 +17,16 @@ def checkSearchForPlates(search, name, dataset):
         select = search.meta.plate==name
         temp = popmachine.DataSet(search.data.loc[:,select], search.meta.loc[select,:])
         temp.data.columns = temp.meta.number
+
+        # assert all(temp.meta.number.values == dataset.data.columns.values), (temp.meta.number.values, dataset.data.columns.values, temp.meta.number.values == dataset.data.columns.values)
+
         del temp.meta['plate']
         del temp.meta['number']
 
         # select = (dataset.meta[columns] == values).all(1)
         # temp2 = popmachine.DataSet(d.data.loc[:,select], d.meta.loc[select,:])
 
-        assert all(temp.data.columns == dataset.data.columns)
+        # assert all(temp.data.columns == dataset.data.columns)
 
         merge = pd.merge(temp.data, dataset.data,\
                             left_index=True, right_index=True,\
