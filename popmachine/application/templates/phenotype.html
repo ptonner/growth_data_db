@@ -1,0 +1,37 @@
+{% extends "base.html" %}
+
+{% block head %}
+{% endblock %}
+
+{% block subheading %}
+{{phenotype.name}}
+{% endblock %}
+
+{% block controls %}
+<div class="btn-group-vertical" role="group" >
+  <a href='{{url_for("index")}}' role="button" class="btn btn-success btn-large">Edit</a>
+  <a href='{{url_for("index")}}' role="button" class="btn btn-danger btn-large">Delete</a>
+</div>
+
+{% endblock %}
+
+{% block content %}
+
+{% if phenotype %}
+
+  <div class='container'>
+    <div class='row'>
+      <div class="col-md-8">
+        <table class="table table-bordered">
+          <tr>
+            <td class="col-md-2"> created by </td>
+            <td> {{phenotype.owner.name}}</td>
+          </tr>
+        </table>
+      </div>
+    </div>
+  </div>
+
+{% endif %}
+
+{% endblock %}

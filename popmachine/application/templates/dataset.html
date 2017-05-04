@@ -12,6 +12,12 @@
 dataset
 {% endblock %}
 
+{% block controls %}
+<div class="btn-group-vertical" role="group" >
+  <a href='{{url_for("phenotype_create")}}' role="button" class="btn btn-success btn-large">Create phenotype</a>
+</div>
+{% endblock %}
+
 {% block content %}
 
   <div class='row'>

@@ -1,7 +1,7 @@
 from app import app
-from flask import Flask, render_template, request, jsonify, url_for, redirect, flash
+from flask import Flask, render_template, request, jsonify, url_for, redirect, flash, session
 from popmachine import Machine, models
-from .forms import SearchForm, PlateCreate, DesignForm, LoginForm, ProjectForm
+from .forms import SearchForm, PlateCreate, DesignForm, LoginForm, ProjectForm, PhenotypeForm
 from .plot import plotDataset
 from safeurl import is_safe_url
 from flask_login import LoginManager, login_user, login_required, logout_user, current_user
@@ -78,7 +78,7 @@ def project_create():
         return render_template("project-create.html", form=form, searchform = searchform)
     else:
 
-        print request.form
+        # print request.form
 
         name = request.form['name']
         description = request.form['description']
@@ -273,9 +273,11 @@ def search():
             v = [z.strip().rstrip() for z in v]
             kwargs[k] = v
 
+        session['designs'] = [d.id for d in machine.session.query(models.Design).filter(models.Design.name.in_(kwargs.keys()))]
+        session['wells'] = [w.id for w in machine.filter(**kwargs)]
         ds = machine.search(**kwargs)
 
-        print ds.data.head()
+        # print ds.data.head()
 
         if ds is None:
             flash('No data found for search: %s'%str(kwargs))
@@ -291,6 +293,34 @@ def search():
 
             # return plotDataset(ds, 'dataset.html', searchform=searchform, dataset=ds)
             return plotDataset(ds, 'dataset.html', searchform=searchform)
+
+@app.route('/phenotype/<id>')
+def phenotype(id):
+    searchform = SearchForm()
+
+    phenotype = machine.session.query(models.Phenotype).filter_by(id=id).one_or_none()
+
+    return render_template('phenotype.html', phenotype=phenotype, searchform = searchform)
+
+@app.route('/phenotype-create', methods=['GET', 'POST'])
+@login_required
+def phenotype_create():
+    searchform = SearchForm()
+    phenotype_form = PhenotypeForm()
+
+    if request.method == 'GET':
+        return render_template("phenotype-edit.html", searchform=searchform, form=phenotype_form, operation='create')
+    else:
+        wells = machine.session.query(models.Well).filter(models.Well.id.in_(session.pop('wells', None))).all()
+        designs = machine.session.query(models.Design).filter(models.Design.id.in_(session.pop('designs', None))).all()
+        name = request.form['name']
+
+        phenotype = models.Phenotype(name=name, owner=current_user, wells=wells, designs=designs)
+        machine.session.add(phenotype)
+        machine.session.commit()
+
+        return redirect(url_for('phenotype', id=phenotype.id))
+
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
