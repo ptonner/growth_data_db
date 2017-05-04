@@ -6,12 +6,33 @@ home
 
 {% block controls %}
   <!-- <a class="navbar-brand" href="#"></a> -->
-  <img height=200px alt="Brand" src="{{url_for("static",filename='popmachine.png')}}">
+  <!-- <img height=200px alt="Brand" src="{{url_for("static",filename='popmachine.png')}}"> -->
 {% endblock %}
 
 {% block content %}
 
-<h3>popmachine: a database for microbial population growth experiments</h3>
+<h3 class='text-center'>popmachine: a database for microbial population growth experiments</h3>
+
+<div class='row center-block'>
+  <div class="col-md-3">
+    <img height=270px alt="Brand" src="{{url_for("static",filename='popmachine.png')}}">
+  </div>
+  <div class="col-md-9">
+    <p>
+      popmachine is a comprehensive storage solution for microbial population growth data, a ubiquitous measure in microbiology.
+      popmachine provides a number of services for organizing and analyzing microbial population growth data:
+      <ul>
+        <li>storage and organiziation of population growth data, with reliable identification for sharing with others</li>
+        <li>combine data across projects and labs by searching for key terms and experimental designs</li>
+        <li>analysis of data through non-parametric model Gaussian processes</li>
+        <li>easy download of data for further analysis</li>
+        <li>a full web api for accessing data through the python programming language</li>
+      </ul>
+    </p>
+  </div>
+</div>
+
+<!-- <h3>popmachine: a database for microbial population growth experiments</h3>
 
 <p>
   popmachine is a comprehensive storage solution for microbial population growth data, a ubiquitous measure in microbiology.
@@ -23,7 +44,7 @@ home
     <li>easy download of data for further analysis</li>
     <li>a full web api for accessing data through the python programming language</li>
   </ul>
-</p>
+</p> -->
 
 {% if projects %}
   <h4>Projects <small><a href="{{url_for('projects')}}"> more </a></small></h4>
@@ -55,9 +76,9 @@ home
 {% if plates %}
   <h4>Plates <small><a href="{{url_for('plates')}}"> more </a></small></h4>
 
-  <div class="container">
-    <div class='row'>
-      <div class="col-md-6">
+  <!-- <div class="container"> -->
+    <div class='row center-block'>
+      <div class="col-md-12">
         <table class='table table-hover'>
           <thead>
             <tr>
@@ -78,7 +99,7 @@ home
         </table>
       </div>
     </div>
-  </div>
+  <!-- </div> -->
 {% endif %}
 
 {% if designs %}

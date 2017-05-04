@@ -37,12 +37,12 @@ def index():
 
         designs = machine.session.query(models.Design).join(models.Namespace).filter(models.Namespace.owners.contains(current_user)).all()
 
-    if len(projects) > 10:
-        projects = projects[:10]
-    if len(plates) > 10:
-        plates = plates[:10]
-    if len(designs) > 10:
-        designs = designs[:10]
+    if len(projects) > 5:
+        projects = projects[:5]
+    if len(plates) > 5:
+        plates = plates[:5]
+    if len(designs) > 5:
+        designs = designs[:5]
 
     searchform = SearchForm()
 
