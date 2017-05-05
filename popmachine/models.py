@@ -1,5 +1,5 @@
 from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy import Column, Integer, String, Enum, Float, Date, Boolean
+from sqlalchemy import Column, Integer, String, Enum, Float, Date, Boolean, LargeBinary
 from sqlalchemy import ForeignKey, UniqueConstraint, Table, PrimaryKeyConstraint
 from sqlalchemy.orm import relationship, backref, validates
 from sqlalchemy.ext.hybrid import hybrid_property
@@ -22,8 +22,9 @@ class User(Base, UserMixin):
     name = Column(String)
     username = Column(String(50))
     _password = Column(String(50))
-    _salt = Column(String(50))
+    _salt = Column(LargeBinary(50))
     email = Column(String(50))
+    email_confirmed = Column(Boolean, default=False)
     organization = Column(String(50))
 
     address = Column(String(50))
@@ -53,7 +54,7 @@ class User(Base, UserMixin):
 					length=32, salt=self._salt, iterations=100000,
 					backend=default_backend())
 
-        return self._password == base64.urlsafe_b64encode(kdf.derive(plaintext))
+        return self._password == base64.urlsafe_b64encode(kdf.derive(plaintext)).encode('utf-8')
 
     def __repr__(self):
         return "User: %s" % (self.name)

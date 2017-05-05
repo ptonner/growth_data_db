@@ -1,14 +1,17 @@
-from app import app
-from flask import Flask, render_template, request, jsonify, url_for, redirect, flash, session
+from app import app, mail
 from popmachine import Machine, models
-from .forms import SearchForm, PlateCreate, DesignForm, LoginForm, ProjectForm, PhenotypeForm
+from .forms import SearchForm, PlateCreate, DesignForm, LoginForm, ProjectForm, PhenotypeForm, RegisterForm
 from .plot import plotDataset
 from safeurl import is_safe_url
-from flask_login import LoginManager, login_user, login_required, logout_user, current_user
-from wtforms import SelectField, StringField, TextAreaField
-import pandas as pd
+from security import ts
+
 import re, flask, datetime
+import pandas as pd
+from flask import Flask, render_template, request, jsonify, url_for, redirect, flash, session
+from flask_login import LoginManager, login_user, login_required, logout_user, current_user
+from flask_mail import Message
 from sqlalchemy import or_, not_
+from wtforms import SelectField, StringField, TextAreaField
 
 from bokeh.embed import components
 from bokeh.plotting import figure
@@ -53,6 +56,72 @@ def index():
     searchform = SearchForm()
 
     return render_template("index.html", projects=projects, plates=plates, designs=designs, phenotypes=phenotypes, searchform=searchform)
+
+@app.route('/account/register', methods=["GET", "POST"])
+def create_account():
+    searchform = SearchForm()
+    form = RegisterForm()
+    if form.validate_on_submit():
+        if form.password.data != form.password_confirm.data:
+            flask.flash('passwords do not match!')
+            return redirect(url_for('create_account'), method='GET')
+
+        # print type(form.password.data)
+
+        user = models.User(
+            username = form.username.data,
+            email = form.email.data,
+            password = form.password.data.encode('utf-8')
+        )
+        machine.session.add(user)
+        machine.session.commit()
+
+        # Now we'll send the email confirmation link
+        subject = "Confirm your email"
+
+        token = ts.dumps(user.email, salt='email-confirm-key')
+
+        confirm_url = url_for(
+            'confirm_email',
+            token=token,
+            _external=True)
+
+        html = render_template(
+            'accounts/email-activate.html',
+            confirm_url=confirm_url, searchform=searchform)
+
+        # We'll assume that send_email has been defined in myapp/util.py
+        msg = Message(subject,
+                  sender="popmachine.db@gmail.com",
+                  recipients=[user.email], html=html)
+        mail.send(msg)
+
+        print user.email, html
+
+        # send_email(user.email, subject, html)
+
+        return redirect(url_for("index"))
+
+    return render_template("accounts/create.html", form=form, searchform=searchform)
+
+@app.route('/confirm/<token>')
+def confirm_email(token):
+    try:
+        email = ts.loads(token, salt="email-confirm-key", max_age=86400)
+    except:
+        abort(404)
+
+    user = machine.session.query(models.User).filter_by(email=email).one_or_none()
+
+    if user is None:
+        flask.abort(404)
+
+    user.email_confirmed = True
+
+    machine.session.add(user)
+    machine.session.commit()
+
+    return redirect(url_for('signin'))
 
 @app.route('/bgreat')
 def bgreat():
