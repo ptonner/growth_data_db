@@ -1,5 +1,5 @@
 from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy import Column, Integer, String, Enum, Float, Date, Boolean, LargeBinary
+from sqlalchemy import Column, Integer, String, Enum, Float, Date, Boolean, LargeBinary, PickleType
 from sqlalchemy import ForeignKey, UniqueConstraint, Table, PrimaryKeyConstraint
 from sqlalchemy.orm import relationship, backref, validates
 from sqlalchemy.ext.hybrid import hybrid_property
@@ -238,3 +238,32 @@ class Phenotype(Base):
         "Design",
         secondary=design_phenotype,
         backref="phenotypes")
+
+	def dataset(self, machine):
+		wells = machine.session.query(Well).filter(Well.id.in_([w.id for w in self.wells]))
+		return machine.get(wells, include=[d.name for d in self.designs])
+
+class Model(Base):
+
+    # maximum number of datapoints in model
+    MAX_SIZE=3000
+
+    @classmethod
+    def step_size(x):
+        return (x.shape[0] + MAX_SIZE - 1)/MAX_SIZE
+
+	__tablename__='models'
+	id = Column(Integer, primary_key=True)
+
+    # corresponding phenotype, there is a one-to-one relationship b/w model and phenotype
+	phenotype_id = Column(Integer, ForeignKey('phenotypes.id'))
+	phenotype = relationship('Phenotype', backref=backref("model", uselist=False))
+
+    # is model training complete?
+    trained = Column(Boolean, default=False)
+
+    # state of model training
+    status = Column(Enum('queued', 'training', 'trained', 'error'))
+
+    # step size when building input data
+    step = Column(Integer,default=1)
