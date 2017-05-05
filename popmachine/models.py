@@ -206,12 +206,6 @@ well_phenotype = Table('well_phenotype', Base.metadata,
     PrimaryKeyConstraint('well_id', 'phenotype_id')
 )
 
-# experimental_design_phenotype= Table('experimental_design_phenotype', Base.metadata,
-#     Column('ed_id', Integer, ForeignKey('experimental_design.id')),
-# 	Column('phenotype_id', Integer, ForeignKey('phenotypes.id')),
-#     PrimaryKeyConstraint('ed_id', 'phenotype_id')
-# )
-
 design_phenotype = Table('design_phenotype', Base.metadata,
 	Column('design_id', Integer, ForeignKey('designs.id')),
 	Column('phenotype_id', Integer, ForeignKey('phenotypes.id')),
@@ -232,15 +226,13 @@ class Phenotype(Base):
 
 	omp_id = Column(String(10))
 
+    # default_colorby_id = Column(Integer, ForeignKey('designs.id'))
+    # default_colorby = relationship('Design')
+
 	wells = relationship(
         "Well",
         secondary=well_phenotype,
         backref="phenotypes")
-
-	# experimentalDesigns = relationship(
-    #     "ExperimentalDesign",
-    #     secondary=experimental_design_phenotype,
-    #     back_populates="phenotypes")
 
 	designs = relationship(
         "Design",

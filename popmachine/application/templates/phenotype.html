@@ -1,37 +1,49 @@
-{% extends "base.html" %}
+{% extends "dataset.html" %}
 
-{% block head %}
-{% endblock %}
-
-{% block subheading %}
+<!-- {% block subheading %}
 {{phenotype.name}}
-{% endblock %}
+{% endblock %} -->
 
 {% block controls %}
 <div class="btn-group-vertical" role="group" >
   <a href='{{url_for("index")}}' role="button" class="btn btn-success btn-large">Edit</a>
+  <a href='{{url_for("index")}}' role="button" class="btn btn-primary btn-large">Model</a>
   <a href='{{url_for("index")}}' role="button" class="btn btn-danger btn-large">Delete</a>
 </div>
-
 {% endblock %}
 
-{% block content %}
-
+{% block beforeplot %}
 {% if phenotype %}
 
-  <div class='container'>
-    <div class='row'>
-      <div class="col-md-8">
-        <table class="table table-bordered">
-          <tr>
-            <td class="col-md-2"> created by </td>
-            <td> {{phenotype.owner.name}}</td>
-          </tr>
-        </table>
-      </div>
-    </div>
-  </div>
+    <table class="table table-bordered">
+      <tr>
+        <td class="col-md-2"> created by </td>
+        <td> {{phenotype.owner.name}}</td>
+      </tr>
+      <tr>
+        <td class="col-md-2"> project </td>
+        <td> <a href="{{url_for('project', projectid=phenotype.project.id)}}"> {{phenotype.project.name}} </a></td>
+      </tr>
+    </table>
+
+    <h3> design space </h3>
+    <table class="table table-bordered">
+      <tr>
+        <th> design </th>
+        <th> values </th>
+      </tr>
+
+      {% for d in phenotype.designs %}
+        <tr>
+          <td> <a href="{{url_for('design', _id=d.id)}}"> {{d.name}} </a> </td>
+          <td>
+            {% for v in values[d.name] %}
+              {{v.value}},
+            {% endfor %}
+          </td>
+        </tr>
+      {% endfor %}
+    </table>
 
 {% endif %}
-
 {% endblock %}

@@ -47,7 +47,7 @@ setup(
 
     packages=find_packages(exclude=['data', 'examples', 'tests']),
 
-    install_requires=['sqlalchemy', 'pandas', 'numpy','flask','flask_wtf', 'bokeh'],
+    install_requires=['sqlalchemy', 'pandas', 'numpy','flask','flask_wtf', 'flask_login', 'flask_mail', 'cryptography' 'bokeh'],
 
     # List additional groups of dependencies here (e.g. development
     # dependencies). You can install these using the following syntax,

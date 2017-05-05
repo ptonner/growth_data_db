@@ -217,7 +217,13 @@ def project_create():
 
 @app.route('/plates/')
 def plates():
-    plates = machine.session.query(models.Plate).join(models.Project).filter(or_(models.Project.published, models.Project.owner==current_user)).all()
+
+    if current_user.is_authenticated:
+        plates = machine.session.query(models.Plate).join(models.Project).filter(or_(models.Project.published, models.Project.owner==current_user)).all()
+    else:
+        plates = machine.session.query(models.Plate).join(models.Project).filter(models.Project.published).all()
+
+
     searchform = SearchForm()
 
     return render_template("plates.html", plates=plates, searchform=searchform)
@@ -298,7 +304,10 @@ def plate_create():
 
 @app.route('/designs/')
 def designs():
-    designs = machine.session.query(models.Design).join(models.Project).filter(or_(models.Project.published, models.Project.owner==current_user)).all()
+    if current_user.is_authenticated:
+        designs = machine.session.query(models.Design).join(models.Project).filter(or_(models.Project.published, models.Project.owner==current_user)).all()
+    else:
+        designs = machine.session.query(models.Design).join(models.Project).filter(models.Project.published).all()
     searchform = SearchForm()
 
     return render_template("designs.html", designs=designs, searchform=searchform)
@@ -433,13 +442,13 @@ def search():
             flash('No data found for search: %s'%str(kwargs))
             return render_template("dataset.html", searchform=searchform)
         else:
-            color = None
-            # if len(groups)>0:
-            for k, v in kwargs.iteritems():
-                if str(k) in ['include', 'plates']:
-                    continue
-                color = map(lambda x: ds.meta[k].unique().tolist().index(x), ds.meta[k])
-                break
+            # color = None
+            # # if len(groups)>0:
+            # for k, v in kwargs.iteritems():
+            #     if str(k) in ['include', 'plates']:
+            #         continue
+            #     color = map(lambda x: ds.meta[k].unique().tolist().index(x), ds.meta[k])
+            #     break
 
             # return plotDataset(ds, 'dataset.html', searchform=searchform, dataset=ds)
             return plotDataset(ds, 'dataset.html', searchform=searchform)
@@ -450,7 +459,21 @@ def phenotype(id):
 
     phenotype = machine.session.query(models.Phenotype).filter_by(id=id).one_or_none()
 
-    return render_template('phenotype.html', phenotype=phenotype, searchform = searchform)
+    wells = machine.session.query(models.Well).filter(models.Well.id.in_([w.id for w in phenotype.wells]))
+    ds = machine.get(wells, include=[d.name for d in phenotype.designs])
+
+    values = {}
+    for d in phenotype.designs:
+         q = machine.session.query(models.ExperimentalDesign)\
+                    .join(models.well_experimental_design)\
+                    .join(models.Well)\
+                    .filter(models.ExperimentalDesign.design==d)\
+                    .filter(models.Well.id.in_([w.id for w in wells]))
+
+         values[d.name] = q.all()
+
+    return plotDataset(ds, 'phenotype.html', searchform=searchform, phenotype=phenotype, values=values)
+    # return render_template('phenotype.html', phenotype=phenotype, searchform = searchform)
 
 @app.route('/phenotypes')
 def phenotypes():
@@ -495,9 +518,9 @@ def login():
     form = LoginForm()
     if form.validate_on_submit():
 
-        user = machine.session.query(models.User).filter_by(username=request.form['name'], password=request.form['password']).one_or_none()
+        user = machine.session.query(models.User).filter_by(username=request.form['name']).one_or_none()
 
-        if user is None:
+        if user is None or not user.is_correct_password(str(request.form['password'])):
             flask.flash('Incorrect username or password.')
             return flask.redirect(flask.url_for('login', form=form, method='GET'))
 

@@ -7,6 +7,8 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.exc import IntegrityError
 
+import pandas as pd
+
 import logging
 
 def create_plate_data_table(plate, core):

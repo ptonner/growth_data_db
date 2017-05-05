@@ -3,6 +3,9 @@ from ..models import Project, Plate
 
 def query_or_copy(core, obj, model):
 
+    """If obj's type is model, return obj and its name. Otherwise return the
+        query of model with name matching obj."""
+
     if isinstance(obj, str) or isinstance(obj, unicode):
         name = obj
         obj = core.session.query(model).filter(model.name==name).one_or_none()
