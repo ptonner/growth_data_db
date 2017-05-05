@@ -2,7 +2,13 @@ from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy import Column, Integer, String, Enum, Float, Date, Boolean
 from sqlalchemy import ForeignKey, UniqueConstraint, Table, PrimaryKeyConstraint
 from sqlalchemy.orm import relationship, backref, validates
+from sqlalchemy.ext.hybrid import hybrid_property
 from sqlalchemy import MetaData
+
+import base64, os
+from cryptography.hazmat.backends import default_backend
+from cryptography.hazmat.primitives import hashes
+from cryptography.hazmat.primitives.kdf.pbkdf2 import PBKDF2HMAC
 
 from flask_login import UserMixin
 
@@ -15,7 +21,8 @@ class User(Base, UserMixin):
     id=Column(Integer, primary_key=True)
     name = Column(String)
     username = Column(String(50))
-    password = Column(String(50))
+    _password = Column(String(50))
+    _salt = Column(String(50))
     email = Column(String(50))
     organization = Column(String(50))
 
@@ -25,6 +32,28 @@ class User(Base, UserMixin):
     country = Column(String(20))
 
     permissions = Column(Enum('admin', 'pleb'))
+
+    @hybrid_property
+    def password(self):
+        return self._password
+
+    @password.setter
+    def _set_password(self, plaintext):
+        self._salt = os.urandom(16)
+        kdf = PBKDF2HMAC(
+                    algorithm=hashes.SHA256(),
+					length=32, salt=self._salt, iterations=100000,
+					backend=default_backend())
+
+        self._password = base64.urlsafe_b64encode(kdf.derive(plaintext))
+
+    def is_correct_password(self, plaintext):
+        kdf = PBKDF2HMAC(
+					algorithm=hashes.SHA256(),
+					length=32, salt=self._salt, iterations=100000,
+					backend=default_backend())
+
+        return self._password == base64.urlsafe_b64encode(kdf.derive(plaintext))
 
     def __repr__(self):
         return "User: %s" % (self.name)
