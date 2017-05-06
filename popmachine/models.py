@@ -1,5 +1,5 @@
 from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy import Column, Integer, String, Enum, Float, Date, Boolean, LargeBinary, PickleType
+from sqlalchemy import Column, Integer, String, Enum, Float, Date, Boolean, LargeBinary, PickleType, CheckConstraint
 from sqlalchemy import ForeignKey, UniqueConstraint, Table, PrimaryKeyConstraint
 from sqlalchemy.orm import relationship, backref, validates
 from sqlalchemy.ext.hybrid import hybrid_property
@@ -209,17 +209,21 @@ well_phenotype = Table('well_phenotype', Base.metadata,
 design_phenotype = Table('design_phenotype', Base.metadata,
 	Column('design_id', Integer, ForeignKey('designs.id')),
 	Column('phenotype_id', Integer, ForeignKey('phenotypes.id')),
-    PrimaryKeyConstraint('design_id', 'phenotype_id')
+	PrimaryKeyConstraint('design_id', 'phenotype_id')
 )
 
 class Phenotype(Base):
 
 	__tablename__ = 'phenotypes'
+
 	id = Column(Integer, primary_key=True)
 
 	name = Column(String(50))
 	owner_id = Column(Integer, ForeignKey('users.id'))
 	owner = relationship('User', backref='phenotypes')
+
+	# design space control index
+	control = Column(Integer, default=0)
 
 	project_id = Column(Integer, ForeignKey('projects.id'))
 	project = relationship('Project', backref='phenotypes')
@@ -239,31 +243,35 @@ class Phenotype(Base):
         secondary=design_phenotype,
         backref="phenotypes")
 
+	__table_args__ = (
+        CheckConstraint(control >= 0, name='check_control_positive'),
+        {})
+
 	def dataset(self, machine):
 		wells = machine.session.query(Well).filter(Well.id.in_([w.id for w in self.wells]))
 		return machine.get(wells, include=[d.name for d in self.designs])
 
-class Model(Base):
-
-    # maximum number of datapoints in model
-    MAX_SIZE=3000
-
-    @classmethod
-    def step_size(x):
-        return (x.shape[0] + MAX_SIZE - 1)/MAX_SIZE
-
-	__tablename__='models'
-	id = Column(Integer, primary_key=True)
-
-    # corresponding phenotype, there is a one-to-one relationship b/w model and phenotype
-	phenotype_id = Column(Integer, ForeignKey('phenotypes.id'))
-	phenotype = relationship('Phenotype', backref=backref("model", uselist=False))
-
-    # is model training complete?
-    trained = Column(Boolean, default=False)
-
-    # state of model training
-    status = Column(Enum('queued', 'training', 'trained', 'error'))
-
-    # step size when building input data
-    step = Column(Integer,default=1)
+# class Model(Base):
+#
+#     # maximum number of datapoints in model
+#     MAX_SIZE=3000
+#
+#     @classmethod
+#     def step_size(x):
+#         return (x.shape[0] + MAX_SIZE - 1)/MAX_SIZE
+#
+# 	__tablename__='models'
+# 	id = Column(Integer, primary_key=True)
+#
+#     # corresponding phenotype, there is a one-to-one relationship b/w model and phenotype
+# 	phenotype_id = Column(Integer, ForeignKey('phenotypes.id'))
+# 	phenotype = relationship('Phenotype', backref=backref("model", uselist=False))
+#
+#     # is model training complete?
+#     trained = Column(Boolean, default=False)
+#
+#     # state of model training
+#     status = Column(Enum('unqueued','queued', 'training', 'trained', 'error'))
+#
+#     # step size when building input data
+#     step = Column(Integer,default=1)

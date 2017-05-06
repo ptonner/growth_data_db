@@ -27,7 +27,7 @@
     </table>
 
     <h3> design space </h3>
-    <table class="table table-bordered">
+    <!-- <table class="table table-bordered">
       <tr>
         <th> design </th>
         <th> values </th>
@@ -43,7 +43,25 @@
           </td>
         </tr>
       {% endfor %}
+    </table> -->
+
+    <table class="table table-bordered">
+      <tr>
+        {% for d in phenotype.designs %}
+            <th> <a href="{{url_for('design', _id=d.id)}}"> {{d.name}} </a> </th>
+        {% endfor %}
+        <th> control? </th>
+      </tr>
+      {% for d in dsp %}
+        <tr>
+          {% for v in d %}
+              <td> <a href="{{url_for('experimentalDesign', _id=v.id)}}"> {{v.value}} </a> </td>
+          {% endfor %}
+          <td> {% if phenotype.control == loop.index0 %} <span class="glyphicon glyphicon-ok" aria-hidden="true"></span>   {% endif %} </td>
+        </tr>
+      {% endfor %}
     </table>
+
 
 {% endif %}
 {% endblock %}

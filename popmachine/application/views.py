@@ -2,6 +2,7 @@ from app import app, mail
 from popmachine import Machine, models
 from .forms import SearchForm, PlateCreate, DesignForm, LoginForm, ProjectForm, PhenotypeForm, RegisterForm
 from .plot import plotDataset
+from ..phenotype import design_space
 from safeurl import is_safe_url
 from security import ts
 
@@ -462,6 +463,8 @@ def phenotype(id):
     wells = machine.session.query(models.Well).filter(models.Well.id.in_([w.id for w in phenotype.wells]))
     ds = machine.get(wells, include=[d.name for d in phenotype.designs])
 
+    dsp = design_space.design_space(machine.session, phenotype)
+
     values = {}
     for d in phenotype.designs:
          q = machine.session.query(models.ExperimentalDesign)\
@@ -472,7 +475,7 @@ def phenotype(id):
 
          values[d.name] = q.all()
 
-    return plotDataset(ds, 'phenotype.html', searchform=searchform, phenotype=phenotype, values=values)
+    return plotDataset(ds, 'phenotype.html', searchform=searchform, phenotype=phenotype, values=values, dsp=dsp)
     # return render_template('phenotype.html', phenotype=phenotype, searchform = searchform)
 
 @app.route('/phenotypes')
