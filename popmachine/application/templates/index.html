@@ -19,11 +19,13 @@ home
   </div>
   <div class="col-md-9">
     <p>
-      <em>popmachine</em> is a comprehensive storage solution for microbial population growth data, a ubiquitous measure in microbiology.
-      <em>popmachine</em> accepts population growth data from multiple measurement types, allows for arbitrary experimental designs, and implements the ability to define growth phentoypes in growth data.
+      <em>popmachine</em> is a comprehensive storage solution for microbial population growth data.
+      <em>popmachine</em> accepts growth data from multiple measurement types, allows for arbitrary experimental designs, and implements the ability to define growth phentoypes for reference in publication.
+      Further, phenotypes can be modeled with the <a href="{{url_for('bgreat')}}">B-GREAT</a> method based on the non-parametric Gaussian process model.
       In particular, <em>popmachine</em> provides a number of features for organizing, sharing, and analyzing microbial population growth data:
       <ul>
         <li>storage and organiziation of population growth data, with reliable identification for sharing with others</li>
+        <li>a rich framework for defining experimental designs that can represent any growth dataset</li>
         <li>combine data across projects and labs by searching for key terms and experimental designs</li>
         <li>creation of growth phenotypes represented by data</li>
         <li>analysis of data through non-parametric model Gaussian processes and the <a href="{{url_for('bgreat')}}">B-GREAT</a> method</li>
@@ -49,7 +51,7 @@ home
 </p> -->
 
 {% if projects %}
-  <h4>Projects <small><a href="{{url_for('projects')}}"> more </a></small></h4>
+  <h4>Projects <small><a href="{{url_for('project.projects')}}"> more </a></small></h4>
   <table class='table table-hover'>
     <thead>
       <tr>
@@ -63,7 +65,7 @@ home
     <tbody>
       {% for project in projects %}
           <tr>
-            <td class='text-center'> <a href="{{url_for('project', projectid=project.id)}}"> {{ project.name|e }} </a></td>
+            <td class='text-center'> <a href="{{url_for('project.project', projectid=project.id)}}"> {{ project.name|e }} </a></td>
             <td class='text-center'>{{project.plates | length}}</td>
             <td class='text-center'>{% if project.published %} <span class="glyphicon glyphicon-ok" aria-hidden="true"></span>  {% endif %}</td>
             <td class='text-center'>{{project.submission_date}}</td>
@@ -75,7 +77,7 @@ home
 {% endif %}
 
 {% if plates %}
-  <h4>Plates <small><a href="{{url_for('plates')}}"> more </a></small></h4>
+  <h4>Plates <small><a href="{{url_for('plate.plates')}}"> more </a></small></h4>
 
   <!-- <div class="container"> -->
     <div class='row center-block'>
@@ -91,9 +93,9 @@ home
           <tbody>
             {% for plate in plates %}
                 <tr>
-                  <td class='text-center'> <a href="{{url_for('plate', platename=plate.name)}}"> {{ plate.name|e }} </a></td>
+                  <td class='text-center'> <a href="{{url_for('plate.plate', platename=plate.name)}}"> {{ plate.name|e }} </a></td>
                   <!-- <td class='text-center'>{{plate.project }}</td> -->
-                  <td class='text-center'> <a href="{{url_for('project', projectid=plate.project.id)}}"> {{plate.project.name }} </a></td>
+                  <td class='text-center'> <a href="{{url_for('project.project', projectid=plate.project.id)}}"> {{plate.project.name }} </a></td>
                   <td class='text-center'>{{plate.wells | length}}</td>
                 </tr>
             {% endfor %}
@@ -105,7 +107,7 @@ home
 {% endif %}
 
 {% if designs %}
-  <h4>Designs <small><a href="{{url_for('designs')}}"> more </a></small> </h4>
+  <h4>Designs <small><a href="{{url_for('design.designs')}}"> more </a></small> </h4>
 
   <!-- <div class="container"> -->
     <div class='row'>
@@ -123,8 +125,8 @@ home
           <tbody>
             {% for d in designs %}
                 <tr>
-                  <td class='text-center'> <a href="{{url_for('design', _id=d.id)}}"> {{ d.name|e }} </a></td>
-                  <td class='text-center'> <a href="{{url_for('project', projectid=d.project.id)}}"> {{d.project.name }} </a></td>
+                  <td class='text-center'> <a href="{{url_for('design.design', _id=d.id)}}"> {{ d.name|e }} </a></td>
+                  <td class='text-center'> <a href="{{url_for('project.project', projectid=d.project.id)}}"> {{d.project.name }} </a></td>
                   <td class='text-center'>{{d.values | length}}</td>
                   <td class='text-center'>{{d.type }}</td>
                 </tr>
@@ -156,7 +158,7 @@ home
             {% for p in phenotypes %}
                 <tr>
                   <td class='text-center'> <a href="{{url_for('phenotype', id=p.id)}}"> {{ p.name|e }} </a></td>
-                  <td class='text-center'> <a href="{{url_for('project', projectid=p.project.id)}}"> {{p.project.name }} </a></td>
+                  <td class='text-center'> <a href="{{url_for('project.project', projectid=p.project.id)}}"> {{p.project.name }} </a></td>
                   <td class='text-center'>{{p.omp_id}}</td>
                   <td class='text-center'>{{p.wells | length}}</td>
                   <td class='text-center'>{{p.designs | length}}</td>

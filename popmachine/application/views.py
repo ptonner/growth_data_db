@@ -1,5 +1,6 @@
 from app import app, mail
-from popmachine import Machine, models
+from popmachine import models
+from . import machine
 from .forms import SearchForm, PlateCreate, DesignForm, LoginForm, ProjectForm, PhenotypeForm, RegisterForm
 from .plot import plotDataset
 from ..phenotype import design_space
@@ -21,7 +22,7 @@ from bokeh.resources import INLINE
 from bokeh.util.string import encode_utf8
 from bokeh.palettes import Spectral11, viridis
 
-machine = Machine()
+# machine = Machine()
 login_manager = LoginManager()
 
 @login_manager.user_loader
@@ -129,178 +130,178 @@ def bgreat():
     searchform = SearchForm()
     return render_template("bgreat.html", searchform=searchform)
 
-@app.route('/project/<projectid>')
-def project(projectid):
-    searchform = SearchForm()
-    project = machine.session.query(models.Project).filter_by(id=projectid).one_or_none()
+# @app.route('/project/<projectid>')
+# def project(projectid):
+#     searchform = SearchForm()
+#     project = machine.session.query(models.Project).filter_by(id=projectid).one_or_none()
+#
+#     if not project or (not project.published and (not current_user.is_authenticated or project.owner != current_user)):
+#         flask.flash('project not found or you do not have permissions to view it!')
+#         return redirect(url_for('index'))
+#
+#     return render_template("project.html", project=project, searchform = searchform)
+#
+# @app.route('/projects/')
+# def projects():
+#
+#     if not current_user.is_authenticated:
+#         myprojects = None
+#         projects = machine.session.query(models.Project).filter_by(published=True)
+#     else:
+#         myprojects = machine.session.query(models.Project).filter_by(owner=current_user)
+#         projects = machine.session.query(models.Project).filter_by(published=True).filter(not_(models.Project.owner==current_user))
+#
+#     searchform = SearchForm()
+#
+#     return render_template("projects.html", myprojects=myprojects, searchform=searchform, projects=projects)
+#
+# @app.route('/project/<projectid>/publish')
+# @login_required
+# def project_publish(projectid):
+#
+#     project = machine.session.query(models.Project).filter_by(id=projectid, owner=current_user).one_or_none()
+#
+#     if project:
+#
+#         project.published = True
+#         machine.session.add(project)
+#         machine.session.commit()
+#
+#         return redirect((url_for('project.project', projectid=project.id)))
+#
+#     return redirect(url_for('project.projects'))
+#
+# @app.route('/project/<projectid>/unpublish')
+# @login_required
+# def project_unpublish(projectid):
+#
+#     project = machine.session.query(models.Project).filter_by(id=projectid, owner=current_user).one_or_none()
+#
+#     if project:
+#
+#         project.published = False
+#         machine.session.add(project)
+#         machine.session.commit()
+#
+#         return redirect((url_for('project.project', projectid=project.id)))
+#
+#     return redirect(url_for('project.projects'))
+#
+#
+# @app.route('/project-create/', methods=['GET', "POST"])
+# @login_required
+# def project_create():
+#
+#     searchform = SearchForm()
+#     form = ProjectForm()
+#
+#     if request.method=="GET":
+#         return render_template("project-create.html", form=form, searchform = searchform)
+#     else:
+#
+#         # print request.form
+#
+#         name = request.form['name']
+#         description = request.form['description']
+#         design = request.form['design']
+#         published = 'published' in request.form and request.form['published']
+#         citation = request.form['citation']
+#         citation_pmid = request.form['citation_pmid']
+#
+#         now = datetime.datetime.now()
+#
+#         project = models.Project(name=name, description=description, design=design, published=published, citation_text=citation, citation_pmid=citation_pmid, owner=current_user, submission_date=now, modified_date=now)
+#         machine.session.add(project)
+#         machine.session.commit()
+#
+#         return redirect(url_for('project.project', projectid=project.id))
+#     return redirect(url_for('project.project_create'))
 
-    if not project or (not project.published and (not current_user.is_authenticated or project.owner != current_user)):
-        flask.flash('project not found or you do not have permissions to view it!')
-        return redirect(url_for('index'))
-
-    return render_template("project.html", project=project, searchform = searchform)
-
-@app.route('/projects/')
-def projects():
-
-    if not current_user.is_authenticated:
-        myprojects = None
-        projects = machine.session.query(models.Project).filter_by(published=True)
-    else:
-        myprojects = machine.session.query(models.Project).filter_by(owner=current_user)
-        projects = machine.session.query(models.Project).filter_by(published=True).filter(not_(models.Project.owner==current_user))
-
-    searchform = SearchForm()
-
-    return render_template("projects.html", myprojects=myprojects, searchform=searchform, projects=projects)
-
-@app.route('/project/<projectid>/publish')
-@login_required
-def project_publish(projectid):
-
-    project = machine.session.query(models.Project).filter_by(id=projectid, owner=current_user).one_or_none()
-
-    if project:
-
-        project.published = True
-        machine.session.add(project)
-        machine.session.commit()
-
-        return redirect((url_for('project', projectid=project.id)))
-
-    return redirect(url_for('projects'))
-
-@app.route('/project/<projectid>/unpublish')
-@login_required
-def project_unpublish(projectid):
-
-    project = machine.session.query(models.Project).filter_by(id=projectid, owner=current_user).one_or_none()
-
-    if project:
-
-        project.published = False
-        machine.session.add(project)
-        machine.session.commit()
-
-        return redirect((url_for('project', projectid=project.id)))
-
-    return redirect(url_for('projects'))
-
-
-@app.route('/project-create/', methods=['GET', "POST"])
-@login_required
-def project_create():
-
-    searchform = SearchForm()
-    form = ProjectForm()
-
-    if request.method=="GET":
-        return render_template("project-create.html", form=form, searchform = searchform)
-    else:
-
-        # print request.form
-
-        name = request.form['name']
-        description = request.form['description']
-        design = request.form['design']
-        published = 'published' in request.form and request.form['published']
-        citation = request.form['citation']
-        citation_pmid = request.form['citation_pmid']
-
-        now = datetime.datetime.now()
-
-        project = models.Project(name=name, description=description, design=design, published=published, citation_text=citation, citation_pmid=citation_pmid, owner=current_user, submission_date=now, modified_date=now)
-        machine.session.add(project)
-        machine.session.commit()
-
-        return redirect(url_for('project', projectid=project.id))
-    return redirect(url_for('project_create'))
-
-@app.route('/plates/')
-def plates():
-
-    if current_user.is_authenticated:
-        plates = machine.session.query(models.Plate).join(models.Project).filter(or_(models.Project.published, models.Project.owner==current_user)).all()
-    else:
-        plates = machine.session.query(models.Plate).join(models.Project).filter(models.Project.published).all()
-
-
-    searchform = SearchForm()
-
-    return render_template("plates.html", plates=plates, searchform=searchform)
-
-@app.route('/plate/<platename>')
-def plate(platename):
-    searchform = SearchForm()
-    plate = machine.session.query(models.Plate).filter(models.Plate.name==platename).one_or_none()
-
-    experimentalDesigns = machine.session.query(models.ExperimentalDesign)\
-                .join(models.well_experimental_design)\
-                .join(models.Well)\
-                .filter(models.Well.id.in_([w.id for w in plate.wells]))
-
-    designs = machine.session.query(models.Design)\
-                .join(models.ExperimentalDesign)\
-                .join(models.well_experimental_design)\
-                .join(models.Well)\
-                .filter(models.Well.id.in_([w.id for w in plate.wells]))
-
-    return render_template("plate.html", plate=plate, experimentalDesigns=experimentalDesigns, designs=designs, searchform = searchform)
-
-@app.route('/plate-delete/<platename>', methods=['GET', 'POST'])
-def plate_delete(platename):
-    searchform = SearchForm()
-
-    if request.method=='GET':
-        return render_template('plate-delete.html', searchform = searchform, platename=platename)
-    else:
-        plate = machine.session.query(models.Plate).filter(models.Plate.name==platename).one_or_none()
-        machine.deletePlate(plate)
-
-        return redirect(url_for('plates'))
-
-@app.route('/plate-create/', methods=['GET', "POST"])
-@login_required
-def plate_create():
-
-    searchform = SearchForm()
-
-    myprojects = machine.session.query(models.Project).filter_by(owner=current_user).all()
-
-    class DynamicPlateCreate(PlateCreate):
-        project = SelectField("project", choices=[(p.name, p.name) for p in myprojects])
-
-    if request.method=="GET":
-        form = DynamicPlateCreate()
-        return render_template("plate-create.html", form=form, searchform = searchform)
-    else:
-
-        project = machine.session.query(models.Project).filter_by(owner=current_user, name=request.form['project']).one_or_none()
-
-        name = request.form['name']
-        ignore = request.form['ignore'].split(",")
-        f = request.files['data']
-        data = pd.read_csv(f)
-
-        if 'design' in request.files:
-            f = request.files['design']
-            meta = pd.read_csv(f)
-
-            if len(ignore) > 0:
-                for i in ignore:
-                    if i == "":
-                        continue
-                    del meta[i]
-        else:
-            meta = None
-
-        if request.form['source'] == 'csv':
-            plate = machine.createPlate(project, name, data, meta)
-        else:
-            flask.flash('only csv source supported currently!')
-            pass
-
-        return redirect(url_for('plates'))
+# @app.route('/plates/')
+# def plates():
+#
+#     if current_user.is_authenticated:
+#         plates = machine.session.query(models.Plate).join(models.Project).filter(or_(models.Project.published, models.Project.owner==current_user)).all()
+#     else:
+#         plates = machine.session.query(models.Plate).join(models.Project).filter(models.Project.published).all()
+#
+#
+#     searchform = SearchForm()
+#
+#     return render_template("plates.html", plates=plates, searchform=searchform)
+#
+# @app.route('/plate/<platename>')
+# def plate(platename):
+#     searchform = SearchForm()
+#     plate = machine.session.query(models.Plate).filter(models.Plate.name==platename).one_or_none()
+#
+#     experimentalDesigns = machine.session.query(models.ExperimentalDesign)\
+#                 .join(models.well_experimental_design)\
+#                 .join(models.Well)\
+#                 .filter(models.Well.id.in_([w.id for w in plate.wells]))
+#
+#     designs = machine.session.query(models.Design)\
+#                 .join(models.ExperimentalDesign)\
+#                 .join(models.well_experimental_design)\
+#                 .join(models.Well)\
+#                 .filter(models.Well.id.in_([w.id for w in plate.wells]))
+#
+#     return render_template("plate.html", plate=plate, experimentalDesigns=experimentalDesigns, designs=designs, searchform = searchform)
+#
+# @app.route('/plate-delete/<platename>', methods=['GET', 'POST'])
+# def plate_delete(platename):
+#     searchform = SearchForm()
+#
+#     if request.method=='GET':
+#         return render_template('plate-delete.html', searchform = searchform, platename=platename)
+#     else:
+#         plate = machine.session.query(models.Plate).filter(models.Plate.name==platename).one_or_none()
+#         machine.deletePlate(plate)
+#
+#         return redirect(url_for(plate.plates))
+#
+# @app.route('/plate-create/', methods=['GET', "POST"])
+# @login_required
+# def plate_create():
+#
+#     searchform = SearchForm()
+#
+#     myprojects = machine.session.query(models.Project).filter_by(owner=current_user).all()
+#
+#     class DynamicPlateCreate(PlateCreate):
+#         project = SelectField("project", choices=[(p.name, p.name) for p in myprojects])
+#
+#     if request.method=="GET":
+#         form = DynamicPlateCreate()
+#         return render_template("plate-create.html", form=form, searchform = searchform)
+#     else:
+#
+#         project = machine.session.query(models.Project).filter_by(owner=current_user, name=request.form['project']).one_or_none()
+#
+#         name = request.form['name']
+#         ignore = request.form['ignore'].split(",")
+#         f = request.files['data']
+#         data = pd.read_csv(f)
+#
+#         if 'design' in request.files:
+#             f = request.files['design']
+#             meta = pd.read_csv(f)
+#
+#             if len(ignore) > 0:
+#                 for i in ignore:
+#                     if i == "":
+#                         continue
+#                     del meta[i]
+#         else:
+#             meta = None
+#
+#         if request.form['source'] == 'csv':
+#             plate = machine.createPlate(project, name, data, meta)
+#         else:
+#             flask.flash('only csv source supported currently!')
+#             pass
+#
+#         return redirect(url_for(plate.plates))
 
 
 @app.route('/designs/')
@@ -359,7 +360,7 @@ def design(_id, plate=None):
         design.type = request.form['type']
         machine.session.commit()
 
-        return redirect(url_for("design", _id=design.id))
+        return redirect(url_for('design.design', _id=design.id))
 
 @app.route('/design_edit/<_id>', methods=['GET', 'POST'])
 @login_required
@@ -392,7 +393,7 @@ def design_edit(_id):
         design.protocol = request.form['protocol']
         machine.session.commit()
 
-        return redirect(url_for("design", _id=design.id))
+        return redirect(url_for('design.design', _id=design.id))
 
 
 @app.route('/experimentaldesign/<_id>')

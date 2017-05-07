@@ -7,7 +7,7 @@
 {% block controls %}
 <div class="btn-group-vertical" role="group" >
   <a href='{{url_for("index")}}' role="button" class="btn btn-success btn-large">Edit</a>
-  <a href='{{url_for("index")}}' role="button" class="btn btn-primary btn-large">Model</a>
+  <a href='{{url_for("model.create", id=phenotype.id)}}' role="button" class="btn btn-primary btn-large">Model</a>
   <a href='{{url_for("index")}}' role="button" class="btn btn-danger btn-large">Delete</a>
 </div>
 {% endblock %}
@@ -22,7 +22,7 @@
       </tr>
       <tr>
         <td class="col-md-2"> project </td>
-        <td> <a href="{{url_for('project', projectid=phenotype.project.id)}}"> {{phenotype.project.name}} </a></td>
+        <td> <a href="{{url_for('project.project', projectid=phenotype.project.id)}}"> {{phenotype.project.name}} </a></td>
       </tr>
     </table>
 
@@ -35,7 +35,7 @@
 
       {% for d in phenotype.designs %}
         <tr>
-          <td> <a href="{{url_for('design', _id=d.id)}}"> {{d.name}} </a> </td>
+          <td> <a href="{{url_for('design.design', _id=d.id)}}"> {{d.name}} </a> </td>
           <td>
             {% for v in values[d.name] %}
               {{v.value}},
@@ -48,7 +48,7 @@
     <table class="table table-bordered">
       <tr>
         {% for d in phenotype.designs %}
-            <th> <a href="{{url_for('design', _id=d.id)}}"> {{d.name}} </a> </th>
+            <th> <a href="{{url_for('design.design', _id=d.id)}}"> {{d.name}} </a> </th>
         {% endfor %}
         <th> control? </th>
       </tr>

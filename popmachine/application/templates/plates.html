@@ -7,7 +7,7 @@ plates
 {% block controls %}
 
 <div class="btn-group-vertical" role="group" >
-  <a href="{{url_for('plate_create')}}" role='button' class="btn btn-primary btn-large">Create</a>
+  <a href="{{url_for('plate.plate_create')}}" role='button' class="btn btn-primary btn-large">Create</a>
 </div>
 
 {% endblock %}
@@ -30,9 +30,9 @@ plates
       <tbody>
         {% for plate in plates %}
             <tr>
-              <td class='text-center'> <a href="{{url_for('plate', platename=plate.name)}}"> {{ plate.name|e }} </a></td>
+              <td class='text-center'> <a href="{{url_for('plate.plate', platename=plate.name)}}"> {{ plate.name|e }} </a></td>
               <!-- <td class='text-center'>{{plate.project }}</td> -->
-              <td class='text-center'> <a href="{{url_for('project', projectid=plate.project.id)}}"> {{plate.project.name }} </a></td>
+              <td class='text-center'> <a href="{{url_for('project.project', projectid=plate.project.id)}}"> {{plate.project.name }} </a></td>
               <td class='text-center'>{{plate.wells | length}}</td>
             </tr>
         {% endfor %}

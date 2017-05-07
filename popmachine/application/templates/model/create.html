@@ -1,0 +1,20 @@
+{% extends 'base.html' %}
+
+{% block content %}
+
+<form action="{{url_for('model.create', id=phenotype.id)}}" method='POST' enctype="multipart/form-data">
+  <div class="form-group">
+    <label>covariates</label>
+    {{ form.covariates(size=10,class_="form-control") }}
+  </div>
+  <button type="submit" id="myButton" class="btn btn-default" data-loading-text="Creating...">
+     <span class="glyphicon glyphicon-upload" aria-hidden="true"></span> Create
+  </button>
+  <script>
+    $('#myButton').on('click', function () {
+      var $btn = $(this).button('loading')
+    })
+  </script>
+</form>
+
+{% endblock %}

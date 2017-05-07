@@ -78,7 +78,7 @@ class DataSet(object):
 
         self.data = np.log2(self.data)
 
-    def melt(self, norm=False):
+    def melt(self, norm=False, convertNames=False):
 
         pivot = pd.concat((self.meta, self.data.T),1,ignore_index=False)
 
@@ -89,6 +89,16 @@ class DataSet(object):
 
         if norm:
             melt.od = (melt.od-melt.od.mean())/melt.od.std()
+
+        if convertNames:
+            terms = '-+'
+            for c in melt.columns:
+                if any([t in c for t in terms]):
+                    temp = c
+                    for t in terms:
+                        temp = temp.replace(t, '_')
+                    melt[temp] = melt[c]
+                    del melt[c]
 
         return melt
 

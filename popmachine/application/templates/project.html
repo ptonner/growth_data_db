@@ -11,9 +11,9 @@
 <div class="btn-group-vertical" role="group" >
   <a href='{{url_for("index")}}' role="button" class="btn btn-success btn-large">Edit</a>
   {% if not project.published %}
-  <a href='{{url_for("project_publish", projectid=project.id)}}' role="button" class="btn btn-primary btn-large">Publish</a>
+  <a href='{{url_for('project.project_publish', projectid=project.id)}}' role="button" class="btn btn-primary btn-large">Publish</a>
   {% else %}
-  <a href='{{url_for("project_unpublish", projectid=project.id)}}' role="button" class="btn btn-primary btn-large">un-Publish</a>
+  <a href='{{url_for('project.project_unpublish', projectid=project.id)}}' role="button" class="btn btn-primary btn-large">un-Publish</a>
   {% endif %}
   <a href='{{url_for("index")}}' role="button" class="btn btn-danger btn-large">Delete</a>
 </div>
@@ -60,7 +60,7 @@
     <tbody>
       {% for plate in project.plates %}
           <tr>
-            <td class='text-center'> <a href="{{url_for('plate', platename=plate.name)}}"> {{ plate.name|e }} </a></td>
+            <td class='text-center'> <a href="{{url_for('plate.plate', platename=plate.name)}}"> {{ plate.name|e }} </a></td>
             <td class='text-center'>{{plate.wells | length}}</td>
           </tr>
       {% endfor %}
@@ -80,7 +80,7 @@
     <tbody>
       {% for d in project.designs %}
           <tr>
-            <td class='text-center'> <a href="{{url_for('design', _id=d.id)}}"> {{ d.name|e }} </a></td>
+            <td class='text-center'> <a href="{{url_for('design.design', _id=d.id)}}"> {{ d.name|e }} </a></td>
             <td class='text-center'>{{d.values | length}}</td>
             <td class='text-center'>{{d.type }}</td>
           </tr>

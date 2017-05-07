@@ -23,8 +23,8 @@ designs
       <tbody>
         {% for d in designs %}
             <tr>
-              <td class='text-center'> <a href="{{url_for('design', _id=d.id)}}"> {{ d.name|e }} </a></td>
-              <td class='text-center'> <a href="{{url_for('project', projectid=d.project.id)}}"> {{d.project.name }} </a></td>
+              <td class='text-center'> <a href="{{url_for('design.design', _id=d.id)}}"> {{ d.name|e }} </a></td>
+              <td class='text-center'> <a href="{{url_for('project.project', projectid=d.project.id)}}"> {{d.project.name }} </a></td>
               <td class='text-center'>{{d.values | length}}</td>
               <td class='text-center'>{{d.type }}</td>
             </tr>

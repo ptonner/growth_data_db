@@ -1,0 +1,38 @@
+{% extends 'base.html' %}
+
+{% block controls %}
+<div class="btn-group-vertical" role="group" >
+  <a href='{{url_for("model.delete", id=model.id)}}' role="button" class="btn btn-danger btn-large">Delete</a>
+</div>
+{% endblock %}
+
+{% block content %}
+
+<table class="table table-bordered">
+  <tr>
+    <td class="col-md-2"> created by </td>
+    <td> {{model.phenotype.owner.name}}</td>
+  </tr>
+  <tr>
+    <td class="col-md-2"> project </td>
+    <td> <a href="{{url_for('project.project', projectid=model.phenotype.project.id)}}"> {{model.phenotype.project.name}} </a></td>
+  </tr>
+  <tr>
+    <td class="col-md-2"> phenotype </td>
+    <td> <a href="{{url_for('phenotype', id=model.phenotype.id)}}"> {{model.phenotype.name}} </a></td>
+  </tr>
+  <tr>
+    <td class="col-md-2"> status </td>
+    <td> {{model.status}} </td>
+  </tr>
+  <tr>
+    <td class="col-md-2"> covariates </td>
+    <td>
+      {% for d in model.covariates %}
+        <a href='{{url_for('design', _id=d.id)}}'>{{d.name}}</a>,
+      {% endfor %}
+    </td>
+  </tr>
+</table>
+
+{% endblock %}

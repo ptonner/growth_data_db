@@ -7,7 +7,7 @@ projects
 {% block controls %}
 
 <div class="btn-group-vertical" role="group" >
-  <a href="{{url_for('project_create')}}" role='button' class="btn btn-primary btn-large">Create</a>
+  <a href="{{url_for('project.project_create')}}" role='button' class="btn btn-primary btn-large">Create</a>
 </div>
 
 {% endblock %}
@@ -32,7 +32,7 @@ projects
             <tbody>
               {% for project in myprojects %}
                   <tr>
-                    <td class='text-center'> <a href="{{url_for('project', projectid=project.id)}}"> {{ project.name|e }} </a></td>
+                    <td class='text-center'> <a href="{{url_for('project.project', projectid=project.id)}}"> {{ project.name|e }} </a></td>
                     <td class='text-center'>{{project.plates | length}}</td>
                     <td class='text-center'>{% if project.published %} <span class="glyphicon glyphicon-ok" aria-hidden="true"></span>  {% endif %}</td>
                     <td class='text-center'>{{project.submission_date}}</td>
@@ -61,7 +61,7 @@ projects
         <tbody>
           {% for project in projects %}
               <tr>
-                <td class='text-center'> <a href="{{url_for('project', projectid=project.id)}}"> {{ project.name|e }} </a></td>
+                <td class='text-center'> <a href="{{url_for('project.project', projectid=project.id)}}"> {{ project.name|e }} </a></td>
                 <td class='text-center'>{{project.plates | length}}</td>
                 <td class='text-center'>{% if project.published %} <span class="glyphicon glyphicon-ok" aria-hidden="true"></span>  {% endif %}</td>
                 <td class='text-center'>{{project.submission_date}}</td>

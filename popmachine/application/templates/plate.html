@@ -23,7 +23,7 @@
 <div class="btn-group-vertical" role="group" >
   <a href='{{url_for("index")}}' role="button" class="btn btn-success btn-large"> Edit </a>
   <a href='{{url_for("index")}}' role="button" class="btn btn-primary btn-large"> Design </a>
-  <a href='{{url_for("plate_delete", platename=plate.name)}}' role="button" class="btn btn-success btn-danger">Delete</a>
+  <a href='{{url_for('plate.plate_delete', platename=plate.name)}}' role="button" class="btn btn-success btn-danger">Delete</a>
 </div>
 
 {% endblock %}
@@ -37,7 +37,7 @@
         <h4>project:</h4>
       </div>
       <div class="col-md-4">
-        <a href='{{url_for("project",projectid=plate.project.id)}}'
+        <a href='{{url_for('project.project',projectid=plate.project.id)}}'
           <p>{{plate.project.name}}</p>
         </a>
       </div>
@@ -85,7 +85,7 @@
               <tbody>
                 {% for d in designs %}
                     <tr>
-                      <td class='text-center'> <a href='{{url_for('design', _id=d.id, plate=plate.name)}}'> {{ d.name }} </a></td>
+                      <td class='text-center'> <a href='{{url_for('design.design', _id=d.id, plate=plate.name)}}'> {{ d.name }} </a></td>
                       <td class='text-center'>
                         {% for ed in d.values|sort(attribute='value') %}
                           <a href='{{url_for('experimentalDesign', _id=ed.id, plate=plate.name)}}'> {{ ed.value }} </a>,

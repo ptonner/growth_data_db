@@ -1,11 +1,12 @@
 from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy import Column, Integer, String, Enum, Float, Date, Boolean, LargeBinary, PickleType, CheckConstraint
+from sqlalchemy import Column, Integer, String, Enum, Float, Date, DateTime, Boolean, LargeBinary, PickleType, CheckConstraint
 from sqlalchemy import ForeignKey, UniqueConstraint, Table, PrimaryKeyConstraint
 from sqlalchemy.orm import relationship, backref, validates
 from sqlalchemy.ext.hybrid import hybrid_property
 from sqlalchemy import MetaData
 
-import base64, os
+import base64
+import os
 from cryptography.hazmat.backends import default_backend
 from cryptography.hazmat.primitives import hashes
 from cryptography.hazmat.primitives.kdf.pbkdf2 import PBKDF2HMAC
@@ -15,10 +16,11 @@ from flask_login import UserMixin
 Base = declarative_base()
 metadata = MetaData()
 
-class User(Base, UserMixin):
-    __tablename__='users'
 
-    id=Column(Integer, primary_key=True)
+class User(Base, UserMixin):
+    __tablename__ = 'users'
+
+    id = Column(Integer, primary_key=True)
     name = Column(String)
     username = Column(String(50))
     _password = Column(String(50))
@@ -42,19 +44,22 @@ class User(Base, UserMixin):
     def _set_password(self, plaintext):
         self._salt = os.urandom(16)
         kdf = PBKDF2HMAC(
-                    algorithm=hashes.SHA256(),
-					length=32, salt=self._salt, iterations=100000,
-					backend=default_backend())
+            algorithm=hashes.SHA256(),
+            length=32, salt=self._salt, iterations=100000,
+            backend=default_backend())
 
         self._password = base64.urlsafe_b64encode(kdf.derive(plaintext))
 
     def is_correct_password(self, plaintext):
         kdf = PBKDF2HMAC(
-					algorithm=hashes.SHA256(),
-					length=32, salt=self._salt, iterations=100000,
-					backend=default_backend())
+            algorithm=hashes.SHA256(),
+            length=32, salt=self._salt, iterations=100000,
+            backend=default_backend())
 
         return self._password == base64.urlsafe_b64encode(kdf.derive(plaintext)).encode('utf-8')
+
+    def modelCount(self):
+        return sum([len(p.models) for p in self.phenotypes])
 
     def __repr__(self):
         return "User: %s" % (self.name)
@@ -63,6 +68,7 @@ class User(Base, UserMixin):
     def validate_email(self, key, address):
         assert '@' in address
         return address
+
 
 class Project(Base):
     __tablename__ = "projects"
@@ -75,17 +81,19 @@ class Project(Base):
     submission_date = Column(Date)
     modified_date = Column(Date, doc='last modification date')
 
-    description = Column(String(1000), doc = 'description of project')
-    design = Column(String(1000), doc = 'overall design of project')
+    description = Column(String(1000), doc='description of project')
+    design = Column(String(1000), doc='overall design of project')
 
     views = Column(Integer, doc='number of views', default=0)
 
     published = Column(Boolean, doc='availability on website')
-    citation_text = Column(String(300), doc='name of project citation, if applicable')
+    citation_text = Column(
+        String(300), doc='name of project citation, if applicable')
     citation_pmid = Column(Integer, doc='pubmed id of citation, if applicable')
 
     def __repr__(self):
         return "project %s, owned by %s (%d plates)" % (self.name, self.owner.name, len(self.plates))
+
 
 class Plate(Base):
     __tablename__ = "plates"
@@ -101,7 +109,8 @@ class Plate(Base):
 
     name = Column(String)
     data_table = Column(String)
-    wells = relationship("Well",back_populates="plate", cascade="all, delete, delete-orphan")
+    wells = relationship("Well", back_populates="plate",
+                         cascade="all, delete, delete-orphan")
 
     def owner(self):
         return self.project.owner
@@ -109,17 +118,22 @@ class Plate(Base):
     def __repr__(self):
         return "%s (%d)" % (self.name, len(self.wells))
 
+
 well_experimental_design = Table('well_experimental_design', Base.metadata,
-    Column('well_id', Integer, ForeignKey('wells.id')),
-    Column('ed_id', Integer, ForeignKey('experimental_design.id')),
-    PrimaryKeyConstraint('well_id', 'ed_id')
-)
+                                 Column('well_id', Integer,
+                                        ForeignKey('wells.id')),
+                                 Column('ed_id', Integer, ForeignKey(
+                                     'experimental_design.id')),
+                                 PrimaryKeyConstraint('well_id', 'ed_id')
+                                 )
 
 # many to many mapping of genes knocked-out in a sample
 well_gene_id = Table('well_gene_id', Base.metadata,
-    Column('well_id', Integer, ForeignKey('wells.id')),
-    Column('pubmed_gene_id', Integer) # pubmed id to gene database
-    )
+                     Column('well_id', Integer, ForeignKey('wells.id')),
+                     # pubmed id to gene database
+                     Column('pubmed_gene_id', Integer)
+                     )
+
 
 class Well(Base):
     __tablename__ = "wells"
@@ -136,17 +150,19 @@ class Well(Base):
         back_populates="wells")
 
     def __repr__(self):
-        return "%d, %s" % (self.plate_number,self.plate.name)
+        return "%d, %s" % (self.plate_number, self.plate.name)
 
     def organism(self):
         from Bio import Entrez
         Entrez.email = 'peter.tonner@duke.edu'
-        data = Entrez.read(Entrez.efetch(id = '%d'%self.organism_id, db = "taxonomy", retmode = "xml"))
+        data = Entrez.read(Entrez.efetch(id='%d' %
+                                         self.organism_id, db="taxonomy", retmode="xml"))
 
         assert len(data) == 1, 'no record found or more than one found!'
         data = data[0]
 
         return data
+
 
 class Design(Base):
     __tablename__ = "designs"
@@ -154,16 +170,17 @@ class Design(Base):
     name = Column(String, nullable=False)
     description = Column(String(100), doc='details of design')
     protocol = Column(String(100), doc='protocol of design')
-    type = Column(Enum("str","int","float",'bool'))
-    values = relationship("ExperimentalDesign",back_populates="design")
+    type = Column(Enum("str", "int", "float", 'bool'))
+    values = relationship("ExperimentalDesign", back_populates="design")
 
     project_id = Column(Integer, ForeignKey('projects.id'))
     project = relationship('Project', backref='designs')
 
-    __table_args__ = (UniqueConstraint('name', 'project_id', name='_name_project_uc'),)
+    __table_args__ = (UniqueConstraint(
+        'name', 'project_id', name='_name_project_uc'),)
 
     def __repr__(self):
-    	return "%s (%s)" % (self.name,self.type)
+        return "%s (%s)" % (self.name, self.type)
 
     def value(self, value):
         if self.type == 'str':
@@ -175,11 +192,12 @@ class Design(Base):
         elif self.type == 'bool':
             return bool(value)
 
+
 class ExperimentalDesign(Base):
     __tablename__ = "experimental_design"
     id = Column(Integer, primary_key=True)
-    design_id = Column(Integer,ForeignKey("designs.id"))
-    design = relationship("Design",back_populates="values")
+    design_id = Column(Integer, ForeignKey("designs.id"))
+    design = relationship("Design", back_populates="values")
     # well_id = Column(Integer,ForeignKey("wells.id"))
     # well = relationship("Well",back_populates="design_values")
     value = Column(String)
@@ -188,7 +206,6 @@ class ExperimentalDesign(Base):
         "Well",
         secondary=well_experimental_design,
         back_populates="experimentalDesigns")
-
 
     # each well should only have one value of any single design
     # __table_args__ = (UniqueConstraint('well_id','design_id', name='_well_design_uc'),)
@@ -201,77 +218,98 @@ class ExperimentalDesign(Base):
 
 
 well_phenotype = Table('well_phenotype', Base.metadata,
-    Column('well_id', Integer, ForeignKey('wells.id')),
-    Column('phenotype_id', Integer, ForeignKey('phenotypes.id')),
-    PrimaryKeyConstraint('well_id', 'phenotype_id')
-)
+                       Column('well_id', Integer, ForeignKey('wells.id')),
+                       Column('phenotype_id', Integer,
+                              ForeignKey('phenotypes.id')),
+                       PrimaryKeyConstraint('well_id', 'phenotype_id')
+                       )
 
 design_phenotype = Table('design_phenotype', Base.metadata,
-	Column('design_id', Integer, ForeignKey('designs.id')),
-	Column('phenotype_id', Integer, ForeignKey('phenotypes.id')),
-	PrimaryKeyConstraint('design_id', 'phenotype_id')
-)
+                         Column('design_id', Integer,
+                                ForeignKey('designs.id')),
+                         Column('phenotype_id', Integer,
+                                ForeignKey('phenotypes.id')),
+                         PrimaryKeyConstraint('design_id', 'phenotype_id')
+                         )
+
 
 class Phenotype(Base):
 
-	__tablename__ = 'phenotypes'
+    __tablename__ = 'phenotypes'
 
-	id = Column(Integer, primary_key=True)
+    id = Column(Integer, primary_key=True)
 
-	name = Column(String(50))
-	owner_id = Column(Integer, ForeignKey('users.id'))
-	owner = relationship('User', backref='phenotypes')
+    name = Column(String(50))
+    owner_id = Column(Integer, ForeignKey('users.id'))
+    owner = relationship('User', backref='phenotypes')
 
-	# design space control index
-	control = Column(Integer, default=0)
+    # design space control index
+    control = Column(Integer, default=0)
 
-	project_id = Column(Integer, ForeignKey('projects.id'))
-	project = relationship('Project', backref='phenotypes')
+    project_id = Column(Integer, ForeignKey('projects.id'))
+    project = relationship('Project', backref='phenotypes')
 
-	omp_id = Column(String(10))
+    omp_id = Column(String(10))
 
     # default_colorby_id = Column(Integer, ForeignKey('designs.id'))
     # default_colorby = relationship('Design')
 
-	wells = relationship(
+    wells = relationship(
         "Well",
         secondary=well_phenotype,
         backref="phenotypes")
 
-	designs = relationship(
+    designs = relationship(
         "Design",
         secondary=design_phenotype,
         backref="phenotypes")
 
-	__table_args__ = (
+    __table_args__ = (
         CheckConstraint(control >= 0, name='check_control_positive'),
         {})
 
-	def dataset(self, machine):
-		wells = machine.session.query(Well).filter(Well.id.in_([w.id for w in self.wells]))
-		return machine.get(wells, include=[d.name for d in self.designs])
+    def dataset(self, machine):
+        wells = machine.session.query(Well).filter(
+            Well.id.in_([w.id for w in self.wells]))
+        return machine.get(wells, include=[d.name for d in self.designs])
 
-# class Model(Base):
-#
-#     # maximum number of datapoints in model
-#     MAX_SIZE=3000
-#
-#     @classmethod
-#     def step_size(x):
-#         return (x.shape[0] + MAX_SIZE - 1)/MAX_SIZE
-#
-# 	__tablename__='models'
-# 	id = Column(Integer, primary_key=True)
-#
-#     # corresponding phenotype, there is a one-to-one relationship b/w model and phenotype
-# 	phenotype_id = Column(Integer, ForeignKey('phenotypes.id'))
-# 	phenotype = relationship('Phenotype', backref=backref("model", uselist=False))
-#
-#     # is model training complete?
-#     trained = Column(Boolean, default=False)
-#
-#     # state of model training
-#     status = Column(Enum('unqueued','queued', 'training', 'trained', 'error'))
-#
-#     # step size when building input data
-#     step = Column(Integer,default=1)
+
+# determines which design variables are used as covariates for each model
+model_covariates = Table('model_covariates', Base.metadata,
+                         Column('design_id', Integer,
+                                ForeignKey('designs.id')),
+                         Column('model_id', Integer, ForeignKey('models.id')),
+                         PrimaryKeyConstraint('design_id', 'model_id')
+                         )
+
+
+class Model(Base):
+
+    __tablename__ = 'models'
+    id = Column(Integer, primary_key=True)
+
+    # maximum number of datapoints in model
+    MAX_SIZE = 3000
+
+    @classmethod
+    def step_size(x):
+        return (x.shape[0] + MAX_SIZE - 1) / MAX_SIZE
+
+    phenotype_id = Column(Integer, ForeignKey('phenotypes.id'))
+    phenotype = relationship('Phenotype', backref='models')
+
+    covariates = relationship(
+        "Design",
+        secondary=model_covariates,
+        backref="models")
+
+    # state of model training
+    status = Column(Enum('unqueued', 'queued', 'training', 'trained', 'error'))
+
+    # queue details
+    queue_time = Column(DateTime)
+
+    # step size when building input data
+    step = Column(Integer, default=1)
+
+    gp = Column(PickleType,)
