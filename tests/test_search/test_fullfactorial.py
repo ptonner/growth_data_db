@@ -10,7 +10,7 @@ class TestSearch(StatelessDatabaseTest):
     @given(platename, fullfactorialDataset)
     # @settings(max_examples=5)
     def test_search_returns_same_data(self,name,dataset):
-        self.machine.createPlate(name,data=dataset.data,experimentalDesign=dataset.meta)
+        self.machine.createPlate(self.project,name,data=dataset.data,experimentalDesign=dataset.meta)
 
         search = self.machine.search(plates=[name], include=dataset.meta.columns.tolist())
 
@@ -18,13 +18,13 @@ class TestSearch(StatelessDatabaseTest):
 
         assert search == dataset, search
 
-        self.machine.deletePlate(name)
+        self.machine.deletePlate(self.project,name)
 
     @given(platename, platename, fullfactorialDataset)
     # @settings(max_examples=5)
     def test_search_ignores_garbage_plate_names(self,name, other,dataset):
 
-        plate = self.machine.createPlate(name,data=dataset.data,experimentalDesign=dataset.meta)
+        plate = self.machine.createPlate(self.project,name,data=dataset.data,experimentalDesign=dataset.meta)
 
         search = self.machine.search(plates=[name, other], include=dataset.meta.columns.tolist())
 
@@ -32,13 +32,13 @@ class TestSearch(StatelessDatabaseTest):
 
         assert search == dataset, search.data
 
-        self.machine.deletePlate(name)
+        self.machine.deletePlate(self.project,name)
 
     @given(platename,fullfactorialDataset)
     # @settings(max_examples=5)
     def test_search_individual_samples(self, name, ds):
 
-        plate = self.machine.createPlate(name,data=ds.data,experimentalDesign=ds.meta)
+        plate = self.machine.createPlate(self.project,name,data=ds.data,experimentalDesign=ds.meta)
 
         assert not plate is None
 
@@ -48,7 +48,7 @@ class TestSearch(StatelessDatabaseTest):
 
             assert ds.data.iloc[:,i].equals(search.data[0])
 
-        self.machine.deletePlate(name)
+        self.machine.deletePlate(self.project,name)
 
     @given(st.lists(platename,min_size=2,max_size=2, unique=True),\
             fullfactorialDataset)
@@ -59,8 +59,8 @@ class TestSearch(StatelessDatabaseTest):
         assert not n1 in self.machine.plates(names=True)
         assert not n2 in self.machine.plates(names=True)
 
-        p1 = self.machine.createPlate(names[0],data=ds.data,experimentalDesign=ds.meta)
-        p2 = self.machine.createPlate(names[1],data=ds.data,experimentalDesign=ds.meta)
+        p1 = self.machine.createPlate(self.project,names[0],data=ds.data,experimentalDesign=ds.meta)
+        p2 = self.machine.createPlate(self.project,names[1],data=ds.data,experimentalDesign=ds.meta)
 
         search = self.machine.search(plates=[names[0]],include=ds.meta.columns.tolist())
         del search.meta['plate']; del search.meta['number']
@@ -78,15 +78,15 @@ class TestSearch(StatelessDatabaseTest):
             assert names[0] in search.meta['plate'].tolist(), search.meta['plate']
             assert names[1] in search.meta['plate'].tolist(), search
 
-        self.machine.deletePlate(names[0])
-        self.machine.deletePlate(names[1])
+        self.machine.deletePlate(self.project,names[0])
+        self.machine.deletePlate(self.project,names[1])
 
     @given(platename, fullfactorialDataset,\
             st.lists(charstring, min_size=1))
     # @settings(max_examples=5)
     def test_search_individual_samples_with_garbage_include(self, name, ds, other):
 
-        self.machine.createPlate(name,data=ds.data,experimentalDesign=ds.meta)
+        self.machine.createPlate(self.project,name,data=ds.data,experimentalDesign=ds.meta)
 
         for i, r in ds.meta.iterrows():
             search = self.machine.search(plates=[name], include=other, **r)
@@ -94,4 +94,4 @@ class TestSearch(StatelessDatabaseTest):
 
             assert ds.data.iloc[:,i].equals(search.data[0])
 
-        self.machine.deletePlate(name)
+        self.machine.deletePlate(self.project,name)

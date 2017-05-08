@@ -6,11 +6,11 @@ from utils import platename, StatelessDatabaseTest
 from dataset.fullfactorial import fullfactorialDataset
 from dataset import incomplete
 
-def plate_create_check(machine, name, dataset):
+def plate_create_check(machine, project, name, dataset):
 
     assert not name in machine.plates(names=True)
 
-    plate = machine.createPlate(name,data=dataset.data,experimentalDesign=dataset.meta)
+    plate = machine.createPlate(project,name,data=dataset.data,experimentalDesign=dataset.meta)
 
     assert not plate is None
     assert name in machine.plates(names=True)
@@ -19,7 +19,7 @@ def plate_create_check(machine, name, dataset):
     data_table = plate.data_table
     assert data_table in machine.metadata.tables
 
-    machine.deletePlate(name)
+    machine.deletePlate(project,name)
 
     assert not name in machine.plates(names=True)
     assert not plate in machine.plates(names=False)
@@ -29,8 +29,8 @@ class TestPlate(StatelessDatabaseTest):
 
     @given(platename, fullfactorialDataset)
     def test_plate_creation_and_deletion_fullfactorial(self, name , dataset):
-        plate_create_check(self.machine, name, dataset)
+        plate_create_check(self.machine, self.project, name, dataset)
 
     @given(platename, incomplete.dataset())
     def test_plate_creation_and_deletion_incomplete(self, name , dataset):
-        plate_create_check(self.machine, name, dataset)
+        plate_create_check(self.machine, self.project, name, dataset)
