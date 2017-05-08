@@ -1,4 +1,4 @@
-import argparse, logging, api
+import argparse, logging
 from popmachine import Machine
 from operation import PlateCreate, PlateDelete, DesignList, DesignSetType, SearchOperation, Import
 from operation.server import ServerOperation

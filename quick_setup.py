@@ -1,5 +1,7 @@
 import popmachine
 import datetime
+import os
+
 machine = popmachine.Machine()
 
 now = datetime.datetime.now()
@@ -13,9 +15,15 @@ machine.session.add(user)
 machine.session.add(project)
 machine.session.commit()
 
-plate = machine.createPlate(project, 'pseudomonas',
-                            dataFile='examples/example1/pseudomonas/data.csv',
-                            experimentalDesignFile='examples/example1/pseudomonas/meta.csv')
+# plate = machine.createPlate(project, 'PA01-acetic',
+#                             dataFile='examples/example1/pseudomonas/PA01-acetic/data.csv',
+#                             experimentalDesignFile='examples/example1/pseudomonas/PA01-acetic/meta.csv')
+
+
+for p in os.listdir('examples/example1/pseudomonas'):
+    machine.createPlate(project, p,
+                            dataFile='examples/example1/pseudomonas/%s/data.csv'%p,
+                            experimentalDesignFile='examples/example1/pseudomonas/%s/meta.csv'%p)
 
 wells = machine.filter(acid='acetic', pH='7.0', strain='PA01').all()
 designs = machine.session.query(popmachine.models.Design)\

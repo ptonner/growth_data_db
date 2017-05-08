@@ -8,7 +8,7 @@ from bokeh.charts import TimeSeries
 from bokeh.resources import INLINE
 from bokeh.util.string import encode_utf8
 from bokeh.palettes import Spectral11, viridis
-from bokeh.io import output_file, show, vform
+from bokeh.io import output_file, show
 from bokeh.layouts import widgetbox
 from bokeh.models import CustomJS, ColumnDataSource, Plot
 from bokeh.models.widgets import Dropdown, CheckboxButtonGroup

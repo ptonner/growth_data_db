@@ -1,6 +1,6 @@
 from ..forms import SearchForm
 from ..plot import plotDataset
-from .. import machine
+from ..app import machine
 from popmachine.models import Project, Model, Phenotype
 
 import datetime
@@ -53,9 +53,13 @@ def create(id):
 
     if form.validate_on_submit():
 
+        if form.covariates.data:
+            covariates = [d for d in phenotype.designs if d.name in form.covariates.data]
+        else:
+            covariates = []
+
         now = datetime.datetime.now()
-        model = Model(phenotype=phenotype, covariates=[
-                      d for d in phenotype.designs if d.name in form.covariates.data],
+        model = Model(phenotype=phenotype, covariates=covariates,
                       queue_time=now, status='queued')
         machine.session.add(model)
         machine.session.commit()

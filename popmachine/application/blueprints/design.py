@@ -1,6 +1,6 @@
 from ..forms import SearchForm, DesignForm
 from ..plot import plotDataset
-from .. import machine
+from ..app import machine
 from popmachine import models
 
 from sqlalchemy import not_, or_

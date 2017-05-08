@@ -1,6 +1,6 @@
-from app import app, mail
+from app import app, mail, machine
+# from . import machine
 from popmachine import models
-from . import machine
 from .forms import SearchForm, PlateCreate, DesignForm, LoginForm, ProjectForm, PhenotypeForm, RegisterForm
 from .plot import plotDataset
 from ..phenotype import design_space

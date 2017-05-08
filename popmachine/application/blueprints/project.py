@@ -1,5 +1,5 @@
 from ..forms import SearchForm, ProjectForm
-from .. import machine
+from ..app import machine
 from popmachine import models
 
 from sqlalchemy import not_
