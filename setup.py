@@ -22,6 +22,8 @@ setup(
 
     license='MIT',
 
+    include_package_data=True,
+
     # See https://pypi.python.org/pypi?%3Aaction=list_classifiers
     classifiers=[
         'Development Status :: 2 - Pre-Alpha',

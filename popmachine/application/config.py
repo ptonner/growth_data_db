@@ -9,4 +9,4 @@ MAIL_USE_TLS=True
 MAIL_DEFAULT_SENDER = '"popmachine" popmachine.db@gmail.com'
 MAIL_USERNAME = 'popmachine.db@gmail.com'
 MAIL_PASSWORD = ""
-DATABASE=".popmachine.db"
+DATABASE="sqlite:///.popmachine.db"

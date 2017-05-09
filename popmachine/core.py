@@ -7,7 +7,7 @@ class Core(object):
     """A core object, holding necessary references to database (via sqlalchemy)"""
 
     def __init__(self, db):
-        self.engine = create_engine("sqlite:///%s"%db,echo=False)
+        self.engine = create_engine(db,echo=False)
         self.Session = sessionmaker(self.engine)
         self.session = self.Session()
 

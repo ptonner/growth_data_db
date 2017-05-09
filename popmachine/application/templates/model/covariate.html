@@ -1,0 +1,61 @@
+{% extends 'base.html' %}
+
+{% block subheading %}
+covariate: {{covariate.name}}
+{% endblock %}
+
+{% block controls %}
+{% endblock %}
+
+{% block content %}
+
+{% if covariate.designs %}
+  <h4>Designs </h4>
+  <table class='table table-hover'>
+    <thead>
+      <tr>
+        <th class='text-center'>design</th>
+        <th class='text-center'>project</th>
+        <th class='text-center'>values</th>
+        <th class='text-center'>type</th>
+
+      </tr>
+    </thead>
+    <tbody>
+      {% for d in covariate.designs %}
+          <tr>
+            <td class='text-center'> <a href="{{url_for('design.design', _id=d.id)}}"> {{ d.name|e }} </a></td>
+            <td class='text-center'> <a href="{{url_for('project.project', projectid=d.project.id)}}"> {{d.project.name }} </a></td>
+            <td class='text-center'>{{d.values | length}}</td>
+            <td class='text-center'>{{d.type }}</td>
+          </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+{% endif %}
+
+{% if covariate.models %}
+  <h4>Models </h4>
+  <table class='table table-hover'>
+    <thead>
+      <tr>
+        <th class='text-center'>id</th>
+        <th class='text-center'>phenotype</th>
+        <th class='text-center'>status</th>
+        <th class='text-center'>log-likelihood</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for d in covariate.models %}
+          <tr>
+            <td class='text-center'> <a href="{{url_for('model.model', id=d.id)}}"> {{ d.id|e }} </a></td>
+            <td class='text-center'> <a href="{{url_for('phenotype', id=d.phenotype.id)}}"> {{d.phenotype.name }} </a></td>
+            <td class='text-center'>{{d.status}}</td>
+            <td class='text-center'>{{d.log_likelihood}}</td>
+          </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+{% endif %}
+
+{% endblock %}

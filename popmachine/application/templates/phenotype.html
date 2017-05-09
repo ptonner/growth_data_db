@@ -8,6 +8,7 @@
 <div class="btn-group-vertical" role="group" >
   <a href='{{url_for("index")}}' role="button" class="btn btn-success btn-large">Edit</a>
   <a href='{{url_for("model.create", id=phenotype.id)}}' role="button" class="btn btn-primary btn-large">Model</a>
+  <a href='{{url_for("model.create_test", id=phenotype.id)}}' role="button" class="btn btn-primary btn-large">Test</a>
   <a href='{{url_for("index")}}' role="button" class="btn btn-danger btn-large">Delete</a>
 </div>
 {% endblock %}
@@ -24,27 +25,19 @@
         <td class="col-md-2"> project </td>
         <td> <a href="{{url_for('project.project', projectid=phenotype.project.id)}}"> {{phenotype.project.name}} </a></td>
       </tr>
+      <tr>
+        <td class="col-md-2"> time-points </td>
+        <td> {{dataSet.data.shape[0] * dataSet.data.shape[1]}}</td>
+      </tr>
+      {% if phenotype.omp_phenotype %}
+        <tr>
+          <td class="col-md-2"> omp phenotype </td>
+          <td> <a href="{{phenotype.omp_phenotype['iri']}}"> {{phenotype.omp_phenotype['label']}} </a> </td>
+        </tr>
+      {% endif %}
     </table>
 
-    <h3> design space </h3>
-    <!-- <table class="table table-bordered">
-      <tr>
-        <th> design </th>
-        <th> values </th>
-      </tr>
-
-      {% for d in phenotype.designs %}
-        <tr>
-          <td> <a href="{{url_for('design.design', _id=d.id)}}"> {{d.name}} </a> </td>
-          <td>
-            {% for v in values[d.name] %}
-              {{v.value}},
-            {% endfor %}
-          </td>
-        </tr>
-      {% endfor %}
-    </table> -->
-
+    <h4> design space </h4>
     <table class="table table-bordered">
       <tr>
         {% for d in phenotype.designs %}
@@ -61,6 +54,58 @@
         </tr>
       {% endfor %}
     </table>
+
+    {% if phenotype.models %}
+      <h4>models </h4>
+      <table class='table table-hover'>
+        <thead>
+          <tr>
+            <th class='text-center'>id</th>
+            <th class='text-center'>phenotype</th>
+            <th class='text-center'>status</th>
+            <th class='text-center'>log-likelihood</th>
+            <th/>
+          </tr>
+        </thead>
+        <tbody>
+          {% for d in phenotype.models %}
+              <tr>
+                <td class='text-center'> <a href="{{url_for('model.model', id=d.id)}}"> {{ d.name|e }} </a></td>
+                <td class='text-center'> <a href="{{url_for('phenotype', id=d.phenotype.id)}}"> {{d.phenotype.name }} </a></td>
+                <td class='text-center'>{{d.status}}</td>
+                <td class='text-center'>{{d.log_likelihood}}</td>
+                <td class='text-center'> <a href="{{url_for('model.delete', id=d.id)}}" role="button" class="btn btn-danger btn-large"> delete </a></td>
+              </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    {% endif %}
+
+    {% if phenotype.tests %}
+      <h4>tests</h4>
+      <table class='table table-hover'>
+        <thead>
+          <tr>
+            <th class='text-center'>alternative model</th>
+            <th class='text-center'>null model</th>
+            <th class='text-center'>phenotype</th>
+            <th class='text-center'>bayesFactor</th>
+            <th/>
+          </tr>
+        </thead>
+        <tbody>
+          {% for d in phenotype.tests %}
+              <tr>
+                <td class='text-center'> <a href="{{url_for('model.model', id=d.alternative_model.id)}}"> {{ d.alternative_model.name|e }} </a></td>
+                <td class='text-center'> <a href="{{url_for('model.model', id=d.null_model.id)}}"> {{ d.null_model.name|e }} </a></td>
+                <td class='text-center'> <a href="{{url_for('phenotype', id=d.phenotype.id)}}"> {{d.phenotype.name }} </a></td>
+                <td class='text-center'>{{d.bayesFactor}}</td>
+                <td class='text-center'> <a href="{{url_for('model.delete_test', id=d.id)}}" role="button" class="btn btn-danger btn-large"> delete </a></td>
+              </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    {% endif %}
 
 
 {% endif %}

@@ -9,7 +9,7 @@ import search
 
 class Machine(Core):
 
-    def __init__(self, database='.popmachine.db'):
+    def __init__(self, database='sqlite:///.popmachine.db'):
         Core.__init__(self, database)
 
     def list(self, table):

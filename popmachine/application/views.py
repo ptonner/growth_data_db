@@ -459,7 +459,16 @@ def search():
 def phenotype(id):
     searchform = SearchForm()
 
-    phenotype = machine.session.query(models.Phenotype).filter_by(id=id).one_or_none()
+    phenotype = machine.session.query(models.Phenotype).filter_by(id=id)
+    if not current_user.is_authenticated:
+        phenotype = phenotype.join(models.Project).filter(models.Project.published)
+    else:
+        phenotype = phenotype.join(models.Project).filter(or_(models.Project.owner==current_user, models.Project.published))
+    phenotype = phenotype.one_or_none()
+
+    if not phenotype:
+        flask.flash('no phenotype found or incorrect permissions!')
+        return flask.redirect(url_for('phenotypes'))
 
     wells = machine.session.query(models.Well).filter(models.Well.id.in_([w.id for w in phenotype.wells]))
     ds = machine.get(wells, include=[d.name for d in phenotype.designs])
@@ -476,8 +485,7 @@ def phenotype(id):
 
          values[d.name] = q.all()
 
-    return plotDataset(ds, 'phenotype.html', searchform=searchform, phenotype=phenotype, values=values, dsp=dsp)
-    # return render_template('phenotype.html', phenotype=phenotype, searchform = searchform)
+    return plotDataset(ds, 'phenotype.html', searchform=searchform, phenotype=phenotype, values=values, dsp=dsp, dataSet=ds)
 
 @app.route('/phenotypes')
 def phenotypes():
@@ -506,6 +514,8 @@ def phenotype_create():
         project = wells[0].plate.project
 
         phenotype = models.Phenotype(name=name, owner=current_user, wells=wells, designs=designs, project=project)
+        phenotype.download_phenotype()
+        
         machine.session.add(phenotype)
         machine.session.commit()
 

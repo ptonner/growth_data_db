@@ -159,7 +159,13 @@ home
                 <tr>
                   <td class='text-center'> <a href="{{url_for('phenotype', id=p.id)}}"> {{ p.name|e }} </a></td>
                   <td class='text-center'> <a href="{{url_for('project.project', projectid=p.project.id)}}"> {{p.project.name }} </a></td>
-                  <td class='text-center'>{{p.omp_id}}</td>
+
+                  <td class='text-center'>
+                  {% if p.omp_phenotype %}
+                  <!-- <td class='text-center'>{{p.omp_id}}</td> -->
+                    <a href="{{p.omp_phenotype['iri']}}"> {{p.omp_phenotype['label']}}
+                  {% endif %}
+                  </td>
                   <td class='text-center'>{{p.wells | length}}</td>
                   <td class='text-center'>{{p.designs | length}}</td>
                 </tr>

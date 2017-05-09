@@ -42,6 +42,7 @@ def main():
     subparsers = parser.add_subparsers(help='command to run')
 
     server = subparsers.add_parser("server", help='run the server')
+    server.add_argument('--db-url', help='database url', default='sqlite:///.popmachine.db')
     server.set_defaults(func=lambda x: ServerOperation.fromArgs(machine, x).run())
 
     # search

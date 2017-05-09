@@ -1,12 +1,14 @@
 from sqlalchemy.ext.declarative import declarative_base
-from sqlalchemy import Column, Integer, String, Enum, Float, Date, DateTime, Boolean, LargeBinary, PickleType, CheckConstraint
+from sqlalchemy import Column, Integer, String, Enum, Float, Date, DateTime, Boolean, LargeBinary, PickleType, CheckConstraint, JSON
 from sqlalchemy import ForeignKey, UniqueConstraint, Table, PrimaryKeyConstraint
 from sqlalchemy.orm import relationship, backref, validates
 from sqlalchemy.ext.hybrid import hybrid_property
 from sqlalchemy import MetaData
 
+import GPy
 import base64
 import os
+import requests
 from cryptography.hazmat.backends import default_backend
 from cryptography.hazmat.primitives import hashes
 from cryptography.hazmat.primitives.kdf.pbkdf2 import PBKDF2HMAC
@@ -249,7 +251,8 @@ class Phenotype(Base):
     project_id = Column(Integer, ForeignKey('projects.id'))
     project = relationship('Project', backref='phenotypes')
 
-    omp_id = Column(String(10))
+    omp_id = Column(String(7), default='0007167')
+    omp_phenotype = Column(JSON,)
 
     # default_colorby_id = Column(Integer, ForeignKey('designs.id'))
     # default_colorby = relationship('Design')
@@ -268,20 +271,61 @@ class Phenotype(Base):
         CheckConstraint(control >= 0, name='check_control_positive'),
         {})
 
+    @hybrid_property
+    def download_phenotype(self):
+
+        url = r'http://www.ebi.ac.uk/ols/api/ontologies/omp/terms/http%%253A%%252F%%252Fpurl.obolibrary.org%%252Fobo%%252FOMP_%s'%(self.omp_id)
+        r = requests.get(url)
+        if r.ok:
+            self.omp_phenotype = r.json()
+
     def dataset(self, machine):
         wells = machine.session.query(Well).filter(
             Well.id.in_([w.id for w in self.wells]))
         return machine.get(wells, include=[d.name for d in self.designs])
 
 
-# determines which design variables are used as covariates for each model
-model_covariates = Table('model_covariates', Base.metadata,
+# determines which design variables are used as covariates for models
+design_covariates = Table('design_covariates', Base.metadata,
                          Column('design_id', Integer,
                                 ForeignKey('designs.id')),
-                         Column('model_id', Integer, ForeignKey('models.id')),
-                         PrimaryKeyConstraint('design_id', 'model_id')
+                         Column('covariate_id', Integer, ForeignKey('covariates.id')),
+                         PrimaryKeyConstraint('design_id', 'covariate_id')
                          )
 
+# map covariates to models
+model_covariates = Table('model_covariates', Base.metadata,
+                         Column('model_id', Integer,
+                                ForeignKey('models.id')),
+                         Column('covariate_id', Integer, ForeignKey('covariates.id')),
+                         PrimaryKeyConstraint('model_id', 'covariate_id')
+                         )
+
+class Covariate(Base):
+
+    __tablename__ = 'covariates'
+    id = Column(Integer, primary_key=True)
+
+    designs = relationship(
+        "Design",
+        secondary=design_covariates,
+        backref="covariates")
+
+    models = relationship(
+        "Model",
+        secondary=model_covariates,
+        backref="covariates")
+
+    @hybrid_property
+    def name(self):
+        return ':'.join([d.name for d in self.designs])
+
+    def kernel(self, x, ktype=GPy.kern.RBF, **kwargs):
+        ind = [x.columns.index(d.name) for d in self.designs]
+        return ktype(len(ind), active_dims=ind, **kwargs)
+
+    def __repr__(self):
+        return self.name
 
 class Model(Base):
 
@@ -295,13 +339,15 @@ class Model(Base):
     def step_size(x):
         return (x.shape[0] + MAX_SIZE - 1) / MAX_SIZE
 
+    @hybrid_property
+    def log_likelihood(self):
+        if self.gp:
+            return self.gp.log_likelihood()
+        return None
+
     phenotype_id = Column(Integer, ForeignKey('phenotypes.id'))
     phenotype = relationship('Phenotype', backref='models')
 
-    covariates = relationship(
-        "Design",
-        secondary=model_covariates,
-        backref="models")
 
     # state of model training
     status = Column(Enum('unqueued', 'queued', 'training', 'trained', 'error'))
@@ -312,4 +358,40 @@ class Model(Base):
     # step size when building input data
     step = Column(Integer, default=1)
 
+    # number of times the model was trained
+    iterations = Column(Integer, default=1)
     gp = Column(PickleType,)
+
+    @hybrid_property
+    def name(self):
+        s = 'f(time)'
+        for c in self.covariates:
+            s += '+ f(time, %s)'%c.name
+        return s
+
+    def difference(self, other):
+        return [c for c in self.covariates if not c in other.covariates], [c for c in other.covariates if not c in self.covariates]
+
+# test for statistical significance between two models, e.g. B-GREAT bayes factor
+class Test(Base):
+    __tablename__='tests'
+    id = Column(Integer, primary_key=True)
+
+    phenotype_id = Column(Integer, ForeignKey('phenotypes.id'))
+    phenotype = relationship('Phenotype', backref='tests')
+
+    null_model_id = Column(Integer, ForeignKey('models.id'))
+    null_model = relationship('Model', foreign_keys=[null_model_id])
+
+    alternative_model_id = Column(Integer, ForeignKey('models.id'))
+    alternative_model = relationship('Model',foreign_keys=[alternative_model_id])
+
+    @hybrid_property
+    def bayesFactor(self):
+
+        if self.null_model and self.alternative_model:
+            nmll = self.null_model.log_likelihood
+            amll = self.null_model.log_likelihood
+            if nmll and amll:
+                return amll - nmll
+        return None

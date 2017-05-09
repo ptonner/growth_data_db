@@ -7,8 +7,20 @@
 {% endblock %}
 
 {% block content %}
-
 <table class="table table-bordered">
+  <tr>
+    <td class="col-md-2"> equation </td>
+    <td> {{model.name}}</td>
+  </tr>
+  <tr>
+    <td class="col-md-2"> covariates </td>
+    <td>
+      {% for d in model.covariates %}
+        <!-- <a href='{{url_for('design', _id=d.id)}}'>{{d.name}}</a>, -->
+        {{d.name}},
+      {% endfor %}
+    </td>
+  </tr>
   <tr>
     <td class="col-md-2"> created by </td>
     <td> {{model.phenotype.owner.name}}</td>
@@ -26,11 +38,9 @@
     <td> {{model.status}} </td>
   </tr>
   <tr>
-    <td class="col-md-2"> covariates </td>
+    <td class="col-md-2"> log-likelihood </td>
     <td>
-      {% for d in model.covariates %}
-        <a href='{{url_for('design', _id=d.id)}}'>{{d.name}}</a>,
-      {% endfor %}
+      {{model.log_likelihood}}
     </td>
   </tr>
 </table>
