@@ -57,6 +57,7 @@ home
       <tr>
         <th class='text-center'>project</th>
         <th class='text-center'>plates</th>
+        <th class='text-center'>wells</th>
         <th class='text-center'>published?</th>
         <th class='text-center'>created</th>
         <th class='text-center'>modified</th>
@@ -67,6 +68,7 @@ home
           <tr>
             <td class='text-center'> <a href="{{url_for('project.project', projectid=project.id)}}"> {{ project.name|e }} </a></td>
             <td class='text-center'>{{project.plates | length}}</td>
+            <td class='text-center'>{{"{:,.0f}".format(project.size()) }}</td>
             <td class='text-center'>{% if project.published %} <span class="glyphicon glyphicon-ok" aria-hidden="true"></span>  {% endif %}</td>
             <td class='text-center'>{{project.submission_date}}</td>
             <td class='text-center'>{{project.modified_date}}</td>

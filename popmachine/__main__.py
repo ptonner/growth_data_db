@@ -8,17 +8,17 @@ from sqlalchemy import Table, Column, Integer, String, Interval, MetaData, Forei
 
 machine = None
 
-def Init(args, warn=False):
-
-    project = machine.session.query(Project).filter(Project.name==args.project).one_or_none()
-
-    if project is None:
-        if warn:
-            logging.warning("creating new project %s"%args.project)
-        project = Project(name=args.project,plates=[])
-        machine.session.add(project)
-
-    return project
+# def Init(args, warn=False):
+#
+#     project = machine.session.query(Project).filter(Project.name==args.project).one_or_none()
+#
+#     if project is None:
+#         if warn:
+#             logging.warning("creating new project %s"%args.project)
+#         project = Project(name=args.project,plates=[])
+#         machine.session.add(project)
+#
+#     return project
 
 def ProjectList(args):
 
@@ -36,7 +36,7 @@ def main():
 
     parser = argparse.ArgumentParser(prog='popmachine',description='Growth data database management in Python.')
     parser.add_argument('--database', type=str,
-                        help='location of the databse', default='.popmachine.db')
+                        help='location of the databse', default='sqlite:///.popmachine.db')
     parser.add_argument("--verbose", action='store_true')
 
     subparsers = parser.add_subparsers(help='command to run')
@@ -58,12 +58,14 @@ def main():
     # create from directory
 
     imp = subparsers.add_parser('import', help='import data from a directory')
+    imp.add_argument('--project', help='project the plate belongs to', default='main')
     imp.add_argument("directory", help='directory to import from')
     imp.set_defaults(func=lambda x: Import.fromArgs(machine, x).run())
 
     #   Plates
     plate = subparsers.add_parser('plate', help='plate commands')
     plate.add_argument('plate', help='name of the plate')
+    plate.add_argument('--project', help='project the plate belongs to', default='main')
     plateSubparsers = plate.add_subparsers(help='plate sub-commands')
 
     #       create
