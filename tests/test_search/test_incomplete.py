@@ -18,7 +18,13 @@ def checkSearchForPlates(search, name, dataset):
         temp = popmachine.DataSet(search.data.loc[:,select], search.meta.loc[select,:])
         temp.data.columns = temp.meta.number
 
+        ind = temp.meta.number.sort_values().index.values
+        temp.data = temp.data.iloc[:,ind]
+        temp.meta = temp.meta.iloc[ind,:]
+
         # assert all(temp.meta.number.values == dataset.data.columns.values), (temp.meta.number.values, dataset.data.columns.values, temp.meta.number.values == dataset.data.columns.values)
+
+        numbers = temp.meta.number
 
         del temp.meta['plate']
         del temp.meta['number']
@@ -33,7 +39,7 @@ def checkSearchForPlates(search, name, dataset):
                             how='inner')
         diff = merge.iloc[:,:merge.shape[1]/2].values - merge.iloc[:,merge.shape[1]/2:].values
 
-        assert (np.isnan(diff) | np.isclose(diff, 0)).all(), diff
+        assert (np.isnan(diff) | np.isclose(diff, 0)).all(), (diff, temp.meta, dataset.meta, numbers)
 
 class TestSearch(StatelessDatabaseTest):
 

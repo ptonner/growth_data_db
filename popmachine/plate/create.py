@@ -29,7 +29,7 @@ def create_plate_data_table(plate, core):
 
     plate.data_table = table.name
     core.session.add(plate)
-    core.session.commit()
+    # core.session.commit()
 
     return table
 
@@ -48,19 +48,18 @@ def add_experimental_design(core,project,design_name,design_value,*args,**kwargs
 
     experimentalDesign = core.session.query(ExperimentalDesign).filter(ExperimentalDesign.design==design,ExperimentalDesign.value==design_value).one_or_none()
 
+    # check if design value exists, create if needed
     if experimentalDesign is None:
         logging.info("ExperimentalDesign %s=%s does not exist, creating one"%(design_name, design_value))
         experimentalDesign = ExperimentalDesign(design=design, value=design_value)
+        core.session.add(experimentalDesign)
 
-    # for each well
-    # check if design value exists, create if needed
+    # add design to wells
     for well in args:
         if isinstance(well,Well):
-            # dv = models.ExperimentalDesign(design=design,well=well,value=design_value)
             well.experimentalDesigns.append(experimentalDesign)
-            # core.session.add(dv)
 
-    core.session.commit()
+    # core.session.commit()
 
 class PlateCreate(PlateOperation):
 
@@ -97,17 +96,29 @@ class PlateCreate(PlateOperation):
 
         self.plate = Plate(name=self.plateName, project=self.project)
         self.core.session.add(self.plate)
-        self.core.session.commit()
+        # self.core.session.commit()
 
         # data_columns = range(self.data.shape[1])
         # data_columns.remove(self.timeColumn)
 
         wells = [Well(plate=self.plate,plate_number=n) for n in range(self.dataset.data.shape[1])]
         self.core.session.add_all(wells)
+
+        # add experimental designs
+        for c in self.dataset.meta.columns:
+            for u in self.dataset.meta[c].unique():
+                select = self.dataset.meta[c] == u
+                temp = [w for w,s in zip(wells, select.tolist()) if s]
+                add_experimental_design(self.core, self.project,c,u,*temp)
+
+        # add extra designs
+        for k,v in self.extraDesigns.iteritems():
+            add_experimental_design(self.core,k,v,*wells)
+
         self.core.session.commit()
 
         table = create_plate_data_table(self.plate,self.core)
-        self.core.session.commit()
+        # self.core.session.commit()
 
         # copy in data
         conn = self.core.engine.connect()
@@ -124,16 +135,5 @@ class PlateCreate(PlateOperation):
                     )
             )
         conn.execute(ins,newrows)
-
-        # add experimental designs
-        for c in self.dataset.meta.columns:
-            for u in self.dataset.meta[c].unique():
-                select = self.dataset.meta[c] == u
-                temp = [w for w,s in zip(wells, select.tolist()) if s]
-                add_experimental_design(self.core, self.project,c,u,*temp)
-
-        # add extra designs
-        for k,v in self.extraDesigns.iteritems():
-            add_experimental_design(self.core,k,v,*wells)
 
         return self.plate

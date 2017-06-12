@@ -23,7 +23,7 @@ class StatelessDatabaseTest(unittest.TestCase):
 
     #setup/teardown_example is called each time by hypothesis, as opposed to setUp
     def setup_example(self,):
-        self.machine = popmachine.Machine(":memory:")
+        self.machine = popmachine.Machine("sqlite:///:memory:")
         self.project = popmachine.models.Project(name='testing')
         self.machine.session.add(self.project)
         self.machine.session.commit()
