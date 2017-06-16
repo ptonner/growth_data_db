@@ -59,10 +59,10 @@ class Machine(Core):
 
         # if projects provided, filter on those
         if isinstance(projects, list) and len(projects)>0:
-            wells = wells.join(Project)
+            wells = wells.join(Plate).join(Project)
             wells = wells.filter(or_(Project.name.in_(projects), Project.nickname.in_(projects)))
         elif isinstance(projects, str) or isinstance(projects, unicode):
-            wells = wells.join(Project)
+            wells = wells.join(Plate).join(Project)
             wells = wells.filter(or_(Project.name==projects, Project.nickname==projects))
 
         # if plates provided, filter on those

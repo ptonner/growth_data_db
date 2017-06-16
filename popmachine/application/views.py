@@ -426,7 +426,7 @@ def search():
     if request.method=='GET':
         return render_template("search.html", searchform=searchform)
     else:
-        groups = re.findall("(([0-9a-zA-Z -.]+)=([0-9a-zA-Z ,.-]+))", request.form['search'])
+        groups = re.findall("(([0-9a-zA-Z -._()]+)=([0-9a-zA-Z ,.-_()]+))", request.form['search'])
 
         kwargs = {}
         for _, k, v in groups:
