@@ -6,7 +6,7 @@ from popmachine import models
 from sqlalchemy import not_, or_
 import flask
 from flask import Blueprint, current_app, render_template, redirect, url_for, request
-from flask_login import login_required, current_user, login_user
+from flask_login import login_required, current_user, login_user, logout_user
 from flask_mail import Message
 
 profile = Blueprint('account', __name__)
@@ -24,6 +24,7 @@ def create_account():
         # print type(form.password.data)
 
         user = models.User(
+            name=form.name.data,
             username=form.username.data,
             email=form.email.data,
             password=form.password.data.encode('utf-8')
