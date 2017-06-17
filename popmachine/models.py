@@ -75,7 +75,9 @@ class User(Base, UserMixin):
 class Project(Base):
     __tablename__ = "projects"
     id = Column(Integer, primary_key=True)
-    name = Column(String)
+    name = Column(String, unique=True)
+    nickname = Column(String(20), unique=True,
+                        doc='short name used from easy reference, searching')
 
     owner_id = Column(Integer, ForeignKey('users.id'))
     owner = relationship("User", backref='projects')
@@ -95,6 +97,10 @@ class Project(Base):
 
     def __repr__(self):
         return "project %s, owned by %s (%d plates)" % (self.name, self.owner.name, len(self.plates))
+
+    def size(self):
+
+        return sum([len(p.wells) for p in self.plates])
 
 
 class Plate(Base):
@@ -156,7 +162,7 @@ class Well(Base):
 
     def organism(self):
         from Bio import Entrez
-        Entrez.email = 'peter.tonner@duke.edu'
+        Entrez.email = 'popmachine.db@gmail.com'
         data = Entrez.read(Entrez.efetch(id='%d' %
                                          self.organism_id, db="taxonomy", retmode="xml"))
 
@@ -186,7 +192,7 @@ class Design(Base):
 
     def value(self, value):
         if self.type == 'str':
-            return str(value)
+            return unicode(value)
         elif self.type == 'int':
             return int(value)
         elif self.type == 'float':
@@ -252,7 +258,7 @@ class Phenotype(Base):
     project = relationship('Project', backref='phenotypes')
 
     omp_id = Column(String(7), default='0007167')
-    omp_phenotype = Column(JSON,)
+    # omp_phenotype = Column(JSON,)
 
     # default_colorby_id = Column(Integer, ForeignKey('designs.id'))
     # default_colorby = relationship('Design')

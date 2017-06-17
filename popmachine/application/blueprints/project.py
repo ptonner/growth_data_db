@@ -4,7 +4,7 @@ from popmachine import models
 
 from sqlalchemy import not_
 import flask
-from flask import Blueprint, render_template, redirect, url_for
+from flask import Blueprint, render_template, redirect, url_for, request
 from flask_login import login_required, current_user
 
 profile = Blueprint('project', __name__)
@@ -64,6 +64,40 @@ def project_unpublish(projectid):
 
         return redirect((url_for('project.project', projectid=project.id)))
 
+    return redirect(url_for('project.projects'))
+
+@profile.route('/project/<projectid>/edit', methods=['GET', 'POST'])
+@login_required
+def project_edit(projectid):
+
+    project = machine.session.query(models.Project).filter_by(id=projectid, owner=current_user).one_or_none()
+
+    if project:
+
+        searchform = SearchForm()
+        form = ProjectForm()
+
+        form.name.data = project.name
+        form.description.data = project.description
+        form.design.data = project.design
+        form.published.data = project.published
+        form.citation_pmid.data = project.citation_pmid
+
+        if request.method=="GET":
+            return render_template("project-form.html", form=form, searchform = searchform, redirect=url_for('project.project_edit', projectid=project.id))
+        else:
+
+            project.name = request.form['name']
+            project.description = request.form['description']
+            project.design = request.form['design']
+            project.published = 'published' in request.form and request.form['published']
+            project.citation = request.form['citation']
+            project.citation_pmid = request.form['citation_pmid']
+
+            machine.session.add(project)
+            machine.session.commit()
+
+    flask.flash('no project found!')
     return redirect(url_for('project.projects'))
 
 

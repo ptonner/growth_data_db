@@ -51,7 +51,7 @@ class Operation(object):
 class PlateOperation(Operation):
     """Any operation specifying a plate."""
 
-    argsKwargs = [('plate', None)]
+    argsKwargs = [('project', None), ('plate', None)]
 
     def __init__(self, core, project, plate, *args, **kwargs):
         Operation.__init__(self, core)

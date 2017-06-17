@@ -41,7 +41,8 @@ class DataSet(object):
         self.data.columns = self.meta.index
         self.data.index.name='time'
 
-        self.data.values[self.data<=0] = 1e-9
+    def floor(self, tol=1e-9):
+        self.data.values[self.data<=tol] = tol
 
     def copy(self):
         return DataSet(self.data, self.meta)

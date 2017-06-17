@@ -32,7 +32,9 @@ dataset
       {% if js_resources %}
         {{ plot_div|safe }}
       {% else %}
-        <h2> No data found! </h2>
+        <!-- <h2> No data found! </h2> -->
+        {% block noplot %}
+        {% endblock %}
       {% endif %}
     </div>
   </div>

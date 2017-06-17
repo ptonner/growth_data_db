@@ -1,5 +1,5 @@
 from flask_wtf import FlaskForm
-from wtforms import StringField, BooleanField, FileField, SelectField, PasswordField, IntegerField
+from wtforms import StringField, BooleanField, FileField, SelectField, PasswordField, IntegerField, TextAreaField
 from wtforms.validators import DataRequired, Email
 # from validators import DataValidator
 
@@ -39,8 +39,8 @@ class PlateCreate(FlaskForm):
 class ProjectForm(FlaskForm):
 
     name = StringField('name')
-    description = StringField('description')
-    design = StringField('design')
+    description = TextAreaField('description')
+    design = TextAreaField('design')
     published = BooleanField('published')
 
     citation = StringField('citation')

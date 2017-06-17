@@ -9,7 +9,7 @@
 
 {% block controls %}
 <div class="btn-group-vertical" role="group" >
-  <a href='{{url_for("index")}}' role="button" class="btn btn-success btn-large">Edit</a>
+  <a href='{{url_for("project.project_edit", projectid=project.id)}}' role="button" class="btn btn-success btn-large">Edit</a>
   {% if not project.published %}
   <a href='{{url_for('project.project_publish', projectid=project.id)}}' role="button" class="btn btn-primary btn-large">Publish</a>
   {% else %}
@@ -44,6 +44,12 @@
             <td class="col-md-2"> published </td>
             <td> {% if project.published %} yes {% else %} no {% endif %}</td>
           </tr>
+          {% if project.citation_pmid %}
+            <tr>
+              <td class="col-md-2"> citation </td>
+              <td> <a href='https://www.ncbi.nlm.nih.gov/pubmed/{{project.citation_pmid}}'>{{project.citation_pmid}}</a></td>
+            </tr>
+          {% endif %}
         </table>
       <!-- </div>
     </div>

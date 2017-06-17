@@ -54,13 +54,18 @@ def design(_id, plate=None):
                         .join(models.Well)\
                         .join(models.Plate).filter(models.Plate.name==plate)
 
-        ds = machine.get(wells, include=[design.name])
+        if wells.count() < 200:
 
-        assert not any(ds.meta[design.name].isnull())
+            ds = machine.get(wells, include=[design.name])
 
-        color = map(lambda x: ds.meta[design.name].unique().tolist().index(x), ds.meta[design.name])
+            assert not any(ds.meta[design.name].isnull())
 
-        return plotDataset(ds, 'design.html', color=ds.meta[design.name], values=values, design=design,
+            color = map(lambda x: ds.meta[design.name].unique().tolist().index(x), ds.meta[design.name])
+
+            return plotDataset(ds, 'design.html', color=ds.meta[design.name], values=values, design=design,
+                    searchform=searchform, plate=plate, designform=designform)
+
+        return render_template('design.html',  values=values, design=design,
                 searchform=searchform, plate=plate, designform=designform)
 
     else:

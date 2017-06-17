@@ -413,6 +413,7 @@ def experimentalDesign(_id, plate=None):
         wells = wells.join(models.Plate).filter(models.Plate.name==plate)
 
     ds = machine.get(wells, include=[ed.design.name])
+    ds.floor()
 
     return plotDataset(ds, "experimental-design.html", color=ds.meta[ed.design.name], wells=wells, experimentalDesign=ed, searchform=searchform)
     return render_template("experimental-design.html", wells=wells, experimentalDesign=ed, searchform=searchform)
@@ -425,7 +426,7 @@ def search():
     if request.method=='GET':
         return render_template("search.html", searchform=searchform)
     else:
-        groups = re.findall("(([0-9a-zA-Z -.]+)=([0-9a-zA-Z ,.-]+))", request.form['search'])
+        groups = re.findall("(([0-9a-zA-Z -._()]+)=([0-9a-zA-Z ,.-_()]+))", request.form['search'])
 
         kwargs = {}
         for _, k, v in groups:
@@ -515,7 +516,7 @@ def phenotype_create():
 
         phenotype = models.Phenotype(name=name, owner=current_user, wells=wells, designs=designs, project=project)
         phenotype.download_phenotype()
-        
+
         machine.session.add(phenotype)
         machine.session.commit()
 
