@@ -9,7 +9,9 @@ from sqlalchemy.exc import IntegrityError
 
 import pandas as pd
 
+import datetime
 import logging
+
 
 def create_plate_data_table(plate, core):
     """create a data_table for the provided plate, doing nothing if it already exists."""
@@ -22,7 +24,7 @@ def create_plate_data_table(plate, core):
     cols = [Column('id', Integer, primary_key=True), Column('time', Float)] + \
         [Column(str(wn), Float) for wn in well_numbers]
 
-    table = Table("_plate_data_%d"%plate.id,core.metadata,*cols)
+    table = Table("_plate_data_%d" % plate.id, core.metadata, *cols)
 
     # core.metadata.create_all(core.engine)
     table.create(core.engine)
@@ -33,39 +35,48 @@ def create_plate_data_table(plate, core):
 
     return table
 
-def add_experimental_design(core,project,design_name,design_value,*args,**kwargs):
+
+def add_experimental_design(core, project, design_name, design_value, *args, **kwargs):
     # check if design exists, create if needed
-    design = core.session.query(Design).filter(Design.name==design_name).one_or_none()
+    design = core.session.query(Design).filter(
+        Design.name == design_name).one_or_none()
     if not design:
         if not 'design_type' in kwargs:
-            logging.info("design %s does not exist, and no design_type is specified to create a new one. using str as default"%design_name)
-            design_type='str'
+            logging.info(
+                "design %s does not exist, and no design_type is specified to create a new one. using str as default" % design_name)
+            design_type = 'str'
         else:
             design_type = kwargs['design_type']
 
-        design = Design(name=design_name,type=design_type,project=project)
+        design = Design(name=design_name, type=design_type, project=project)
         core.session.add(design)
 
-    experimentalDesign = core.session.query(ExperimentalDesign).filter(ExperimentalDesign.design==design,ExperimentalDesign.value==design_value).one_or_none()
+    experimentalDesign = core.session.query(ExperimentalDesign).filter(
+        ExperimentalDesign.design == design, ExperimentalDesign.value == design_value).one_or_none()
 
     # check if design value exists, create if needed
     if experimentalDesign is None:
-        logging.info("ExperimentalDesign %s=%s does not exist, creating one"%(design_name, design_value))
-        experimentalDesign = ExperimentalDesign(design=design, value=design_value)
+        logging.info("ExperimentalDesign %s=%s does not exist, creating one" % (
+            design_name, design_value))
+        experimentalDesign = ExperimentalDesign(
+            design=design, value=design_value)
         core.session.add(experimentalDesign)
 
     # add design to wells
     for well in args:
-        if isinstance(well,Well):
+        if isinstance(well, Well):
             well.experimentalDesigns.append(experimentalDesign)
 
     # core.session.commit()
 
+
 class PlateCreate(PlateOperation):
 
-    argsKwargs = PlateOperation.argsKwargs + [('dataFile', 'data'), ('experimentalDesignFile', 'experimentalDesign'), ('timeColumn', None)]
+    argsKwargs = PlateOperation.argsKwargs + \
+        [('dataFile', 'data'), ('experimentalDesignFile',
+                                'experimentalDesign'), ('timeColumn', None)]
 
-    def __init__(self,core, project, plate, data=None, experimentalDesign=None, timeColumn=None, dataFile=None, experimentalDesignFile=None, **kwargs):
+    def __init__(self, core, project, plate, data=None, experimentalDesign=None, timeColumn=None, dataFile=None, experimentalDesignFile=None, **kwargs):
         PlateOperation.__init__(self, core, project, plate)
 
         self.data = data
@@ -83,7 +94,7 @@ class PlateCreate(PlateOperation):
 
         # put time column into index
         if not timeColumn is None:
-            self.data.index = self.data.iloc[:,timeColumn]
+            self.data.index = self.data.iloc[:, timeColumn]
             self.data = self.data.drop(timeColumn, 1)
 
         self.dataset = DataSet(self.data, self.meta)
@@ -94,30 +105,34 @@ class PlateCreate(PlateOperation):
             # logging.error("plate named %s already exists!"%(self.plate.name))
             return self.plate
 
-        self.plate = Plate(name=self.plateName, project=self.project)
+        now = datetime.datetime.now()
+
+        self.plate = Plate(name=self.plateName, project=self.project,
+                           submission_date=now, modified_date=now)
         self.core.session.add(self.plate)
         # self.core.session.commit()
 
         # data_columns = range(self.data.shape[1])
         # data_columns.remove(self.timeColumn)
 
-        wells = [Well(plate=self.plate,plate_number=n) for n in range(self.dataset.data.shape[1])]
+        wells = [Well(plate=self.plate, plate_number=n)
+                 for n in range(self.dataset.data.shape[1])]
         self.core.session.add_all(wells)
 
         # add experimental designs
         for c in self.dataset.meta.columns:
             for u in self.dataset.meta[c].unique():
                 select = self.dataset.meta[c] == u
-                temp = [w for w,s in zip(wells, select.tolist()) if s]
-                add_experimental_design(self.core, self.project,c,u,*temp)
+                temp = [w for w, s in zip(wells, select.tolist()) if s]
+                add_experimental_design(self.core, self.project, c, u, *temp)
 
         # add extra designs
-        for k,v in self.extraDesigns.iteritems():
-            add_experimental_design(self.core,k,v,*wells)
+        for k, v in self.extraDesigns.iteritems():
+            add_experimental_design(self.core, k, v, *wells)
 
         self.core.session.commit()
 
-        table = create_plate_data_table(self.plate,self.core)
+        table = create_plate_data_table(self.plate, self.core)
         # self.core.session.commit()
 
         # copy in data
@@ -130,10 +145,11 @@ class PlateCreate(PlateOperation):
             # newrow = dict([('time',self.data.iloc[i,0])] + [(str(j),self.data.iloc[i,j]) for j in data_columns])
             newrows.append(
                 dict(
-                        [('time',self.dataset.data.index[i])] +
-                        [(str(j),self.dataset.data.iloc[i,j]) for j in range(self.dataset.data.shape[1])]
-                    )
+                    [('time', self.dataset.data.index[i])] +
+                    [(str(j), self.dataset.data.iloc[i, j])
+                     for j in range(self.dataset.data.shape[1])]
+                )
             )
-        conn.execute(ins,newrows)
+        conn.execute(ins, newrows)
 
         return self.plate

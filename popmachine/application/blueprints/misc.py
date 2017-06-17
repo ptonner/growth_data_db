@@ -1,16 +1,21 @@
+"""
+Holding ground for unsorted urls, this should be empty soon!
+"""
+
 
 # from . import machine
 from popmachine import models
-from .forms import SearchForm, DesignForm, PhenotypeForm
-from .plot import plotDataset
-from ..phenotype import design_space
-from safeurl import is_safe_url
-# from security import ts
+from popmachine.phenotype import design_space
+from ..app import login_manager
+from ..forms import SearchForm, DesignForm, PhenotypeForm
+from ..plot import plotDataset
+from ..safeurl import is_safe_url
 
 import re
 import flask
+import datetime
 import pandas as pd
-from flask import current_app, render_template, request, jsonify, url_for, redirect, flash, session
+from flask import Blueprint, current_app, render_template, request, jsonify, url_for, redirect, flash, session
 from flask_login import LoginManager, login_user, login_required, logout_user, current_user
 
 from sqlalchemy import or_, not_
@@ -23,38 +28,37 @@ from bokeh.resources import INLINE
 from bokeh.util.string import encode_utf8
 from bokeh.palettes import Spectral11, viridis
 
-# machine = Machine()
-# login_manager = LoginManager()
+profile = Blueprint('misc', __name__, url_prefix='/')
 
 
 @login_manager.user_loader
 def load_user(user_id):
-    return machine.session.query(models.User).filter_by(id=user_id).one_or_none()
+    return current_app.machine.session.query(models.User).filter_by(id=user_id).one_or_none()
 
 
-@current_app.route('/')
+@profile.route('/')
 def index():
 
     if not current_user.is_authenticated:
-        projects = machine.session.query(
+        projects = current_app.machine.session.query(
             models.Project).filter_by(published=True).all()
-        plates = machine.session.query(models.Plate).join(
+        plates = current_app.machine.session.query(models.Plate).join(
             models.Project).filter(models.Project.published).all()
-        designs = machine.session.query(models.Design).join(
+        designs = current_app.machine.session.query(models.Design).join(
             models.Project).filter(models.Project.published).all()
 
-        phenotypes = machine.session.query(models.Phenotype).join(
+        phenotypes = current_app.machine.session.query(models.Phenotype).join(
             models.Project).filter(models.Project.published).all()
 
     else:
-        projects = machine.session.query(models.Project).filter(
+        projects = current_app.machine.session.query(models.Project).filter(
             or_(models.Project.owner == current_user, models.Project.published)).all()
-        plates = machine.session.query(models.Plate).join(
+        plates = current_app.machine.session.query(models.Plate).join(
             models.Project).filter(models.Project.owner == current_user).all()
-        designs = machine.session.query(models.Design).join(models.Project).filter(
+        designs = current_app.machine.session.query(models.Design).join(models.Project).filter(
             or_(models.Project.owner == current_user, models.Project.published)).all()
 
-        phenotypes = machine.session.query(models.Phenotype).join(models.Project).filter(
+        phenotypes = current_app.machine.session.query(models.Phenotype).join(models.Project).filter(
             or_(models.Project.owner == current_user, models.Project.published)).all()
 
     if len(projects) > 5:
@@ -71,32 +75,32 @@ def index():
     return render_template("index.html", projects=projects, plates=plates, designs=designs, phenotypes=phenotypes, searchform=searchform)
 
 
-@current_app.route('/bgreat')
+@profile.route('/bgreat')
 def bgreat():
     searchform = SearchForm()
     return render_template("bgreat.html", searchform=searchform)
 
 
-@current_app.route('/designs/')
+@profile.route('/designs/')
 def designs():
     if current_user.is_authenticated:
-        designs = machine.session.query(models.Design).join(models.Project).filter(
+        designs = current_app.machine.session.query(models.Design).join(models.Project).filter(
             or_(models.Project.published, models.Project.owner == current_user)).all()
     else:
-        designs = machine.session.query(models.Design).join(
+        designs = current_app.machine.session.query(models.Design).join(
             models.Project).filter(models.Project.published).all()
     searchform = SearchForm()
 
     return render_template("designs.html", designs=designs, searchform=searchform)
 
 
-@current_app.route('/design/<_id>', methods=['GET'])
-@current_app.route('/design/<_id>/<plate>')
+@profile.route('/design/<_id>', methods=['GET'])
+@profile.route('/design/<_id>/<plate>')
 def design(_id, plate=None):
     searchform = SearchForm()
     designform = DesignForm()
 
-    design = machine.session.query(models.Design)\
+    design = current_app.machine.session.query(models.Design)\
         .filter(models.Design.id == _id).one_or_none()
 
     designform.type.default = design.type
@@ -106,7 +110,7 @@ def design(_id, plate=None):
 
         designform.type.default = design.type
 
-        values = machine.session.query(models.ExperimentalDesign)\
+        values = current_app.machine.session.query(models.ExperimentalDesign)\
             .join(models.Design)\
             .filter(models.Design.id == _id)
 
@@ -123,7 +127,7 @@ def design(_id, plate=None):
                 .join(models.Well)\
                 .join(models.Plate).filter(models.Plate.name == plate)
 
-        ds = machine.get(wells, include=[design.name])
+        ds = current_app.machine.get(wells, include=[design.name])
 
         assert not any(ds.meta[design.name].isnull())
 
@@ -135,18 +139,18 @@ def design(_id, plate=None):
 
     else:
         design.type = request.form['type']
-        machine.session.commit()
+        current_app.machine.session.commit()
 
         return redirect(url_for('design.design', _id=design.id))
 
 
-@current_app.route('/design_edit/<_id>', methods=['GET', 'POST'])
+@profile.route('/design_edit/<_id>', methods=['GET', 'POST'])
 @login_required
 def design_edit(_id):
 
     searchform = SearchForm()
 
-    design = machine.session.query(models.Design)\
+    design = current_app.machine.session.query(models.Design)\
         .filter(models.Design.id == _id).one_or_none()
 
     class DynamicDesignForm(DesignForm):
@@ -174,15 +178,15 @@ def design_edit(_id):
         return redirect(url_for('design.design', _id=design.id))
 
 
-@current_app.route('/experimentaldesign/<_id>')
-@current_app.route('/experimentaldesign/<_id>/<plate>')
+@profile.route('/experimentaldesign/<_id>')
+@profile.route('/experimentaldesign/<_id>/<plate>')
 def experimentalDesign(_id, plate=None):
     searchform = SearchForm()
 
-    ed = machine.session.query(models.ExperimentalDesign)\
-                .filter(models.ExperimentalDesign.id == _id).one_or_none()
+    ed = current_app.machine.session.query(models.ExperimentalDesign)\
+        .filter(models.ExperimentalDesign.id == _id).one_or_none()
 
-    wells = machine.session.query(models.Well)\
+    wells = current_app.machine.session.query(models.Well)\
         .join(models.well_experimental_design)\
         .join(models.ExperimentalDesign)\
         .filter(models.ExperimentalDesign.id == _id)
@@ -190,14 +194,14 @@ def experimentalDesign(_id, plate=None):
     if not plate is None:
         wells = wells.join(models.Plate).filter(models.Plate.name == plate)
 
-    ds = machine.get(wells, include=[ed.design.name])
+    ds = current_app.machine.get(wells, include=[ed.design.name])
     ds.floor()
 
     return plotDataset(ds, "experimental-design.html", color=ds.meta[ed.design.name], wells=wells, experimentalDesign=ed, searchform=searchform)
     return render_template("experimental-design.html", wells=wells, experimentalDesign=ed, searchform=searchform)
 
 
-@current_app.route('/search/', methods=['GET', 'POST'])
+@profile.route('/search/', methods=['GET', 'POST'])
 def search():
 
     searchform = SearchForm()
@@ -215,10 +219,10 @@ def search():
             v = [z.strip().rstrip() for z in v]
             kwargs[k] = v
 
-        session['designs'] = [d.id for d in machine.session.query(
+        session['designs'] = [d.id for d in current_app.machine.session.query(
             models.Design).filter(models.Design.name.in_(kwargs.keys()))]
-        session['wells'] = [w.id for w in machine.filter(**kwargs)]
-        ds = machine.search(**kwargs)
+        session['wells'] = [w.id for w in current_app.machine.filter(**kwargs)]
+        ds = current_app.machine.search(**kwargs)
 
         # print ds.data.head()
 
@@ -239,11 +243,12 @@ def search():
             return plotDataset(ds, 'dataset.html', searchform=searchform)
 
 
-@current_app.route('/phenotype/<id>')
+@profile.route('/phenotype/<id>')
 def phenotype(id):
     searchform = SearchForm()
 
-    phenotype = machine.session.query(models.Phenotype).filter_by(id=id)
+    phenotype = current_app.machine.session.query(
+        models.Phenotype).filter_by(id=id)
     if not current_user.is_authenticated:
         phenotype = phenotype.join(models.Project).filter(
             models.Project.published)
@@ -256,40 +261,41 @@ def phenotype(id):
         flask.flash('no phenotype found or incorrect permissions!')
         return flask.redirect(url_for('misc.phenotypes'))
 
-    wells = machine.session.query(models.Well).filter(
+    wells = current_app.machine.session.query(models.Well).filter(
         models.Well.id.in_([w.id for w in phenotype.wells]))
-    ds = machine.get(wells, include=[d.name for d in phenotype.designs])
+    ds = current_app.machine.get(
+        wells, include=[d.name for d in phenotype.designs])
 
-    dsp = design_space.design_space(machine.session, phenotype)
+    dsp = design_space.design_space(current_app.machine.session, phenotype)
 
     values = {}
     for d in phenotype.designs:
-        q = machine.session.query(models.ExperimentalDesign)\
-                   .join(models.well_experimental_design)\
-                   .join(models.Well)\
-                   .filter(models.ExperimentalDesign.design == d)\
-                   .filter(models.Well.id.in_([w.id for w in wells]))
+        q = current_app.machine.session.query(models.ExperimentalDesign)\
+            .join(models.well_experimental_design)\
+            .join(models.Well)\
+            .filter(models.ExperimentalDesign.design == d)\
+            .filter(models.Well.id.in_([w.id for w in wells]))
 
         values[d.name] = q.all()
 
     return plotDataset(ds, 'phenotype.html', searchform=searchform, phenotype=phenotype, values=values, dsp=dsp, dataSet=ds)
 
 
-@current_app.route('/phenotypes')
+@profile.route('/phenotypes')
 def phenotypes():
     searchform = SearchForm()
     if not current_user.is_authenticated:
-        phenotypes = machine.session.query(models.Phenotype).join(
+        phenotypes = current_app.machine.session.query(models.Phenotype).join(
             models.Project).filter(models.Project.published).all()
 
     else:
-        phenotypes = machine.session.query(models.Phenotype).join(models.Project).filter(
+        phenotypes = current_app.machine.session.query(models.Phenotype).join(models.Project).filter(
             or_(models.Project.owner == current_user, models.Project.published)).all()
 
     return render_template('phenotypes.html', phenotypes=phenotypes, searchform=searchform)
 
 
-@current_app.route('/phenotype-create', methods=['GET', 'POST'])
+@profile.route('/phenotype-create', methods=['GET', 'POST'])
 @login_required
 def phenotype_create():
     searchform = SearchForm()
@@ -298,9 +304,9 @@ def phenotype_create():
     if request.method == 'GET':
         return render_template("phenotype-edit.html", searchform=searchform, form=phenotype_form, operation='create')
     else:
-        wells = machine.session.query(models.Well).filter(
+        wells = current_app.machine.session.query(models.Well).filter(
             models.Well.id.in_(session.pop('wells', None))).all()
-        designs = machine.session.query(models.Design).filter(
+        designs = current_app.machine.session.query(models.Design).filter(
             models.Design.id.in_(session.pop('designs', None))).all()
         name = request.form['name']
 
@@ -310,8 +316,8 @@ def phenotype_create():
             name=name, owner=current_user, wells=wells, designs=designs, project=project)
         phenotype.download_phenotype()
 
-        machine.session.add(phenotype)
-        machine.session.commit()
+        current_app.machine.session.add(phenotype)
+        current_app.machine.session.commit()
 
         return redirect(url_for('phenotype', id=phenotype.id))
 

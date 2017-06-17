@@ -9,7 +9,7 @@ login
 
 {% block content %}
 
-<form action="{{url_for('login')}}" method='POST' enctype="multipart/form-data">
+<form action="{{url_for('account.login')}}" method='POST' enctype="multipart/form-data">
   <div class="form-group">
     <label for="username">username</label>
     {{ form.name(size=12,placeholder="", class_="form-control") }}
@@ -26,5 +26,11 @@ login
      <span class="glyphicon glyphicon-log-in" aria-hidden="true"></span> log-in
   </button>
 </form>
+
+<a href='{{url_for("account.create_account")}}'>
+  <button type="submit" id="myButton" class="btn btn-default">
+     <span class="glyphicon glyphicon-user" aria-hidden="true"></span> Register
+  </button>
+</a>
 
 {% endblock %}

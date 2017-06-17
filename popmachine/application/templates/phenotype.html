@@ -6,10 +6,10 @@
 
 {% block controls %}
 <div class="btn-group-vertical" role="group" >
-  <a href='{{url_for("index")}}' role="button" class="btn btn-success btn-large">Edit</a>
+  <a href='{{url_for("misc.index")}}' role="button" class="btn btn-success btn-large">Edit</a>
   <a href='{{url_for("model.create", id=phenotype.id)}}' role="button" class="btn btn-primary btn-large">Model</a>
   <a href='{{url_for("model.create_test", id=phenotype.id)}}' role="button" class="btn btn-primary btn-large">Test</a>
-  <a href='{{url_for("index")}}' role="button" class="btn btn-danger btn-large">Delete</a>
+  <a href='{{url_for("misc.index")}}' role="button" class="btn btn-danger btn-large">Delete</a>
 </div>
 {% endblock %}
 

@@ -15,7 +15,7 @@
   {% else %}
   <a href='{{url_for('project.project_unpublish', projectid=project.id)}}' role="button" class="btn btn-primary btn-large">un-Publish</a>
   {% endif %}
-  <a href='{{url_for("index")}}' role="button" class="btn btn-danger btn-large">Delete</a>
+  <a href='{{url_for("misc.index")}}' role="button" class="btn btn-danger btn-large">Delete</a>
 </div>
 
 {% endblock %}

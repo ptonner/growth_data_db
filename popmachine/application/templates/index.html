@@ -21,14 +21,14 @@ home
     <p>
       <em>popmachine</em> is a comprehensive storage solution for microbial population growth data.
       <em>popmachine</em> accepts growth data from multiple measurement types, allows for arbitrary experimental designs, and implements the ability to define growth phentoypes for reference in publication.
-      Further, phenotypes can be modeled with the <a href="{{url_for('bgreat')}}">B-GREAT</a> method based on the non-parametric Gaussian process model.
+      Further, phenotypes can be modeled with the <a href="{{url_for('misc.bgreat')}}">B-GREAT</a> method based on the non-parametric Gaussian process model.
       In particular, <em>popmachine</em> provides a number of features for organizing, sharing, and analyzing microbial population growth data:
       <ul>
         <li>storage and organiziation of population growth data, with reliable identification for sharing with others</li>
         <li>a rich framework for defining experimental designs that can represent any growth dataset</li>
         <li>combine data across projects and labs by searching for key terms and experimental designs</li>
         <li>creation of growth phenotypes represented by data</li>
-        <li>analysis of data through non-parametric model Gaussian processes and the <a href="{{url_for('bgreat')}}">B-GREAT</a> method</li>
+        <li>analysis of data through non-parametric model Gaussian processes and the <a href="{{url_for('misc.bgreat')}}">B-GREAT</a> method</li>
         <li>easy download of data for further analysis</li>
         <!-- <li>a full web api for accessing data through the python programming language</li> -->
       </ul>
@@ -141,7 +141,7 @@ home
 {% endif %}
 
 {% if phenotypes %}
-  <h4>Phenotypes <small><a href="{{url_for('phenotypes')}}"> more </a></small> </h4>
+  <h4>Phenotypes <small><a href="{{url_for('misc.phenotypes')}}"> more </a></small> </h4>
 
   <!-- <div class="container"> -->
     <div class='row'>
