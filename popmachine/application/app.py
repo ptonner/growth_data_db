@@ -2,9 +2,10 @@ from flask import Flask
 from flask_mail import Mail
 from popmachine import Machine
 
-app = Flask('popmachine.application')
+app = Flask('popmachine.application', instance_relative_config=True)
 app.config.from_object('popmachine.application.config')
-app.secret_key = 'some_secret'
+app.config.from_pyfile('config.py')
+
 machine = Machine(app.config['DATABASE'])
 
 import blueprints
