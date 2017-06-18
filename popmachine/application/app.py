@@ -38,11 +38,11 @@ def create_app():
     mail.init_app(app)
     login_manager.init_app(app)
 
+    app.register_blueprint(blueprints.misc.profile)
     app.register_blueprint(blueprints.project.profile)
     app.register_blueprint(blueprints.plate.profile)
     app.register_blueprint(blueprints.design.profile)
     app.register_blueprint(blueprints.model.profile)
     app.register_blueprint(blueprints.account.profile)
-    app.register_blueprint(blueprints.misc.profile)
 
     return app

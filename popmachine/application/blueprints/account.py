@@ -19,9 +19,18 @@ def create_account():
     if form.validate_on_submit():
         if form.password.data != form.password_confirm.data:
             flask.flash('passwords do not match!')
-            return redirect(url_for('create_account'), method='GET')
+            return redirect(url_for('account.create_account'), method='GET')
 
-        # print type(form.password.data)
+        # check for existing username or emails
+        users = current_app.machine.session.query(models.User).filter(
+            or_(
+                models.User.username == form.username.data,
+                models.User.email == form.email.data,
+            )
+        )
+        if users.count() > 0:
+            flask.flash('account already exists with username and/or email!')
+            return redirect(url_for('account.create_account'), method='GET')
 
         user = models.User(
             name=form.name.data,
@@ -65,11 +74,11 @@ def confirm_email(token):
     try:
         email = current_app.ts.loads(
             token, salt="email-confirm-key", max_age=86400)
+
+        user = current_app.machine.session.query(models.User).filter_by(
+            email=email).one_or_none()
     except:
         abort(404)
-
-    user = current_app.machine.session.query(models.User).filter_by(
-        email=email).one_or_none()
 
     if user is None:
         flask.abort(404)
@@ -79,7 +88,7 @@ def confirm_email(token):
     current_app.machine.session.add(user)
     current_app.machine.session.commit()
 
-    return redirect(url_for('misc.signin'))
+    return redirect(url_for('misc.index'))
 
 
 @profile.route('/login', methods=['GET', 'POST'])
@@ -97,7 +106,7 @@ def login():
 
         if user is None or not user.is_correct_password(str(request.form['password'])):
             flask.flash('Incorrect username or password.')
-            return flask.redirect(flask.url_for('login', form=form, method='GET'))
+            return flask.redirect(flask.url_for('account.login', form=form, method='GET'))
 
         login_user(user)
 

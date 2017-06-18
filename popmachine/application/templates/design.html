@@ -76,7 +76,7 @@
     <tbody>
       {% for v in values %}
           <tr>
-            <td> <a href='{{url_for('experimentalDesign', _id=v.id)}}'>  {{ v.value }} </a> </td>
+            <td> <a href='{{url_for('misc.experimentalDesign', _id=v.id)}}'>  {{ v.value }} </a> </td>
             <td> {{ v.wells | length}} </td>
           </tr>
       {% endfor %}

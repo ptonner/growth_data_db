@@ -77,7 +77,7 @@ class Project(Base):
     id = Column(Integer, primary_key=True)
     name = Column(String, unique=True)
     nickname = Column(String(20), unique=True,
-                        doc='short name used from easy reference, searching')
+                      doc='short name used from easy reference, searching')
 
     owner_id = Column(Integer, ForeignKey('users.id'))
     owner = relationship("User", backref='projects')
@@ -160,13 +160,22 @@ class Well(Base):
     def __repr__(self):
         return "%d, %s" % (self.plate_number, self.plate.name)
 
+    @hybrid_property
     def organism(self):
+
+        json = self.organism_json()
+        if json:
+            return json['ScientificName']
+        return ""
+
+    def organism_json(self):
         from Bio import Entrez
         Entrez.email = 'popmachine.db@gmail.com'
         data = Entrez.read(Entrez.efetch(id='%d' %
                                          self.organism_id, db="taxonomy", retmode="xml"))
 
-        assert len(data) == 1, 'no record found or more than one found!'
+        if len(data) == 0:
+            return None
         data = data[0]
 
         return data
@@ -280,7 +289,8 @@ class Phenotype(Base):
     @hybrid_property
     def download_phenotype(self):
 
-        url = r'http://www.ebi.ac.uk/ols/api/ontologies/omp/terms/http%%253A%%252F%%252Fpurl.obolibrary.org%%252Fobo%%252FOMP_%s'%(self.omp_id)
+        url = r'http://www.ebi.ac.uk/ols/api/ontologies/omp/terms/http%%253A%%252F%%252Fpurl.obolibrary.org%%252Fobo%%252FOMP_%s' % (
+            self.omp_id)
         r = requests.get(url)
         if r.ok:
             self.omp_phenotype = r.json()
@@ -293,19 +303,22 @@ class Phenotype(Base):
 
 # determines which design variables are used as covariates for models
 design_covariates = Table('design_covariates', Base.metadata,
-                         Column('design_id', Integer,
-                                ForeignKey('designs.id')),
-                         Column('covariate_id', Integer, ForeignKey('covariates.id')),
-                         PrimaryKeyConstraint('design_id', 'covariate_id')
-                         )
+                          Column('design_id', Integer,
+                                 ForeignKey('designs.id')),
+                          Column('covariate_id', Integer,
+                                 ForeignKey('covariates.id')),
+                          PrimaryKeyConstraint('design_id', 'covariate_id')
+                          )
 
 # map covariates to models
 model_covariates = Table('model_covariates', Base.metadata,
                          Column('model_id', Integer,
                                 ForeignKey('models.id')),
-                         Column('covariate_id', Integer, ForeignKey('covariates.id')),
+                         Column('covariate_id', Integer,
+                                ForeignKey('covariates.id')),
                          PrimaryKeyConstraint('model_id', 'covariate_id')
                          )
+
 
 class Covariate(Base):
 
@@ -333,6 +346,7 @@ class Covariate(Base):
     def __repr__(self):
         return self.name
 
+
 class Model(Base):
 
     __tablename__ = 'models'
@@ -354,7 +368,6 @@ class Model(Base):
     phenotype_id = Column(Integer, ForeignKey('phenotypes.id'))
     phenotype = relationship('Phenotype', backref='models')
 
-
     # state of model training
     status = Column(Enum('unqueued', 'queued', 'training', 'trained', 'error'))
 
@@ -372,15 +385,18 @@ class Model(Base):
     def name(self):
         s = 'f(time)'
         for c in self.covariates:
-            s += '+ f(time, %s)'%c.name
+            s += '+ f(time, %s)' % c.name
         return s
 
     def difference(self, other):
         return [c for c in self.covariates if not c in other.covariates], [c for c in other.covariates if not c in self.covariates]
 
-# test for statistical significance between two models, e.g. B-GREAT bayes factor
+# test for statistical significance between two models, e.g. B-GREAT bayes
+# factor
+
+
 class Test(Base):
-    __tablename__='tests'
+    __tablename__ = 'tests'
     id = Column(Integer, primary_key=True)
 
     phenotype_id = Column(Integer, ForeignKey('phenotypes.id'))
@@ -390,7 +406,8 @@ class Test(Base):
     null_model = relationship('Model', foreign_keys=[null_model_id])
 
     alternative_model_id = Column(Integer, ForeignKey('models.id'))
-    alternative_model = relationship('Model',foreign_keys=[alternative_model_id])
+    alternative_model = relationship(
+        'Model', foreign_keys=[alternative_model_id])
 
     @hybrid_property
     def bayesFactor(self):

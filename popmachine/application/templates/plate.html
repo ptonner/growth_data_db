@@ -88,7 +88,7 @@
                       <td class='text-center'> <a href='{{url_for('design.design', _id=d.id, plate=plate.name)}}'> {{ d.name }} </a></td>
                       <td class='text-center'>
                         {% for ed in d.values|sort(attribute='value') %}
-                          <a href='{{url_for('experimentalDesign', _id=ed.id, plate=plate.name)}}'> {{ ed.value }} </a>,
+                          <a href='{{url_for('misc.experimentalDesign', _id=ed.id, plate=plate.name)}}'> {{ ed.value }} </a>,
                         {% endfor %}
                       </td>
                     </tr>

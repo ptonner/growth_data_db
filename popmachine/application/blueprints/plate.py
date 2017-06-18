@@ -1,10 +1,13 @@
 from ..forms import SearchForm, PlateCreate
-from popmachine import models
+from popmachine import models, bioscreen
 
 from sqlalchemy import not_, or_
 import flask
 from flask import Blueprint, current_app, render_template, redirect, url_for, request
 from flask_login import login_required, current_user
+from wtforms import SelectField
+
+import pandas as pd
 
 profile = Blueprint('plate', __name__)
 
@@ -98,8 +101,11 @@ def plate_create():
 
         if request.form['source'] == 'csv':
             plate = current_app.machine.createPlate(project, name, data, meta)
+        elif request.form['source'] == 'bioscreen':
+            data = bioscreen.parse(data)
+            plate = current_app.machine.createPlate(project, name, data, meta)
         else:
             flask.flash('only csv source supported currently!')
             pass
 
-        return redirect(url_for(plates))
+        return redirect(url_for('plate.plates'))

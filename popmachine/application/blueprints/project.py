@@ -120,27 +120,23 @@ def project_edit(projectid):
 def project_create():
 
     searchform = SearchForm()
-    form = ProjectForm()
+    form = ProjectForm(request.form)
 
-    if request.method == "GET":
-        return render_template("project-create.html", form=form, searchform=searchform)
-    else:
+    if form.validate_on_submit():
 
-        # print request.form
-
-        name = request.form['name']
-        description = request.form['description']
-        design = request.form['design']
-        published = 'published' in request.form and request.form['published']
-        citation = request.form['citation']
-        citation_pmid = request.form['citation_pmid']
+        name = form.name.data
+        description = form.description.data
+        design = form.design.data
+        citation = form.citation.data
+        citation_pmid = form.citation_pmid.data
 
         now = datetime.datetime.now()
 
-        project = models.Project(name=name, description=description, design=design, published=published, citation_text=citation,
+        project = models.Project(name=name, description=description, design=design, published=False, citation_text=citation,
                                  citation_pmid=citation_pmid, owner=current_user, submission_date=now, modified_date=now)
         current_app.machine.session.add(project)
         current_app.machine.session.commit()
 
         return redirect(url_for('project.project', projectid=project.id))
-    return redirect(url_for('project.project_create'))
+
+    return render_template("project-create.html", form=form, searchform=searchform)
