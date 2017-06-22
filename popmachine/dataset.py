@@ -203,6 +203,9 @@ class DataSet(object):
                 temp = temp - np.polyval(coeff,self.data.index.values[0])
                 self.data.loc[:,index] = temp
 
+    def filter(self):
+        """Remove data rows where observations are missing (in any column!)"""
+        self.data = self.data.loc[~self.data.isnull().any(1),:]
 
     def plot(self, columns=[], colorby=[], buff=.1):
 
