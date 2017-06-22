@@ -45,8 +45,12 @@ def get(session, metadata, engine, wells, include=[]):
                 design = session.query(Design).filter(Design.name==c).one()
                 ed = session.query(ExperimentalDesign).filter(\
                                              ExperimentalDesign.design==design,\
-                                             ExperimentalDesign.wells.contains(w)).one()
-                newmeta[-1].append(ed.get_value())
+                                             ExperimentalDesign.wells.contains(w)).one_or_none()
+
+                if ed:
+                    newmeta[-1].append(ed.get_value())
+                else:
+                    newmeta[-1].append(None)
 
         newmeta = pd.DataFrame(newmeta, columns = ['plate', 'number']+metacols)
         if meta is None:

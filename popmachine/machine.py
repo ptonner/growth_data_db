@@ -81,7 +81,7 @@ class Machine(Core):
         if isinstance(numbers, list) and len(numbers)>0:
             wells = wells.filter(Well.plate_number.in_(numbers))
 
-        wells = search.query.query(wells, **kwargs)
+        wells = search.query.query(wells, self, **kwargs)
 
         return wells
 
