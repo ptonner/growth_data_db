@@ -4,11 +4,14 @@ import pandas as pd
 
 
 def parse(data):
+    
+    # assert all(data.columns == ['Time', 'Blank'] + [str(i)
+    #                                                 for i in range(101, 301)]), 'columns to not match bioscreen!'
 
-    assert all(data.columns == ['Time', 'Blank'] + [str(i)
-                                                    for i in range(101, 301)]), 'columns to not match bioscreen!'
+    if 'Blank' in data.columns:
+        del data['Blank']
 
-    del data['Blank']
+    assert 'Time' in data.columns
     data['Time'] = convert_time(data['Time'])
 
     return data

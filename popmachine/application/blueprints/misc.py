@@ -114,7 +114,7 @@ def search():
         return render_template("search.html", searchform=searchform)
     else:
         groups = re.findall(
-            "(([0-9a-zA-Z -._()]+)=([0-9a-zA-Z ,.()]+))", request.form['search'])
+            "(([0-9a-zA-Z ._()-]+)=([0-9a-zA-Z ,.()-]+))", request.form['search'])
 
         print groups
 
@@ -127,28 +127,56 @@ def search():
 
         print kwargs
 
+        wells = current_app.machine.filter(**kwargs)
+
+        ds = None
+        if wells.count() == 0:
+            flash('No data found for search: %s' % str(kwargs))
+            return render_template("dataset.html", searchform=searchform)
+        elif len(wells.all())>1000:
+            flash('Too many wells in search, selecting first 1000')
+            wells = wells.limit(1000)
+            wells = wells.from_self()
+        #     session['designs'] = [d.id for d in current_app.machine.session.query(
+        #         models.Design).filter(models.Design.name.in_(kwargs.keys()))]
+        #     session['wells'] = [w.id for w in current_app.machine.filter(**kwargs)]
+        #     ds = current_app.machine.search(**kwargs)
+        #     return plotDataset(ds, 'dataset.html', searchform=searchform)
+        # else:
+        #     flash('Too many wells in search, selecting first 1000')
+        #     wells = wells[:1000]
+        #     return render_template("dataset.html", searchform=searchform)
+
         session['designs'] = [d.id for d in current_app.machine.session.query(
             models.Design).filter(models.Design.name.in_(kwargs.keys()))]
         session['wells'] = [w.id for w in current_app.machine.filter(**kwargs)]
-        ds = current_app.machine.search(**kwargs)
 
-        # print ds.data.head()
+        # ds = current_app.machine.search(**kwargs)
+        # ds = current_app.machine.get(wells, include=kwargs.keys())
+        ds = current_app.machine._get_intermediate(wells, **kwargs)
+        ds.floor()
 
-        if ds is None:
-            flash('No data found for search: %s' % str(kwargs))
-            return render_template("dataset.html", searchform=searchform)
-        else:
-            # color = None
-            # # if len(groups)>0:
-            # for k, v in kwargs.iteritems():
-            #     if str(k) in ['include', 'plates']:
-            #         continue
-            #     color = map(lambda x: ds.meta[k].unique().tolist().index(x), ds.meta[k])
-            #     break
+        return plotDataset(ds, 'dataset.html', searchform=searchform)
 
-            # return plotDataset(ds, 'dataset.html', searchform=searchform,
-            # dataset=ds)
-            return plotDataset(ds, 'dataset.html', searchform=searchform)
+        # return plotDataset(ds, 'dataset.html', searchform=searchform)
+        #
+        # # print ds.data.head()
+        #
+        # if ds is None:
+        #     flash('No data found for search: %s' % str(kwargs))
+        #     return render_template("dataset.html", searchform=searchform)
+        # else:
+        #     # color = None
+        #     # # if len(groups)>0:
+        #     # for k, v in kwargs.iteritems():
+        #     #     if str(k) in ['include', 'plates']:
+        #     #         continue
+        #     #     color = map(lambda x: ds.meta[k].unique().tolist().index(x), ds.meta[k])
+        #     #     break
+        #
+        #     # return plotDataset(ds, 'dataset.html', searchform=searchform,
+        #     # dataset=ds)
+        #     return plotDataset(ds, 'dataset.html', searchform=searchform)
 
 
 @profile.route('/phenotype/<id>')

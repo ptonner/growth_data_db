@@ -36,7 +36,7 @@ def get(session, metadata, engine, wells, include=[]):
         if data is None:
             data = newdata
         else:
-            data = pd.merge(data,newdata,on='time')
+            data = pd.merge(data,newdata,on='time', how='outer')
 
         newmeta = []
         for w in subwells:

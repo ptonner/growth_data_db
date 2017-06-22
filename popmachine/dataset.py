@@ -3,6 +3,29 @@ import numpy as np
 
 nan_or_zero = lambda x: np.isnan(x) or abs(x) < 1e-9
 
+def buildGroup(*args):
+    """build a tuple from the args, converting strings to tuple for concatenating"""
+
+    if len(args) == 0 or args == ():
+        return
+
+    a = args[0]
+    ret = buildGroup(*args[1:])
+
+    if isinstance(a, tuple):
+        a = a
+    elif isinstance(a,str) or isinstance(a, unicode):
+        a = (a,)
+    else:
+        raise ValueError('cannot handle argument %s of type %s'%(str(a), type(a)))
+
+    if ret:
+        return a + ret
+
+    return a
+
+
+
 class DataSet(object):
 
     @classmethod
@@ -153,3 +176,90 @@ class DataSet(object):
             x = (x-x.mean())/x.std()
 
         return x,y,effect,labels
+
+    def poly_scale(self,p,ind=5,groupby=None):
+        """Scale growth data by a polynomial of degree p, using the first ind datapoints, grouping by groupby."""
+
+        time = self.data.index.values[:ind]
+
+        if groupby is None:
+            #group = {(None,self.meta.index)}
+            for i in range(self.data.shape[1]):
+                temp = self.data.iloc[:,i]
+                od = temp.values[:ind]
+
+                coeff = np.polyfit(time,od,p)
+
+                temp = temp - np.polyval(coeff,self.data.index.values[0])
+                self.data.iloc[:,i] = temp
+        else:
+            group = self.meta.groupby(groupby)
+            for k,index in group.groups.iteritems():
+                temp = self.data.loc[:,index]
+                od = temp.values[:ind,:].ravel()
+
+                coeff = np.polyfit(time.tolist()*temp.shape[1],od,p)
+
+                temp = temp - np.polyval(coeff,self.data.index.values[0])
+                self.data.loc[:,index] = temp
+
+
+    def plot(self, columns=[], colorby=[], buff=.1):
+
+        import matplotlib.pyplot as plt
+
+        labels = set()
+
+        columnKey = colorKeys = []
+        if len(columns) > 0:
+            columnKeys = self.meta.groupby(columns).groups.keys()
+        if len(colorby) > 0:
+            colorKeys = self.meta.groupby(colorby).groups.keys()
+
+        g = self.meta.groupby(columns+colorby)
+        cmap = plt.get_cmap()
+
+        for i, ck in enumerate(columnKeys):
+
+            plt.subplot(1, len(columnKeys), i+1)
+            if len(columns) == 1:
+                plt.title(ck)
+            else:
+                plt.title(', '.join(ck))
+
+            for k, col in enumerate(colorKeys):
+
+                group = buildGroup(ck, col)
+                if group in g.groups:
+                    ind = g.get_group(group)
+
+                    f = 1.*(colorKeys.index(col) + buff) / (len(colorKeys) + 2*buff)
+                    c = cmap(f)
+
+                    if col in labels:
+                        plt.plot(self.data.index, self.data.iloc[:,ind.index],color=c)
+                    else:
+                        labels.add(col)
+
+                        l = ""
+                        if len(colorby) == 1:
+                            l += colorby[0]
+                        else:
+                            l += ', '.join(colorby)
+                        l+= ' = '
+                        if len(colorby) == 1:
+                            l += col
+                        else:
+                            l += ', '.join(col)
+
+                        # '%s=%s'%(', '.join(colorby), ', '.join(col))
+
+                        plt.plot(self.data.index, self.data.iloc[:,ind.index[0]], color=c, label=l)
+                        plt.plot(self.data.index, self.data.iloc[:,ind.index[1:]],color=c)
+
+            mi = self.data.min().min()
+            ma = self.data.max().max()
+            ran = ma - mi
+            plt.ylim(mi - .02*ran, ma + .02*ran)
+
+            plt.legend()

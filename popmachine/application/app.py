@@ -31,8 +31,9 @@ import blueprints
 def create_app():
 
     app = PopmachineFlask('popmachine.application',
-                          instance_relative_config=True)
-    app.config.from_pyfile('config.py')
+                          instance_relative_config=False)
+    # app.config.from_pyfile('config.py')
+    app.config.from_envvar('POPMACHINE_SETTINGS')
     app.setup_db()
 
     mail.init_app(app)

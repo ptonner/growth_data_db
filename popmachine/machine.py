@@ -52,6 +52,10 @@ class Machine(Core):
     def get(self,*args, **kwargs):
         return search.get.get(self.session, self.metadata, self.engine, *args, **kwargs)
 
+    def _get_intermediate(self, q, include=[], *args, **kwargs):
+
+        return search.get.get(self.session, self.metadata, self.engine, q, include=include+kwargs.keys())
+
     def filter(self, projects=[], plates=[], numbers=[], *args, **kwargs):
     # def filter(self, plates=[], numbers=[], *args, **kwargs):
         wells = self.session.query(Well)
