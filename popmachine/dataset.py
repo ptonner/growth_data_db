@@ -14,10 +14,12 @@ def buildGroup(*args):
 
     if isinstance(a, tuple):
         a = a
-    elif isinstance(a,str) or isinstance(a, unicode):
-        a = (a,)
     else:
-        raise ValueError('cannot handle argument %s of type %s'%(str(a), type(a)))
+        a = (a, )
+    # elif isinstance(a,str) or isinstance(a, unicode):
+    #     a = (a,)
+    # else:
+    #     raise ValueError('cannot handle argument %s of type %s'%(str(a), type(a)))
 
     if ret:
         return a + ret
@@ -207,62 +209,249 @@ class DataSet(object):
         """Remove data rows where observations are missing (in any column!)"""
         self.data = self.data.loc[~self.data.isnull().any(1),:]
 
-    def plot(self, columns=[], colorby=[], buff=.1):
+    def plot(self, columns=[], rows=[], colorby=[], buff=.1, colorLabels=True):
 
         import matplotlib.pyplot as plt
 
-        labels = set()
+        singleTerm = False
+        if len(columns) + len(rows) + len(colorby) == 1:
+            singleTerm = True
 
-        columnKey = colorKeys = []
+        cmap = plt.get_cmap()
+        labels = set()
+        g = self.meta.groupby(columns + rows + colorby)
+
+        # legend variables
+        handles = []
+        lines = []
+
+        axes = {}
+
+        columnKeys = rowKeys = colorKeys = []
         if len(columns) > 0:
             columnKeys = self.meta.groupby(columns).groups.keys()
+            ncol = len(columnKeys)
+        else:
+            ncol = 1
+
+        if len(rows) > 0:
+            rowKeys = self.meta.groupby(rows).groups.keys()
+            nrow = len(rowKeys)
+        else:
+            nrow = 1
+
         if len(colorby) > 0:
             colorKeys = self.meta.groupby(colorby).groups.keys()
 
-        g = self.meta.groupby(columns+colorby)
-        cmap = plt.get_cmap()
 
-        for i, ck in enumerate(columnKeys):
+        keys = g.groups.keys()
+        keys.sort()
+        for k in keys:
+        # for k, ind in g.groups.iteritems():
 
-            plt.subplot(1, len(columnKeys), i+1)
-            if len(columns) == 1:
-                plt.title(ck)
+            ind = g.get_group(k).index
+
+            cval = k[:len(columns)]
+            rval = k[len(columns):len(columns)+len(rows)]
+            colorval = k[len(columns)+len(rows):]
+
+            # this is only okay if there is more than one column contributing to keys
+            if not singleTerm:
+                if len(columns) == 1:
+                    cval = cval[0]
+                if len(rows) == 1:
+                    rval = rval[0]
+                if len(colorby) == 1:
+                    colorval = colorval[0]
+
+            i = j = 0
+            if len(columnKeys):
+                i = columnKeys.index(cval)
+            if len(rowKeys):
+                j = rowKeys.index(rval)
+
+            # ax = plt.subplot(nrow, ncol, j*ncol + i + 1)
+
+            if (j, i) in axes:
+                #plt.axis(axes[(i,j)])
+                ax = axes[(j,i)]
             else:
-                plt.title(', '.join(ck))
+                ax = plt.subplot2grid((nrow+1, ncol + 1), (j+1, i+1))
+                axes[(j,i)] = ax
 
-            for k, col in enumerate(colorKeys):
+            title = ""
+            if i == 0:
 
-                group = buildGroup(ck, col)
-                if group in g.groups:
-                    ind = g.get_group(group)
+                if len(rows) > 1:
+                    s = ['%s = %s'%(r, str(v)) for r,v in zip(rows, rval)]
+                    title +=  ', '.join(s)
+                    title += ' | '
+                elif len(rows) == 1:
+                    title +=  '%s' % (str(rval))
+                    title += ' | '
 
-                    f = 1.*(colorKeys.index(col) + buff) / (len(colorKeys) + 2*buff)
-                    c = cmap(f)
+            if len(columns) > 1:
+                s = ['%s = %s'%(r, str(v)) for r,v in zip(columns, cval)]
+                title +=  ', '.join(s)
+            elif len(columns) == 1:
+                title +=  '%s' % (str(cval))
 
-                    if col in labels:
-                        plt.plot(self.data.index, self.data.iloc[:,ind.index],color=c)
+            #plt.title(title)
+            # ax.set_title(title)
+
+            if len(colorby):
+                f = 1.*(colorKeys.index(colorval) + buff) / (len(colorKeys) + 2*buff)
+                c = cmap(f)
+
+                if colorval in labels:
+                    # plt.plot(self.data.index, self.data.iloc[:,ind],color=c)
+                    ax.plot(self.data.index, self.data.iloc[:,ind],color=c)
+                else:
+                    labels.add(colorval)
+
+                    l = ""
+                    if len(colorby) == 1:
+                        l += colorby[0]
                     else:
-                        labels.add(col)
+                        l += ', '.join(colorby)
+                    l+= ' = '
+                    if len(colorby) == 1:
+                        l += str(colorval)
+                    else:
+                        l += ', '.join(map(str, colorval))
 
-                        l = ""
-                        if len(colorby) == 1:
-                            l += colorby[0]
-                        else:
-                            l += ', '.join(colorby)
-                        l+= ' = '
-                        if len(colorby) == 1:
-                            l += col
-                        else:
-                            l += ', '.join(col)
+                    # '%s=%s'%(', '.join(colorby), ', '.join(col))
 
-                        # '%s=%s'%(', '.join(colorby), ', '.join(col))
-
-                        plt.plot(self.data.index, self.data.iloc[:,ind.index[0]], color=c, label=l)
-                        plt.plot(self.data.index, self.data.iloc[:,ind.index[1:]],color=c)
+                    # plt.plot(self.data.index, self.data.iloc[:,ind[0]], color=c, label=l)
+                    # plt.plot(self.data.index, self.data.iloc[:,ind[1:]],color=c)
+                    ax.plot(self.data.index, self.data.iloc[:,ind[0]], color=c, label=l)
+                    ax.plot(self.data.index, self.data.iloc[:,ind[1:]],color=c)
+            else:
+                # plt.plot(self.data.index, self.data.iloc[:,ind])
+                ax.plot(self.data.index, self.data.iloc[:,ind])
 
             mi = self.data.min().min()
             ma = self.data.max().max()
             ran = ma - mi
-            plt.ylim(mi - .02*ran, ma + .02*ran)
+            # plt.ylim(mi - .02*ran, ma + .02*ran)
+            ax.set_ylim(mi - .02*ran, ma + .02*ran)
 
-            plt.legend()
+            for h, l in zip(*ax.get_legend_handles_labels()):
+                if not h in handles:
+                    handles += [h]
+                    lines += [l]
+
+            #if colorLabels:
+            #    plt.legend()
+
+        for i, c in enumerate(columnKeys):
+            ax = plt.subplot2grid((nrow+1, ncol + 1), (0, i+1))
+            ax.text(0.5,0.5,c,horizontalalignment='center')
+            ax.set_axis_off()
+
+
+        for i, r in enumerate(rowKeys):
+            ax = plt.subplot2grid((nrow+1, ncol + 1), (i+1,0))
+            ax.text(0.5,0.5,r,horizontalalignment='center')
+            ax.set_axis_off()
+
+        if colorLabels:
+            # ax = plt.subplot(nrow, ncol, 1)
+            ax = plt.subplot2grid((nrow+1, ncol + 1), (0, 0))
+            ax.legend(handles, lines)
+            ax.set_axis_off()
+
+
+    # def plot(self, columns=[], rows=[], colorby=[], buff=.1):
+    #
+    #     import matplotlib.pyplot as plt
+    #
+    #     labels = set()
+    #
+    #     columnKeys = rowKeys = colorKeys = []
+    #     if len(columns) > 0:
+    #         columnKeys = self.meta.groupby(columns).groups.keys()
+    #         ncol = len(columnKeys)
+    #     else:
+    #         ncol = 1
+    #
+    #     if len(rows) > 0:
+    #         rowKeys = self.meta.groupby(rows).groups.keys()
+    #         nrow = len(rowKeys)
+    #     else:
+    #         nrow = 1
+    #
+    #     if len(colorby) > 0:
+    #         colorKeys = self.meta.groupby(colorby).groups.keys()
+    #
+    #     g = self.meta.groupby(columns+rows+colorby)
+    #     cmap = plt.get_cmap()
+    #
+    #     # for i, ck in enumerate(columnKeys):
+    #     #     for j, ck in enumerate(rowKeys):
+    #     for i in range(ncol):
+    #         for j in range(nrow):
+    #
+    #             ck = rk = ()
+    #             if len(columnKeys):
+    #                 ck = columnKeys[i]
+    #             if len(rowKeys):
+    #                 cr = rowKeys[j]
+    #
+    #             plt.subplot(nrow, ncol,  ncol*j + i + 1)
+    #
+    #             title = ""
+    #             if i == 0:
+    #
+    #                 if len(rows) > 1:
+    #                     s = ['%s = %s'%(r, str(v)) for r,v in zip(rows, rowKeys[j])]
+    #                     title +=  ', '.join(s)
+    #                     title += ' | '
+    #                 elif len(rows) == 1:
+    #                     title +=  '%s = %s' % (rows[0], str(rowKeys[j]))
+    #                     title += ' | '
+    #
+    #             if len(columns) > 1:
+    #                 s = ['%s = %s'%(r, str(v)) for r,v in zip(columns, columnKeys[i])]
+    #                 title +=  ', '.join(s)
+    #             elif len(columns) == 1:
+    #                 title +=  '%s = %s' % (columns[0], str(columnKeys[j]))
+    #
+    #             for k, col in enumerate(colorKeys):
+    #
+    #                 group = buildGroup(ck, cr, col)
+    #                 if group in g.groups:
+    #                     ind = g.get_group(group)
+    #
+    #                     f = 1.*(colorKeys.index(col) + buff) / (len(colorKeys) + 2*buff)
+    #                     c = cmap(f)
+    #
+    #                     if col in labels:
+    #                         plt.plot(self.data.index, self.data.iloc[:,ind.index],color=c)
+    #                     else:
+    #                         labels.add(col)
+    #
+    #                         l = ""
+    #                         if len(colorby) == 1:
+    #                             l += colorby[0]
+    #                         else:
+    #                             l += ', '.join(colorby)
+    #                         l+= ' = '
+    #                         if len(colorby) == 1:
+    #                             l += str(col)
+    #                         else:
+    #                             l += ', '.join(map(str, col))
+    #
+    #                         # '%s=%s'%(', '.join(colorby), ', '.join(col))
+    #
+    #                         plt.plot(self.data.index, self.data.iloc[:,ind.index[0]], color=c, label=l)
+    #                         plt.plot(self.data.index, self.data.iloc[:,ind.index[1:]],color=c)
+    #                 else:
+    #                     print group
+    #
+    #             mi = self.data.min().min()
+    #             ma = self.data.max().max()
+    #             ran = ma - mi
+    #             plt.ylim(mi - .02*ran, ma + .02*ran)
+    #
+    #             plt.legend()
